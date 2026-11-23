@@ -34,6 +34,11 @@ import { useTheme } from "../context/ThemeContext";
 import CharacterAvatarPreview from "./CharacterAvatarPreview";
 import { clearThreadsLocalConnection } from "../utils/threadsApi";
 import CreateBestPostView from "./CreateBestPostView";
+import FunnelConceptView from "../features/funnelworks/FunnelConceptView";
+import type { FunnelConcept } from "../features/funnelworks/FunnelConceptView";
+import { downloadSlidePng } from "../features/funnelworks/carouselExport";
+import { downloadPlaybookPdf } from "../features/funnelworks/playbookExport";
+import { downloadCarouselZip } from "../features/funnelworks/carouselZip";
 
 interface DashboardViewProps {
   profile: UserProfile | null;
@@ -59,6 +64,44 @@ export default function DashboardView({
     setPostsToCreate
   } = useContentPersistence();
   const [activeAppId, setActiveAppId] = useState<string | null>(null);
+  const [approvedFunnelConcept, setApprovedFunnelConcept] = useState<FunnelConcept | null>(null);
+  const [generatedFunnel, setGeneratedFunnel] = useState<any>(null);
+  const [funnelLoading, setFunnelLoading] = useState(false);
+  const [savedFunnels, setSavedFunnels] = useState<any[]>([]);
+  const [funnelError, setFunnelError] = useState<string | null>(null);
+
+  const loadSavedFunnels = async () => {
+    if (!auth.currentUser) return;
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const response = await fetch("/api/funnelworks/projects", { headers: { Authorization: `Bearer ${token}` } });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not load projects.");
+      setSavedFunnels(data.projects || []);
+    } catch (error: any) { setFunnelError(error.message); }
+  };
+
+  const generateFunnel = async () => {
+    if (!approvedFunnelConcept || !auth.currentUser || funnelLoading) return;
+    setFunnelLoading(true);
+    setFunnelError(null);
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const response = await fetch("/api/funnelworks/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ concept: approvedFunnelConcept })
+      });
+      const data = await response.json();
+      if (!response.ok || !data.funnel) throw new Error(data.error || "Generation failed");
+      setGeneratedFunnel(data.funnel);
+      setSavedFunnels(previous => [data.funnel, ...previous]);
+    } catch (error: any) {
+      setFunnelError(error?.message || "Generation failed. Please try again.");
+    } finally { setFunnelLoading(false); }
+  };
+
+
 
   // Listen for canonical Workspace navigation to always return to Workspace app list
   useEffect(() => {
@@ -118,6 +161,17 @@ export default function DashboardView({
   };
 
   const creatorAppsList = [
+    {
+      id: "funnelworks",
+      name: "FunnelWorks",
+      tagline: "Turn content into a product",
+      description: "Plan a carousel, playbook, social campaign, and storefront offer from one idea.",
+      category: "PRODUCT CREATION",
+      badge: "New",
+      icon: Layers,
+      isCore: false,
+      actionType: "internal" as const
+    },
     {
       id: "create-best-post",
       name: "Create Best Post",
@@ -196,6 +250,31 @@ export default function DashboardView({
 
 
 
+
+  if (activeAppId === "funnelworks") {
+    return (
+      <div className="space-y-5 animate-fade-in pb-8 max-w-5xl mx-auto">
+        <button type="button" onClick={() => setActiveAppId(null)} className="text-sm text-text-secondary hover:text-text-primary">← Back to Workspace</button>
+        <div className="flex flex-wrap gap-3 items-center">
+          <button type="button" onClick={loadSavedFunnels} className="rounded-lg border border-border-primary px-4 py-2 text-sm text-text-primary">Load saved funnels</button>
+          {savedFunnels.length > 0 && <select aria-label="Saved funnel projects" defaultValue="" onChange={e => { const selected = savedFunnels.find(f => f.id === e.target.value); if (selected) { setGeneratedFunnel(selected); setApprovedFunnelConcept({ source: selected.sourceTopic || "Saved funnel", audience: "Saved project", outcome: selected.storefront?.productTitle || "Saved product", title: selected.storefront?.productTitle || "Saved product", goal: selected.goal, theme: selected.theme }); } }} className="rounded-lg border border-border-primary bg-bg-card px-3 py-2 text-sm text-text-primary">
+            <option value="">Select saved funnel</option>
+            {savedFunnels.map(f => <option key={f.id} value={f.id}>{f.storefront?.productTitle || f.id}</option>)}
+          </select>}
+        </div>
+        <FunnelConceptView onApprove={(concept) => { setApprovedFunnelConcept(concept); setGeneratedFunnel(null); setFunnelError(null); }} disabled={funnelLoading} />
+        {approvedFunnelConcept && (
+          <div className="rounded-xl border border-border-primary bg-bg-card p-5 space-y-2" role="status">
+            <h3 className="font-semibold text-text-primary">Product concept approved</h3>
+            <p className="text-sm text-text-secondary">{approvedFunnelConcept.title} — {approvedFunnelConcept.outcome}</p>
+            {!generatedFunnel && <button type="button" disabled={funnelLoading} onClick={generateFunnel} className="mt-3 rounded-xl bg-purple-600 px-4 py-2 text-white text-sm disabled:opacity-50">{funnelLoading ? "Generating your funnel..." : "Generate complete funnel"}</button>}
+            {funnelError && <p role="alert" className="text-sm text-red-400">{funnelError}</p>}
+            {generatedFunnel && <div className="space-y-3"><p className="text-sm text-green-400">Funnel ready. Download your carousel images and playbook.</p><button type="button" onClick={() => downloadCarouselZip(generatedFunnel).catch((err) => setFunnelError(err.message))} className="rounded-lg bg-purple-600 px-4 py-2 text-sm text-white">Download all 7 PNGs (ZIP)</button> <button type="button" onClick={() => downloadPlaybookPdf(generatedFunnel).catch((err) => setFunnelError(err.message))} className="rounded-lg bg-purple-600 px-4 py-2 text-sm text-white">Download playbook PDF</button><h4 className="font-semibold text-text-primary">{generatedFunnel.storefront?.productTitle}</h4><div className="grid gap-3 md:grid-cols-2">{(generatedFunnel.slides || []).map((slide: any, index: number) => <div key={index} className="rounded-xl border border-border-primary p-4"><p className="text-xs text-text-muted">Slide {index + 1}</p><h5 className="font-semibold text-text-primary">{slide.headline}</h5><p className="text-sm text-text-secondary">{slide.body}</p><button type="button" className="mt-3 rounded-lg border border-border-primary px-3 py-2 text-xs text-text-primary hover:bg-bg-card-hover" onClick={() => downloadSlidePng(slide, generatedFunnel.theme).catch((err) => setFunnelError(err.message))}>Download PNG</button></div>)}</div></div>}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   if (activeAppId === "create-best-post") {
     return (
