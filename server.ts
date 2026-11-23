@@ -17,6 +17,7 @@ import {
 import { CONTENT_GENERATOR_RULEBOOK, MULTI_POST_HOOK_OPTIMIZATION_SYSTEM, CONTENT_PILLARS_DEFINITIONS, calculateRecommendedPillar } from "./rulebook";
 import { buildRobotsTxt, buildSitemapXml, getPublicMarketingRoute } from "./src/marketing/marketingRoutes";
 import { renderNoIndexAppShellHtml, renderPublicRouteHtml } from "./server/seoPrerender";
+import { createFunnelworksRouter } from "./server/funnelworksRoutes";
 import express from "express";
 import path from "path";
 import { GoogleGenAI, Type } from "@google/genai";
@@ -317,6 +318,7 @@ const adminApp = getApps().length === 0
 
 const serverDb = getFirestore(adminApp, databaseId);
 const serverAuth = getAuth(adminApp);
+app.use("/api/funnelworks", createFunnelworksRouter(serverDb, serverAuth));
 
 // Registry & Cache In-Memory and Local Disk Persistence Layer
 const inMemoryScheduledPosts = new Map<string, any>();
