@@ -1,0 +1,888 @@
+{
+  "phase": 8,
+  "title": "Cash Machine AI - Live User Testing & Intelligence Optimization",
+  "version": "1.0",
+  "status": "Master Live Learning & Optimization Specification",
+  "purpose": "Take the integrated and deployed Cash Machine AI system from Phase 7 into structured real-world testing. Phase 8 uses real user behavior, real business situations, real execution, and real outcomes to identify where the system is useful, where it fails, where users experience friction, and where the intelligence should be improved. Phase 8 is an optimization layer, not an uncontrolled rewrite of the system.",
+  "system_identity": {
+    "cash_machine": "The knowledge.",
+    "cash_machine_ai": "The intelligence.",
+    "threadsworks": "The execution environment.",
+    "phase_8_role": "Observe how the integrated system performs in real use, capture evidence, identify patterns, test proposed improvements, and strengthen the system through controlled iteration."
+  },
+  "phase_relationship": {
+    "phase_3": "Provides the structured knowledge being used in production.",
+    "phase_4": "Provides the intelligence, diagnostic architecture, decision rules, and operating system.",
+    "phase_5": "Provides the runtime implementation specification.",
+    "phase_6": "Provides pre-production validation and regression standards.",
+    "phase_7": "Provides the integrated production product and deployment architecture.",
+    "phase_8": "Uses real-world evidence to optimize the deployed system while preserving validation discipline."
+  },
+  "core_principle": "Real users are evidence, not automatic authority. A single user interaction should not rewrite the intelligence. Improvements should be based on repeated patterns, meaningful evidence, controlled testing, and successful validation.",
+  "master_live_loop": [
+    "User Problem",
+    "Context",
+    "Diagnosis",
+    "Recommendation",
+    "Action",
+    "ThreadsWorks Execution",
+    "Result",
+    "User Feedback",
+    "Evidence",
+    "Pattern Detection",
+    "Hypothesis",
+    "Controlled Improvement",
+    "Validation",
+    "Production Update",
+    "New Observation"
+  ],
+  "business_learning_loop": [
+    "Market",
+    "Buyer",
+    "Problem",
+    "Positioning",
+    "Offer",
+    "Marketing",
+    "Leads",
+    "Prospects",
+    "Conversations",
+    "Presentation",
+    "Objections",
+    "Close",
+    "Delivery",
+    "Retention",
+    "Measurement",
+    "Diagnosis",
+    "Improvement",
+    "Repeat"
+  ],
+  "optimization_principles": [
+    {
+      "id": "P8-01",
+      "principle": "Observe Before Changing",
+      "rule": "Understand the actual failure or opportunity before modifying the system."
+    },
+    {
+      "id": "P8-02",
+      "principle": "Evidence Over Anecdote",
+      "rule": "Prefer repeated or materially supported patterns over isolated user reactions."
+    },
+    {
+      "id": "P8-03",
+      "principle": "Improve The Bottleneck",
+      "rule": "Prioritize changes that address the most consequential weakness in the user or system journey."
+    },
+    {
+      "id": "P8-04",
+      "principle": "Do Not Optimize For Engagement Alone",
+      "rule": "User activity is useful evidence, but business usefulness and successful outcomes matter more."
+    },
+    {
+      "id": "P8-05",
+      "principle": "Separate Product Friction From Intelligence Failure",
+      "rule": "A user failing to complete an action does not automatically mean the recommendation or diagnosis was wrong."
+    },
+    {
+      "id": "P8-06",
+      "principle": "Preserve Source Integrity",
+      "rule": "Real-world learning may improve interpretation and implementation but must not rewrite what the original source actually says."
+    },
+    {
+      "id": "P8-07",
+      "principle": "Validate Before Production Change",
+      "rule": "Material changes to intelligence, routing, or runtime behavior must pass appropriate validation before becoming production behavior."
+    },
+    {
+      "id": "P8-08",
+      "principle": "Do Not Learn From Noise",
+      "rule": "Temporary anomalies, ambiguous feedback, and low-quality evidence should not drive system changes."
+    },
+    {
+      "id": "P8-09",
+      "principle": "Optimize For User Progress",
+      "rule": "The ultimate objective is helping users move from problem to decision to action to measurable improvement."
+    },
+    {
+      "id": "P8-10",
+      "principle": "Keep The System Coherent",
+      "rule": "Improvements should strengthen the complete Knowledge → Intelligence → Execution → Measurement loop rather than creating disconnected features."
+    }
+  ],
+  "live_testing_objectives": [
+    "Determine whether users can reach first value.",
+    "Determine whether diagnosis reflects the user's actual situation.",
+    "Determine whether recommendations are understandable and actionable.",
+    "Determine whether users can turn recommendations into concrete outputs.",
+    "Determine whether ThreadsWorks execution is correctly connected.",
+    "Determine whether users can understand and use resulting measurements.",
+    "Identify recurring user confusion.",
+    "Identify recurring diagnostic failures.",
+    "Identify recurring recommendation failures.",
+    "Identify execution friction.",
+    "Identify useful patterns in real business outcomes.",
+    "Determine which improvements deserve controlled testing.",
+    "Create a disciplined path from observation to validated production improvement."
+  ],
+  "user_testing_stages": [
+    {
+      "stage": 1,
+      "name": "First Value",
+      "question": "Can a new user understand what to do and receive useful value quickly?",
+      "observe": [
+        "Onboarding completion",
+        "First diagnosis",
+        "First useful output",
+        "User confusion",
+        "Abandonment points"
+      ]
+    },
+    {
+      "stage": 2,
+      "name": "Diagnosis",
+      "question": "Does the system correctly understand the user's situation?",
+      "observe": [
+        "Diagnostic domain",
+        "Questions asked",
+        "Evidence used",
+        "Diagnosis",
+        "Confidence",
+        "User confirmation or correction"
+      ]
+    },
+    {
+      "stage": 3,
+      "name": "Recommendation",
+      "question": "Does the next best action actually make sense for the user's situation?",
+      "observe": [
+        "Action relevance",
+        "Reason clarity",
+        "Actionability",
+        "User acceptance",
+        "User modification",
+        "User rejection"
+      ]
+    },
+    {
+      "stage": 4,
+      "name": "Execution",
+      "question": "Can the user turn the recommendation into completed work?",
+      "observe": [
+        "Output creation",
+        "ThreadsWorks handoff",
+        "Execution completion",
+        "Execution errors",
+        "Manual work required"
+      ]
+    },
+    {
+      "stage": 5,
+      "name": "Outcome",
+      "question": "Did the action create meaningful progress?",
+      "observe": [
+        "Relevant metrics",
+        "User-reported outcome",
+        "Business outcome",
+        "Unexpected effects",
+        "Next bottleneck"
+      ]
+    },
+    {
+      "stage": 6,
+      "name": "Return",
+      "question": "Does the system remain useful after the first interaction?",
+      "observe": [
+        "Repeat diagnosis",
+        "Repeat execution",
+        "Measurement review",
+        "Improvement actions",
+        "Longer-term usage"
+      ]
+    }
+  ],
+  "testing_participants": {
+    "principle": "Test across meaningful variations in user situation rather than only testing one ideal user.",
+    "useful_variations": [
+      "Different business types",
+      "Different offers",
+      "Different audience sizes",
+      "Different levels of sales experience",
+      "Different acquisition channels",
+      "Users with no sales",
+      "Users with first sales",
+      "Users with existing customers",
+      "Users experiencing declining sales",
+      "Users attempting to scale"
+    ],
+    "rule": "Participant variation should be used to determine whether the system generalizes across business situations that the Cash Machine architecture is intended to address."
+  ],
+  "live_test_scenarios": [
+    {
+      "id": "LIVE-001",
+      "scenario": "User has attention but no sales.",
+      "test": "Determine whether the system distinguishes attention from conversations, trust, offer clarity, and conversion."
+    },
+    {
+      "id": "LIVE-002",
+      "scenario": "User wants more followers.",
+      "test": "Determine whether the system diagnoses the underlying business constraint instead of automatically prescribing follower tactics."
+    },
+    {
+      "id": "LIVE-003",
+      "scenario": "User does not know what to sell.",
+      "test": "Determine whether the system moves through problem, buyer, demand, desired outcome, and willingness-to-pay logic."
+    },
+    {
+      "id": "LIVE-004",
+      "scenario": "User gets leads but no customers.",
+      "test": "Determine whether the system investigates qualification, conversations, offer, trust, objections, and conversion."
+    },
+    {
+      "id": "LIVE-005",
+      "scenario": "User loses prospects after price is presented.",
+      "test": "Determine whether the system investigates value, risk, positioning, offer clarity, proof, and price rather than automatically recommending a discount."
+    },
+    {
+      "id": "LIVE-006",
+      "scenario": "User's sales suddenly decline.",
+      "test": "Determine whether the system compares relevant metrics and identifies the changed constraint."
+    },
+    {
+      "id": "LIVE-007",
+      "scenario": "User has sales but cannot scale.",
+      "test": "Determine whether the system identifies the limiting capacity, acquisition economics, fulfillment, process, or operational constraint."
+    },
+    {
+      "id": "LIVE-008",
+      "scenario": "User wants to automate sales.",
+      "test": "Determine whether the system distinguishes repeatable work from judgment-heavy work and applies standardize-before-automate logic."
+    },
+    {
+      "id": "LIVE-009",
+      "scenario": "User makes a first sale.",
+      "test": "Determine whether the system captures evidence and converts the experience into learning and improvement."
+    },
+    {
+      "id": "LIVE-010",
+      "scenario": "User reaches 10 customers.",
+      "test": "Determine whether the system shifts from first-sale learning toward repeatability, retention, economics, and controlled growth."
+    }
+  ],
+  "diagnostic_accuracy_program": {
+    "purpose": "Measure whether the AI's diagnosis matches the user's actual business constraint.",
+    "evaluation_dimensions": [
+      "Correct diagnostic domain",
+      "Relevant questions",
+      "Evidence quality",
+      "Bottleneck identification",
+      "Alternative hypotheses considered",
+      "Confidence calibration",
+      "User confirmation",
+      "Outcome consistency"
+    ],
+    "process": [
+      "Record the initial user situation.",
+      "Record the AI diagnosis.",
+      "Record the user's correction or confirmation.",
+      "Observe the recommended action.",
+      "Observe the result.",
+      "Determine whether the diagnosis remains supported.",
+      "Classify the outcome.",
+      "Aggregate repeated patterns."
+    ],
+    "diagnosis_labels": [
+      "Correct",
+      "Mostly Correct",
+      "Incomplete",
+      "Incorrect",
+      "Insufficient Evidence",
+      "Unclear"
+    ]
+  },
+  "recommendation_quality_program": {
+    "purpose": "Determine whether the system's recommended next action is useful after diagnosis.",
+    "evaluation_dimensions": [
+      "Diagnostic alignment",
+      "Relevance",
+      "Clarity",
+      "Actionability",
+      "Effort appropriateness",
+      "Output quality",
+      "Execution compatibility",
+      "Expected impact",
+      "Measurement clarity"
+    ],
+    "success_definition": "A recommendation is successful when it addresses the diagnosed constraint, the user understands what to do, the action can reasonably be completed, and the resulting evidence helps determine whether the intervention worked."
+  },
+  "user_feedback_system": {
+    "feedback_types": [
+      "Explicit feedback",
+      "Correction",
+      "Acceptance",
+      "Rejection",
+      "Modification",
+      "Abandonment",
+      "Completion",
+      "Repeat use",
+      "Outcome data"
+    ],
+    "feedback_questions": [
+      "Was this diagnosis accurate?",
+      "Did this recommendation address your actual problem?",
+      "Was the next action clear?",
+      "Were you able to complete it?",
+      "What did you change?",
+      "What happened after you executed it?",
+      "What was confusing?",
+      "What would have made this more useful?"
+    ],
+    "feedback_rule": "Feedback should be treated as evidence about the product experience and system behavior, not as unquestioned truth about the underlying business strategy."
+  },
+  "behavioral_signals": {
+    "positive_signals": [
+      "User completes diagnosis.",
+      "User accepts the recommended action.",
+      "User creates the intended output.",
+      "User executes through ThreadsWorks.",
+      "User returns with results.",
+      "User uses measurement to request improvement.",
+      "User reports clearer understanding.",
+      "User progresses to the next constraint."
+    ],
+    "negative_signals": [
+      "User repeatedly asks what to do next.",
+      "User ignores recommendations without understanding them.",
+      "User repeatedly corrects the diagnosis.",
+      "User cannot identify the intended output.",
+      "User abandons execution.",
+      "User repeatedly receives irrelevant lessons.",
+      "User repeatedly receives tactics that do not address the diagnosed problem.",
+      "User cannot connect results to the next action."
+    ],
+    "interpretation_rule": "Behavioral signals indicate where to investigate. They do not by themselves establish why the user behaved that way."
+  },
+  "failure_localization": {
+    "categories": [
+      {
+        "failure": "Retrieval Failure",
+        "symptom": "Relevant knowledge was not retrieved.",
+        "likely_layer": "Knowledge / Retrieval"
+      },
+      {
+        "failure": "Routing Failure",
+        "symptom": "The system selected the wrong diagnostic domain.",
+        "likely_layer": "Diagnostic Engine"
+      },
+      {
+        "failure": "Diagnosis Failure",
+        "symptom": "The system interpreted the situation incorrectly.",
+        "likely_layer": "Intelligence"
+      },
+      {
+        "failure": "Recommendation Failure",
+        "symptom": "The action did not logically follow from the diagnosis.",
+        "likely_layer": "Decision / Recommendation"
+      },
+      {
+        "failure": "UX Failure",
+        "symptom": "The recommendation may be correct but the user cannot understand or navigate it.",
+        "likely_layer": "Product Experience"
+      },
+      {
+        "failure": "Execution Failure",
+        "symptom": "The intended work cannot be completed in ThreadsWorks.",
+        "likely_layer": "Integration / Execution"
+      },
+      {
+        "failure": "Measurement Failure",
+        "symptom": "The result cannot be meaningfully evaluated.",
+        "likely_layer": "Measurement"
+      },
+      {
+        "failure": "Outcome Failure",
+        "symptom": "The action was executed correctly but the expected business outcome did not occur.",
+        "likely_layer": "Business Strategy / Hypothesis"
+      }
+    ]
+  },
+  "pattern_detection": {
+    "purpose": "Identify recurring evidence that may justify system improvement.",
+    "pattern_candidates": [
+      "Repeated incorrect diagnostic routing",
+      "Repeated missing diagnostic question",
+      "Repeated irrelevant class retrieval",
+      "Repeated recommendation rejection",
+      "Repeated execution friction",
+      "Repeated user confusion",
+      "Repeated measurement gaps",
+      "Repeated business outcome failures",
+      "Repeated successful intervention"
+    ],
+    "pattern_rules": [
+      "Look for recurrence rather than isolated events.",
+      "Consider participant diversity.",
+      "Separate user-specific problems from system-wide problems.",
+      "Check whether the same failure occurs at the same layer.",
+      "Confirm that the evidence is sufficiently clear before proposing a change."
+    ]
+  },
+  "improvement_hypothesis_system": {
+    "purpose": "Turn observed patterns into testable improvement hypotheses.",
+    "hypothesis_format": {
+      "observation": "What happened.",
+      "pattern": "What appears to be recurring.",
+      "suspected_cause": "Why it may be happening.",
+      "proposed_change": "What should change.",
+      "expected_effect": "What should improve if the hypothesis is correct.",
+      "measurement": "How improvement will be evaluated.",
+      "risk": "What could get worse."
+    },
+    "example": {
+      "observation": "Users repeatedly ask for follower growth after receiving a conversion diagnosis.",
+      "pattern": "Users may not understand why attention is not the immediate constraint.",
+      "suspected_cause": "Diagnosis explanation may be too weak.",
+      "proposed_change": "Improve explanation connecting attention to conversations and sales.",
+      "expected_effect": "Higher diagnosis acceptance and action completion.",
+      "measurement": "Diagnosis acceptance, action completion, repeat clarification requests.",
+      "risk": "Longer explanations may create additional friction."
+    }
+  },
+  "controlled_optimization": {
+    "rule": "Do not change production intelligence solely because a hypothesis sounds reasonable.",
+    "sequence": [
+      "Observe",
+      "Document",
+      "Identify Pattern",
+      "Form Hypothesis",
+      "Design Change",
+      "Test",
+      "Compare",
+      "Validate",
+      "Deploy",
+      "Monitor"
+    ],
+    "change_types": [
+      "Prompt wording",
+      "Diagnostic question",
+      "Retrieval routing",
+      "Decision rule",
+      "Recommendation prioritization",
+      "UX flow",
+      "Output format",
+      "ThreadsWorks handoff",
+      "Measurement presentation"
+    ],
+    "major_change_rule": "Changes that materially alter diagnostic logic, decision rules, knowledge interpretation, or core runtime behavior must return through the appropriate validation gates before production deployment."
+  },
+  "experimentation_framework": {
+    "experiment_structure": [
+      "Problem",
+      "Current Behavior",
+      "Hypothesis",
+      "Change",
+      "Target Users or Scenarios",
+      "Success Metric",
+      "Failure Metric",
+      "Observation Window",
+      "Decision Threshold",
+      "Result",
+      "Decision"
+    ],
+    "decision_options": [
+      "Keep",
+      "Improve",
+      "Rollback",
+      "Retest",
+      "Reject"
+    ],
+    "experiment_rule": "Experiments should isolate meaningful changes whenever practical so the team can determine what actually caused an observed improvement or decline."
+  },
+  "intelligence_optimization": {
+    "areas": [
+      {
+        "area": "Retrieval",
+        "optimize": "Class selection, retrieval breadth, relevance, and related-class expansion."
+      },
+      {
+        "area": "Diagnosis",
+        "optimize": "Question selection, domain routing, bottleneck identification, and confidence."
+      },
+      {
+        "area": "Decision",
+        "optimize": "Prioritization of the next best action."
+      },
+      {
+        "area": "Recommendation",
+        "optimize": "Clarity, relevance, actionability, and expected impact."
+      },
+      {
+        "area": "Execution",
+        "optimize": "Handoff quality and completion."
+      },
+      {
+        "area": "Measurement",
+        "optimize": "Relevant evidence selection and interpretation."
+      },
+      {
+        "area": "Feedback",
+        "optimize": "How outcomes inform the next diagnosis."
+      }
+    ],
+    "optimization_rule": "Improve the smallest layer that explains the recurring failure. Do not rewrite the entire system when a targeted change is sufficient."
+  },
+  "product_experience_optimization": {
+    "areas": [
+      "Onboarding",
+      "Navigation",
+      "Diagnosis flow",
+      "Lesson discovery",
+      "Exercise completion",
+      "Output creation",
+      "ThreadsWorks handoff",
+      "Measurement review",
+      "Return experience"
+    ],
+    "diagnostic_question": "Is the user struggling because the intelligence is wrong, because the interface is unclear, because the action is too difficult, or because the underlying business strategy is invalid?"
+  },
+  "business_outcome_evaluation": {
+    "principle": "The system exists to improve business execution, not merely produce AI interactions.",
+    "outcome_categories": [
+      "Clearer market decision",
+      "Clearer buyer definition",
+      "Validated problem",
+      "Stronger positioning",
+      "Improved offer",
+      "More qualified leads",
+      "More meaningful conversations",
+      "Improved conversion",
+      "First sale",
+      "Repeat sales",
+      "Improved retention",
+      "Improved sales economics",
+      "More repeatable sales process",
+      "Controlled scale"
+    ],
+    "measurement_rule": "Use the metrics relevant to the user's current stage. Do not require every user to track every metric in the Cash Machine system."
+  },
+  "retention_and_continuation": {
+    "purpose": "Determine whether Cash Machine AI becomes a continuing operating system rather than a one-time lesson.",
+    "desired_progression": [
+      "First Problem",
+      "First Diagnosis",
+      "First Action",
+      "First Output",
+      "First Execution",
+      "First Result",
+      "First Improvement",
+      "Repeated Use",
+      "Increasing Business Maturity"
+    ],
+    "healthy_return_signals": [
+      "User returns with new evidence.",
+      "User asks for the next diagnosis.",
+      "User reviews previous actions.",
+      "User improves an existing asset.",
+      "User moves to the next bottleneck.",
+      "User uses ThreadsWorks to execute repeatedly."
+    ]
+  },
+  "learning_capture": {
+    "capture_categories": [
+      "Successful diagnoses",
+      "Incorrect diagnoses",
+      "Useful diagnostic questions",
+      "Unnecessary diagnostic questions",
+      "Successful recommendations",
+      "Rejected recommendations",
+      "Successful outputs",
+      "Execution friction",
+      "Unexpected outcomes",
+      "Repeated user misconceptions",
+      "Repeated user language"
+    ],
+    "learning_rule": "Capture observations in a structured form so that future improvements can be evaluated against evidence rather than memory."
+  },
+  "source_integrity_during_learning": {
+    "rules": [
+      "Real-user feedback may reveal that a concept is difficult to explain, but does not change what the source says.",
+      "Real-world outcomes may challenge an application or hypothesis without changing the underlying source material.",
+      "Newly created curriculum remains clearly marked as newly created.",
+      "Source-derived content remains traceable to its source representation.",
+      "Any new framework derived from user testing should be labeled as an optimization or extension rather than silently inserted into source knowledge."
+    ]
+  },
+  "phase_8_metrics": {
+    "system_metrics": [
+      "Retrieval accuracy",
+      "Diagnostic accuracy",
+      "Confidence calibration",
+      "Recommendation relevance",
+      "Action completion",
+      "Execution completion",
+      "Measurement completion",
+      "Regression rate",
+      "Critical failure rate"
+    ],
+    "product_metrics": [
+      "Time to first value",
+      "First diagnosis completion",
+      "First useful output",
+      "First execution",
+      "Repeat usage",
+      "Return diagnosis",
+      "Lesson-to-action conversion",
+      "Recommendation acceptance",
+      "Recommendation abandonment"
+    ],
+    "business_progress_metrics": [
+      "Leads",
+      "Prospects",
+      "Conversations",
+      "Conversion",
+      "Average Order Value",
+      "Customer Acquisition Cost",
+      "Customer Lifetime Value",
+      "Sales Cycle",
+      "Retention",
+      "Revenue"
+    ],
+    "rule": "Metrics should be interpreted in context. No single product metric should be treated as proof that the intelligence is improving."
+  },
+  "phase_8_test_suite": [
+    {
+      "id": "P8-TEST-001",
+      "name": "First Value Test",
+      "pass_condition": "A new user can reach a useful diagnosis, decision, or output without unnecessary friction."
+    },
+    {
+      "id": "P8-TEST-002",
+      "name": "Diagnosis Reality Test",
+      "pass_condition": "The diagnosis is consistent with the user's actual situation and available evidence."
+    },
+    {
+      "id": "P8-TEST-003",
+      "name": "Recommendation Reality Test",
+      "pass_condition": "The recommended action addresses the diagnosed constraint."
+    },
+    {
+      "id": "P8-TEST-004",
+      "name": "Action Completion Test",
+      "pass_condition": "The user can understand and complete the recommended action."
+    },
+    {
+      "id": "P8-TEST-005",
+      "name": "ThreadsWorks Execution Test",
+      "pass_condition": "Appropriate outputs move into ThreadsWorks without unnecessary reconstruction."
+    },
+    {
+      "id": "P8-TEST-006",
+      "name": "Measurement Test",
+      "pass_condition": "The user can identify relevant evidence after execution."
+    },
+    {
+      "id": "P8-TEST-007",
+      "name": "Feedback Test",
+      "pass_condition": "User feedback and outcomes can be captured in a structured way."
+    },
+    {
+      "id": "P8-TEST-008",
+      "name": "Pattern Test",
+      "pass_condition": "Repeated evidence can be distinguished from isolated events."
+    },
+    {
+      "id": "P8-TEST-009",
+      "name": "Optimization Test",
+      "pass_condition": "A proposed improvement can be formulated as a measurable hypothesis."
+    },
+    {
+      "id": "P8-TEST-010",
+      "name": "Regression Test",
+      "pass_condition": "An optimization does not break previously validated behavior."
+    },
+    {
+      "id": "P8-TEST-011",
+      "name": "Source Integrity Test",
+      "pass_condition": "Optimization does not misrepresent source-derived knowledge."
+    },
+    {
+      "id": "P8-TEST-012",
+      "name": "End-to-End Learning Test",
+      "pass_condition": "Real-world evidence can move through observation → hypothesis → validation → improvement."
+    }
+  ],
+  "optimization_priority_model": {
+    "priority_factors": [
+      "Business impact",
+      "Frequency",
+      "Confidence in evidence",
+      "Number of users affected",
+      "Severity",
+      "Ease of correction",
+      "Risk of regression"
+    ],
+    "priority_rule": "Prioritize recurring, high-impact problems with strong evidence and a clear correction path. Do not prioritize merely because an issue is visible or easy to change."
+  },
+  "production_change_control": {
+    "change_levels": {
+      "level_1": {
+        "name": "Low Risk",
+        "examples": [
+          "Minor wording improvements",
+          "Formatting improvements",
+          "Non-substantive UX clarity"
+        ],
+        "requirement": "Basic regression check."
+      },
+      "level_2": {
+        "name": "Moderate Risk",
+        "examples": [
+          "Diagnostic question changes",
+          "Retrieval routing adjustments",
+          "Recommendation format changes",
+          "Workflow changes"
+        ],
+        "requirement": "Targeted validation plus regression testing."
+      },
+      "level_3": {
+        "name": "High Risk",
+        "examples": [
+          "Core diagnostic rule changes",
+          "Major decision logic changes",
+          "Major knowledge interpretation changes",
+          "Core runtime behavior changes"
+        ],
+        "requirement": "Full relevant Phase 6 validation and controlled production release."
+      }
+    }
+  },
+  "rollback_rules": [
+    "Rollback changes that introduce critical failures.",
+    "Rollback changes that materially reduce diagnostic accuracy.",
+    "Rollback changes that create repeated incorrect recommendations.",
+    "Rollback changes that break validated ThreadsWorks execution.",
+    "Rollback changes that compromise source integrity.",
+    "Rollback when measured degradation is substantial and the cause is attributable to the change."
+  ],
+  "phase_8_operating_rhythm": {
+    "continuous": [
+      "Capture meaningful user feedback.",
+      "Capture important failures.",
+      "Capture successful outcomes."
+    ],
+    "weekly": [
+      "Review recurring failures.",
+      "Review successful interventions.",
+      "Review user friction.",
+      "Identify candidate hypotheses."
+    ],
+    "monthly": [
+      "Evaluate major patterns.",
+      "Prioritize optimization opportunities.",
+      "Review system and business outcome metrics.",
+      "Select controlled improvements.",
+      "Review whether changes are improving the complete operating loop."
+    ]
+  },
+  "master_learning_repository": {
+    "purpose": "Maintain structured evidence about how the deployed system behaves in real use.",
+    "record_schema": [
+      "Observation ID",
+      "Date",
+      "User Situation",
+      "Business Stage",
+      "Diagnostic Domain",
+      "User Input",
+      "Relevant Context",
+      "AI Diagnosis",
+      "AI Confidence",
+      "Recommended Action",
+      "Output",
+      "ThreadsWorks Execution",
+      "Result",
+      "User Feedback",
+      "Metrics",
+      "Failure or Success Classification",
+      "Suspected Layer",
+      "Pattern Group",
+      "Hypothesis",
+      "Change",
+      "Validation Status",
+      "Production Status"
+    ]
+  },
+  "guardrails": [
+    "Do not optimize the system toward vanity metrics.",
+    "Do not change intelligence from one user's preference alone.",
+    "Do not confuse user resistance with diagnostic failure.",
+    "Do not confuse business failure with AI failure without examining execution.",
+    "Do not treat correlation as causation.",
+    "Do not remove necessary diagnostic questions merely because they add some friction.",
+    "Do not add complexity merely because users request more features.",
+    "Do not allow real-world learning to erase source distinctions.",
+    "Do not bypass validation for major intelligence changes.",
+    "Do not optimize one stage of the sales chain while damaging another.",
+    "Do not turn Phase 8 into uncontrolled feature expansion."
+  ],
+  "ultimate_success_definition": "Phase 8 succeeds when Cash Machine AI becomes demonstrably better at helping real users move from business problem to accurate diagnosis, focused action, concrete execution, measurable result, and informed improvement — while remaining grounded in the Cash Machine knowledge, integrated with ThreadsWorks, and protected by controlled validation.",
+  "phase_8_definition_of_done": [
+    "Real users have completed meaningful end-to-end journeys.",
+    "First-value behavior has been tested.",
+    "Diagnostic accuracy has been evaluated.",
+    "Recommendation quality has been evaluated.",
+    "ThreadsWorks execution has been evaluated.",
+    "Measurement and feedback loops have been evaluated.",
+    "Recurring system and UX patterns have been identified.",
+    "Failures have been localized to the appropriate layer.",
+    "Optimization hypotheses can be created from evidence.",
+    "Controlled experiments can be run.",
+    "Material changes pass validation before production.",
+    "Rollback procedures exist.",
+    "Source integrity remains intact.",
+    "A structured learning repository exists.",
+    "The system has a repeatable process for becoming better through real-world evidence."
+  ],
+  "final_architecture": {
+    "diagram": [
+      "THE CASH MACHINE",
+      "↓",
+      "KNOWLEDGE",
+      "↓",
+      "CASH MACHINE AI",
+      "↓",
+      "USER CONTEXT",
+      "↓",
+      "DIAGNOSIS",
+      "↓",
+      "NEXT BEST ACTION",
+      "↓",
+      "OUTPUT",
+      "↓",
+      "THREADSWORKS",
+      "↓",
+      "EXECUTION",
+      "↓",
+      "RESULT",
+      "↓",
+      "MEASUREMENT",
+      "↓",
+      "USER FEEDBACK",
+      "↓",
+      "EVIDENCE",
+      "↓",
+      "PATTERN",
+      "↓",
+      "HYPOTHESIS",
+      "↓",
+      "CONTROLLED TEST",
+      "↓",
+      "VALIDATION",
+      "↓",
+      "INTELLIGENCE / PRODUCT IMPROVEMENT",
+      "↓",
+      "NEW USER EXPERIENCE",
+      "↺"
+    ],
+    "phase_progression": "Phase 3 Knowledge → Phase 4 Intelligence → Phase 5 Implementation → Phase 6 Validation → Phase 7 Product Integration & Deployment → Phase 8 Live User Testing & Intelligence Optimization",
+    "ultimate_loop": "Knowledge → Intelligence → Diagnosis → Action → Execution → Results → Evidence → Learning → Improvement → Better Intelligence → Better Results"
+  },
+  "implementation_note": "Phase 8 is intentionally the final real-world learning and optimization layer of the current architecture. It should not become an excuse to continuously add features, curriculum, or complexity. Its purpose is to make the existing system more accurate, useful, actionable, measurable, and effective through disciplined observation and controlled improvement."
+}

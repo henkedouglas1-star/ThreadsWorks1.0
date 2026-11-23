@@ -1,0 +1,29 @@
+{
+  "file": "Cash Machine AI Knowledge 03",
+  "coverage": {
+    "classes_start": 75,
+    "classes_end": 111,
+    "class_count": 37
+  },
+  "purpose": "Machine-readable structured knowledge for Cash Machine AI retrieval, diagnosis, recommendation, exercises, content generation, and ThreadsWorks execution.",
+  "source_integrity": "Records are derived from the source text. No missing source material has been silently reconstructed.",
+  "schema": [
+    "id",
+    "system",
+    "subsystem",
+    "class",
+    "title",
+    "source_status",
+    "knowledge_status",
+    "learning_objective",
+    "core_problem",
+    "framework_or_process",
+    "practical_exercise",
+    "real_world_scenario",
+    "application",
+    "key_takeaway",
+    "social_content_assets",
+    "source_reference"
+  ],
+  "records": []
+}

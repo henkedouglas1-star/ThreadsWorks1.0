@@ -1,0 +1,19 @@
+{
+  "file": "Cash Machine AI Knowledge 02",
+  "coverage": "Classes 38-74",
+  "source": "The Cash Machine(1).pdf",
+  "record_schema": [
+    "id",
+    "system",
+    "subsystem",
+    "class",
+    "title",
+    "source_status",
+    "knowledge_status",
+    "learning_objective",
+    "source_sections",
+    "source_excerpt",
+    "threadsworks_action",
+    "related_classes"
+  ]
+}

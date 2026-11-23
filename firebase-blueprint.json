@@ -1,0 +1,321 @@
+{
+  "collections": {
+    "users": {
+      "description": "User account and attribute settings cached on registration.",
+      "schema": {
+        "uid": "string",
+        "email": "string",
+        "offer": "string",
+        "audience": "string",
+        "desiredResult": "string",
+        "writingStyle": "string",
+        "customInstruction": "string",
+        "keywords": "string",
+        "creatorIdentity": {
+          "personality": "string",
+          "howYouThink": "string",
+          "whatYouBelieve": "string",
+          "yourExperiences": "string",
+          "yourExpertise": "string",
+          "yourHumor": "string",
+          "yourPerspective": "string",
+          "writingStyle": "string",
+          "tone": "string",
+          "wordsYouUse": "string",
+          "wordsYouAvoid": "string",
+          "whoYouHelp": "string",
+          "whatYouHelpThemDo": "string",
+          "whatYoureKnownFor": "string",
+          "whatYouTalkAbout": "string",
+          "whatYouWantPeopleToRemember": "string",
+          "character": {
+            "baseCharacter": "string",
+            "appearance": {
+              "skinTone": "string",
+              "hairStyle": "string",
+              "hairColor": "string",
+              "eyeStyle": "string"
+            },
+            "clothing": {
+              "style": "string",
+              "color": "string"
+            },
+            "accessories": "array",
+            "expression": "string",
+            "avatarStyle": "string"
+          }
+        },
+        "createdAt": "string"
+      }
+    },
+    "saved_tabs": {
+      "description": "Creator isolated saved tabs and workspace configurations scoped by authenticated user.",
+      "schema": {
+        "id": "string",
+        "userId": "string",
+        "name": "string",
+        "isDefault": "boolean",
+        "createdAt": "string",
+        "updatedAt": "string",
+        "myVoice": "object",
+        "myBusiness": "object",
+        "contentInstructions": "string",
+        "ctaConfig": "object",
+        "generationPreferences": "object",
+        "contentPillars": "array"
+      }
+    },
+    "saved_hooks": {
+      "description": "Creator isolated saved viral hooks, ideas, and templates.",
+      "schema": {
+        "id": "string",
+        "userId": "string",
+        "hookText": "string",
+        "approach": "string",
+        "why": "string",
+        "createdAt": "string"
+      }
+    },
+    "posts": {
+      "description": "Unified content records across Idea, Draft, Ready, Planned, Scheduled, Published, and recoverable Failed lifecycle states.",
+      "schema": {
+        "id": "string",
+        "userId": "string",
+        "title": "string",
+        "hook": "string",
+        "singlePost": "string",
+        "threadParts": "array",
+        "topic": "string",
+        "topics": "array",
+        "pillarTitle": "string",
+        "stage": "string",
+        "status": "string",
+        "plannedDate": "string",
+        "scheduledFor": "timestamp",
+        "publishedAt": "string",
+        "sourceIdeaId": "string",
+        "relatedIdeaIds": "array",
+        "notes": "string",
+        "format": "string",
+        "createdAt": "string",
+        "updatedAt": "string",
+        "isFavorite": "boolean"
+      }
+    },
+    "settings": {
+      "description": "Persistent writing-style settings and engine inputs for creators.",
+      "schema": {
+        "offer": "string",
+        "audience": "string",
+        "desiredResult": "string",
+        "writingStyle": "string",
+        "customInstruction": "string",
+        "keywords": "string"
+      }
+    },
+    "generation_usage": {
+      "description": "Authoritative monthly AI content generation usage counter and in-flight locks.",
+      "schema": {
+        "userId": "string",
+        "count": "number",
+        "period": "string",
+        "inFlight": "number",
+        "lastReservationAt": "string",
+        "lastGeneratedAt": "string",
+        "updatedAt": "string"
+      }
+    },
+    "connections": {
+      "description": "Public Meta user metadata cached upon connection authorization.",
+      "schema": {
+        "userId": "string",
+        "threadsUserId": "string",
+        "threadsUsername": "string",
+        "threadsProfilePictureUrl": "string",
+        "threadsBiography": "string",
+        "connectionStatus": "string",
+        "lastConnectedAt": "string",
+        "tokenMetadata": {
+          "generatedAt": "string",
+          "expiresAt": "string",
+          "sandbox": "boolean"
+        }
+      }
+    },
+    "connections_secure": {
+      "description": "Server-side isolated OAuth tokens linked to specific users.",
+      "schema": {
+        "threadsAccessToken": "string"
+      }
+    },
+    "config": {
+      "description": "Meta developer App ID and App Secret saved from the console.",
+      "schema": {
+        "appId": "string",
+        "appSecret": "string",
+        "updatedAt": "string"
+      }
+    },
+    "analytics_account": {
+      "description": "Normalized account-level Threads insights and time-series performance metrics.",
+      "schema": {
+        "userId": "string",
+        "threadsUserId": "string",
+        "threadsUsername": "string",
+        "period": "string",
+        "lastSyncedAt": "string",
+        "metrics": {
+          "views": "number",
+          "likes": "number",
+          "replies": "number",
+          "reposts": "number",
+          "quotes": "number",
+          "followersCount": "number"
+        }
+      }
+    },
+    "analytics_posts": {
+      "description": "Normalized post-level Threads insights linked to Content Memory and media identifiers.",
+      "schema": {
+        "userId": "string",
+        "threadsUserId": "string",
+        "mediaId": "string",
+        "text": "string",
+        "permalink": "string",
+        "publishedAt": "string",
+        "period": "string",
+        "lastSyncedAt": "string",
+        "metrics": {
+          "views": "number",
+          "likes": "number",
+          "replies": "number",
+          "reposts": "number",
+          "quotes": "number"
+        }
+      }
+    },
+    "analytics_sync_state": {
+      "description": "Synchronization state, timestamps, and permissions status for user Threads analytics.",
+      "schema": {
+        "userId": "string",
+        "threadsUserId": "string",
+        "status": "string",
+        "lastSyncedAt": "string",
+        "postsSyncedCount": "number",
+        "hasInsightsPermission": "boolean"
+      }
+    },
+    "strategy_opportunities": {
+      "description": "Strategic content opportunities, lifecycle state, and user actions (saved, planned, dismissed).",
+      "schema": {
+        "userId": "string",
+        "opportunityId": "string",
+        "status": "string",
+        "scheduledDate": "string",
+        "createdPostId": "string",
+        "updatedAt": "string"
+      }
+    },
+    "learned_strategies": {
+      "description": "Deconstructed external creator account strategy frameworks.",
+      "schema": {
+        "id": "string",
+        "userId": "string",
+        "creatorHandle": "string",
+        "frameworkTitle": "string",
+        "hookType": "string",
+        "hookPattern": "string",
+        "reusableTemplate": "string",
+        "createdAt": "string"
+      }
+    },
+    "saved_influencers": {
+      "description": "Saved creator profiles, intelligence, overlap analysis, campaign tags, notes, and outreach status.",
+      "schema": {
+        "id": "string",
+        "userId": "string",
+        "username": "string",
+        "name": "string",
+        "platform": "string",
+        "niche": "string",
+        "category": "string",
+        "relationshipStatus": "string",
+        "campaign": "string",
+        "notes": "string",
+        "tags": "array",
+        "createdAt": "string",
+        "updatedAt": "string"
+      }
+    },
+    "influencer_outreach_events": {
+      "description": "Outreach attempts, DMs sent, follow-ups, and response outcome tracking for self-improving intelligence.",
+      "schema": {
+        "id": "string",
+        "userId": "string",
+        "influencerId": "string",
+        "objective": "string",
+        "messageText": "string",
+        "whyItWorks": "string",
+        "status": "string",
+        "responseStatus": "string",
+        "createdAt": "string",
+        "updatedAt": "string"
+      }
+    },
+    "discovered_creators": {
+      "description": "Shared searchable cache of verified Threads creators discovered by users over time.",
+      "schema": {
+        "id": "string",
+        "threadsUsername": "string",
+        "displayName": "string",
+        "profilePicUrl": "string",
+        "bio": "string",
+        "followerCount": "number",
+        "niche": "string",
+        "category": "string",
+        "isVerifiedProfile": "boolean",
+        "source": "string",
+        "lastVerifiedAt": "string"
+      }
+    },
+    "generation_jobs": {
+      "description": "Creator background batch generation tasks and real-time state sync.",
+      "schema": {
+        "id": "string",
+        "userId": "string",
+        "status": "string",
+        "progress": "number",
+        "total": "number",
+        "category": "string",
+        "payload": "object",
+        "posts": "array",
+        "error": "string",
+        "createdAt": "string",
+        "updatedAt": "string"
+      }
+    },
+    "generation_intelligence": {
+      "description": "Compact generation intelligence snapshot per creator containing distilled context, patterns, hooks, and performance insights.",
+      "schema": {
+        "userId": "string",
+        "tabId": "string",
+        "summarizedCreatorContext": "object",
+        "successfulContentPatterns": "array",
+        "weakContentPatterns": "array",
+        "recentThemes": "array",
+        "themesToAvoidRepeating": "array",
+        "recentHooks": "array",
+        "recentClosings": "array",
+        "recentCTAs": "array",
+        "topPerformingTopics": "array",
+        "topPerformingStructures": "array",
+        "performanceInsights": "object",
+        "contentGaps": "array",
+        "approvedOffers": "array",
+        "approvedLinks": "array",
+        "learnedStrategies": "array",
+        "lastUpdated": "string"
+      }
+    }
+  }
+}

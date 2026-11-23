@@ -1,0 +1,25 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /apps
+Disallow: /dashboard
+Disallow: /create
+Disallow: /calendar
+Disallow: /content-calendar
+Disallow: /schedule
+Disallow: /analytics
+Disallow: /threads-analytics
+Disallow: /profile
+Disallow: /creator-profile
+Disallow: /content-profile
+Disallow: /my-identity
+Disallow: /my-business
+Disallow: /saved-content
+Disallow: /settings
+Disallow: /partner
+Disallow: /partner-hub
+Disallow: /influencers
+Disallow: /influencer
+Disallow: /preview
+
+Sitemap: https://threadsworks.com/sitemap.xml

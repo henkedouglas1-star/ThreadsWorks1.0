@@ -1,0 +1,174 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isFounder(uid) {
+      return uid == "vtMSWyRs4YbUqwwCZsdW3Tvv2wk2" || uid == "Z8in1LtL13PjzcFq2PgmY9LwTYH3";
+    }
+    function canAccessUser(targetUid) {
+      return request.auth != null && (request.auth.uid == targetUid || (isFounder(request.auth.uid) && isFounder(targetUid)));
+    }
+
+    // User profile documents - isolated by authenticated UID
+    match /users/{userId} {
+      allow read, write: if canAccessUser(userId);
+      match /saved_tabs/{tabId} {
+        allow read, write: if canAccessUser(userId);
+      }
+      match /generation_intelligence/{docId} {
+        allow read, write: if canAccessUser(userId);
+      }
+    }
+    // Posts collection - verified user ownership
+    match /posts/{postId} {
+      allow create: if request.auth != null 
+                    && canAccessUser(request.resource.data.userId)
+                    && (!('scheduledFor' in request.resource.data) || request.resource.data.scheduledFor == null || (request.resource.data.scheduledFor is timestamp && request.resource.data.scheduledFor > request.time));
+      allow read, delete: if request.auth != null && (resource == null || canAccessUser(resource.data.userId));
+      allow update: if request.auth != null 
+                    && (resource == null || canAccessUser(resource.data.userId))
+                    && (!('scheduledFor' in request.resource.data) || request.resource.data.scheduledFor == null || (request.resource.data.scheduledFor is timestamp && request.resource.data.scheduledFor > request.time) || (resource != null && 'scheduledFor' in resource.data && request.resource.data.scheduledFor == resource.data.scheduledFor));
+    }
+    // Saved hooks - verified user ownership
+    match /saved_hooks/{hookId} {
+      allow create: if request.auth != null && canAccessUser(request.resource.data.userId);
+      allow read, update, delete: if request.auth != null && (resource == null || canAccessUser(resource.data.userId));
+    }
+    // User settings - isolated by authenticated UID
+    match /settings/{settingsId} {
+      allow read, write: if canAccessUser(settingsId) || (resource != null && canAccessUser(resource.data.userId)) || (request.resource != null && canAccessUser(request.resource.data.userId));
+    }
+    // Threads public connection status
+    match /connections/{userId} {
+      allow read, write: if canAccessUser(userId);
+    }
+    // Threads secure credentials record
+    match /connections_secure/{userId} {
+      allow read, write: if canAccessUser(userId);
+    }
+    // App global configuration (read-only for clients)
+    match /config/{configId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    // Publish log entries
+    match /publishes/{publishId} {
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid);
+    }
+    // Stripe customer and subscription records (server authoritative)
+    match /generation_usage/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if false;
+    }
+    match /stripe_subscriptions/{subId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+    match /stripe_customers_by_user/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if false;
+    }
+    match /stripe_customers/{custId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+    match /stripe_processed_events/{eventId} {
+      allow read, write: if false;
+    }
+    match /stripe_events_log/{logId} {
+      allow read, write: if false;
+    }
+    match /stripe_invoices/{invoiceId} {
+      allow read: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid);
+      allow write: if false;
+    }
+    // Analytics account snapshots
+    match /analytics_account/{docId} {
+      allow read, write: if request.auth != null && (docId == request.auth.uid || (resource != null && resource.data.userId == request.auth.uid) || (request.resource != null && request.resource.data.userId == request.auth.uid));
+    }
+    // Analytics post records
+    match /analytics_posts/{docId} {
+      allow read, write: if request.auth != null && ((resource != null && resource.data.userId == request.auth.uid) || (request.resource != null && request.resource.data.userId == request.auth.uid));
+    }
+    // Analytics sync state records
+    match /analytics_sync_state/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    // Strategic Content Opportunities
+    match /strategy_opportunities/{oppId} {
+      allow read, write: if request.auth != null && ((resource != null && resource.data.userId == request.auth.uid) || (request.resource != null && request.resource.data.userId == request.auth.uid));
+    }
+    // Learned Strategies
+    match /learned_strategies/{stratId} {
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid);
+    }
+    // Saved Influencers / Creators
+    match /saved_influencers/{infId} {
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid);
+    }
+    // Discovered Creators / Shared Search Index (Server-written only)
+    match /discovered_creators/{creatorId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+    // Influencer Outreach Events & Tracking
+    match /influencer_outreach_events/{eventId} {
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid);
+    }
+    // Influencer Campaign Folders
+    match /influencer_campaigns/{campId} {
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid);
+    }
+    // Partner Hub Profiles
+    match /partners/{userId} {
+      allow read, write: if request.auth != null && (userId == request.auth.uid || (resource != null && resource.data.userId == request.auth.uid) || (request.resource != null && request.resource.data.userId == request.auth.uid));
+    }
+    // Partner Referral Code Registry
+    match /partner_codes/{code} {
+      allow read: if true;
+      allow create, update: if request.auth != null;
+    }
+    // Partner Referral Clicks
+    match /referral_clicks/{clickId} {
+      allow create, read: if true;
+    }
+    // Partner Customer Attributions
+    match /partner_customers/{custId} {
+      allow read, write: if request.auth != null && ((resource != null && (resource.data.partnerId == request.auth.uid || resource.data.userId == request.auth.uid)) || (request.resource != null && (request.resource.data.partnerId == request.auth.uid || request.resource.data.userId == request.auth.uid)));
+    }
+    // Partner Commissions
+    match /commissions/{commId} {
+      allow read: if request.auth != null && (resource == null || resource.data.partnerId == request.auth.uid);
+      allow write: if false;
+    }
+    // Partner Payouts
+    match /payouts/{payoutId} {
+      allow read: if request.auth != null && (resource == null || resource.data.partnerId == request.auth.uid);
+      allow write: if false;
+    }
+    // Partner Audit Logs
+    match /partner_audit_logs/{logId} {
+      allow read: if request.auth != null && (resource == null || resource.data.partnerId == request.auth.uid);
+      allow write: if false;
+    }
+    // Partner Notifications
+    match /partner_notifications/{notifId} {
+      allow read, update: if request.auth != null && (resource == null || resource.data.partnerId == request.auth.uid);
+      allow create: if request.auth != null;
+    }
+    // Generation jobs
+    match /generation_jobs/{jobId} {
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid);
+    }
+    // Creator Outreach batches
+    match /creator_outreach_batches/{batchId} {
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid);
+    }
+  }
+}

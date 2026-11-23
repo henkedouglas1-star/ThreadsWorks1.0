@@ -1,0 +1,843 @@
+{
+  "phase": 11,
+  "title": "Cash Machine AI — Launch & Continuous Intelligence",
+  "version": "1.0",
+  "status": "Master Production Operations Specification",
+  "purpose": "Move the validated Cash Machine AI system into controlled production operation and establish the permanent operating loop for monitoring, learning, maintenance, optimization, release management, and intelligence improvement. Phase 11 begins only after the Phase 10 validation criteria are satisfied. It does not create another conceptual architecture phase.",
+  "system_identity": {
+    "cash_machine": "The knowledge.",
+    "cash_machine_ai": "The intelligence.",
+    "threadsworks": "The execution environment.",
+    "results_and_metrics": "The evidence.",
+    "phase_11_role": "Operate the complete system in production while continuously improving it from validated evidence without allowing uncontrolled changes to the knowledge, diagnostic, decision, execution, or measurement layers."
+  },
+  "phase_progression": [
+    "Phase 3 — Knowledge",
+    "Phase 4 — Intelligence",
+    "Phase 5 — Implementation",
+    "Phase 6 — Architecture Validation",
+    "Phase 7 — Product Integration & Deployment",
+    "Phase 8 — Live User Testing & Intelligence Optimization",
+    "Phase 9 — Production Runtime & System Build",
+    "Phase 10 — Full System Validation",
+    "Phase 11 — Launch & Continuous Intelligence"
+  ],
+  "master_operating_principle": "Run the validated system, observe what happens, collect meaningful evidence, identify the highest-value improvement, test the change, validate it, release it, and continue the loop.",
+  "production_loop": [
+    "Launch",
+    "Observe",
+    "Capture Evidence",
+    "Diagnose",
+    "Prioritize Improvement",
+    "Form Hypothesis",
+    "Change One Controlled Variable",
+    "Test",
+    "Validate",
+    "Release",
+    "Measure",
+    "Update System State",
+    "Repeat"
+  ],
+  "continuous_intelligence_loop": {
+    "diagram": [
+      "USER",
+      "↓",
+      "BUSINESS PROBLEM",
+      "↓",
+      "CASH MACHINE AI",
+      "↓",
+      "DIAGNOSIS",
+      "↓",
+      "ACTION",
+      "↓",
+      "THREADSWORKS EXECUTION",
+      "↓",
+      "RESULT",
+      "↓",
+      "MEASUREMENT",
+      "↓",
+      "PRODUCTION EVIDENCE",
+      "↓",
+      "PATTERN DETECTION",
+      "↓",
+      "IMPROVEMENT HYPOTHESIS",
+      "↓",
+      "CONTROLLED CHANGE",
+      "↓",
+      "VALIDATION",
+      "↓",
+      "RELEASE",
+      "↺"
+    ],
+    "master_rule": "Production evidence may create an improvement hypothesis, but evidence does not automatically rewrite the system."
+  },
+  "launch_readiness": {
+    "entry_requirements": [
+      "Phase 9 production runtime exists.",
+      "Phase 10 full-system validation passes.",
+      "No unresolved critical validation failure remains.",
+      "Knowledge versions are recorded.",
+      "Decision-rule versions are recorded.",
+      "Prompt/runtime versions are recorded.",
+      "ThreadsWorks contracts are versioned.",
+      "Access and entitlement rules are active.",
+      "Observability is operational.",
+      "Rollback capability exists.",
+      "Production ownership and escalation paths are defined."
+    ],
+    "launch_gate": "Do not launch because the system appears functional in a demo. Launch only after the validated build, dependencies, monitoring, access controls, and rollback path are confirmed."
+  },
+  "production_release": {
+    "release_sequence": [
+      "Freeze release candidate.",
+      "Record component versions.",
+      "Run critical regression suite.",
+      "Verify production configuration.",
+      "Verify access and entitlements.",
+      "Verify observability.",
+      "Verify rollback.",
+      "Release to a controlled audience when practical.",
+      "Observe initial behavior.",
+      "Confirm critical journeys.",
+      "Expand availability.",
+      "Declare release stable."
+    ],
+    "release_record": [
+      "Release ID",
+      "Build version",
+      "Knowledge version",
+      "Decision-rule version",
+      "Prompt/runtime version",
+      "ThreadsWorks integration version",
+      "Measurement version",
+      "Access configuration version",
+      "Validation result",
+      "Release timestamp",
+      "Owner",
+      "Known limitations"
+    ]
+  },
+  "production_monitoring": {
+    "objective": "Monitor whether the system is functioning correctly and whether it is creating useful outcomes for users.",
+    "categories": {
+      "system_health": [
+        "Availability",
+        "Latency",
+        "Errors",
+        "Timeouts",
+        "Dependency failures"
+      ],
+      "ai_health": [
+        "Retrieval failures",
+        "Diagnostic failures",
+        "Low-confidence diagnoses",
+        "Recommendation failures",
+        "Unsupported claims",
+        "Unexpected response patterns"
+      ],
+      "execution_health": [
+        "ThreadsWorks handoff failures",
+        "Workflow failures",
+        "Incomplete outputs",
+        "Execution retries"
+      ],
+      "business_outcomes": [
+        "Actions completed",
+        "Conversations created",
+        "Leads generated",
+        "Sales generated",
+        "Conversion changes",
+        "Customer retention",
+        "Revenue-related outcomes where available"
+      ],
+      "user_experience": [
+        "Activation",
+        "Time to first value",
+        "Lesson completion",
+        "Action completion",
+        "Continuation",
+        "User corrections",
+        "Abandonment"
+      ]
+    }
+  },
+  "intelligence_quality_monitoring": {
+    "principle": "AI quality should be evaluated by the usefulness and correctness of the reasoning chain, not merely by whether the response sounds good.",
+    "signals": [
+      "Was the correct diagnostic domain selected?",
+      "Was relevant knowledge retrieved?",
+      "Was the diagnosis supported by evidence?",
+      "Was uncertainty represented appropriately?",
+      "Did the recommendation address the diagnosed bottleneck?",
+      "Did the action create a useful output?",
+      "Was execution successful?",
+      "Did the user correct the system?",
+      "Did the resulting evidence support the recommendation?",
+      "Did the next diagnosis improve after the result?"
+    ]
+  },
+  "user_feedback_system": {
+    "feedback_types": [
+      "Explicit correction",
+      "Explicit approval",
+      "User-reported result",
+      "User-reported confusion",
+      "User-reported failure",
+      "Abandoned action",
+      "Repeated question",
+      "Repeated unsuccessful behavior",
+      "Successful outcome",
+      "Observed execution result"
+    ],
+    "rule": "Feedback is evidence. It should be evaluated against other evidence before it becomes a system-level change.",
+    "capture_fields": [
+      "Feedback ID",
+      "User context",
+      "Relevant interaction",
+      "System diagnosis",
+      "Recommendation",
+      "User response",
+      "Observed result",
+      "Potential failure layer",
+      "Confidence",
+      "Disposition"
+    ]
+  },
+  "pattern_detection": {
+    "objective": "Find repeated evidence that may indicate a system or product improvement opportunity.",
+    "candidate_patterns": [
+      "Same diagnostic mistake across users",
+      "Same retrieval failure",
+      "Same user correction",
+      "Same recommendation being rejected",
+      "Same action failing to produce expected output",
+      "Same execution failure",
+      "Same measurement gap",
+      "Same lesson causing confusion",
+      "Same bottleneck appearing repeatedly",
+      "Repeated successful strategy"
+    ],
+    "pattern_rule": "A repeated observation becomes a candidate pattern. A candidate pattern becomes an improvement hypothesis only after review."
+  },
+  "improvement_prioritization": {
+    "principle": "Improve the highest-value constraint first rather than making many simultaneous changes.",
+    "priority_factors": [
+      "User impact",
+      "Business impact",
+      "Frequency",
+      "Severity",
+      "Confidence in root cause",
+      "Ease of validation",
+      "Risk of change",
+      "Strategic importance",
+      "Number of downstream workflows affected"
+    ],
+    "priority_formula": "Improvement Priority = Impact × Frequency × Confidence ÷ Change Risk",
+    "rule": "The formula is a prioritization aid, not an automatic mathematical decision. High-risk changes require stronger validation regardless of apparent impact."
+  },
+  "improvement_hypothesis": {
+    "required_fields": [
+      "Hypothesis ID",
+      "Observed evidence",
+      "Affected layer",
+      "Suspected root cause",
+      "Proposed change",
+      "Expected improvement",
+      "Potential regression",
+      "Success metric",
+      "Validation test",
+      "Owner",
+      "Status"
+    ],
+    "example": "Users repeatedly ask for more followers, but diagnosis frequently reveals that their actual constraint is conversion. Hypothesis: improve early diagnostic questioning so the system identifies the business objective before recommending discovery tactics."
+  },
+  "controlled_optimization": {
+    "rules": [
+      "Change one meaningful variable at a time when practical.",
+      "Define expected behavior before making the change.",
+      "Define a success metric before release.",
+      "Run targeted tests.",
+      "Run regression tests.",
+      "Compare against the prior validated version.",
+      "Release gradually when practical.",
+      "Monitor after release.",
+      "Rollback if critical behavior degrades."
+    ],
+    "prohibited": [
+      "Uncontrolled prompt rewriting",
+      "Automatic source rewriting",
+      "Automatic decision-rule rewriting",
+      "Optimizing solely for engagement",
+      "Changing multiple critical layers without attribution",
+      "Deploying an unvalidated intelligence change directly to all users"
+    ]
+  },
+  "knowledge_operations": {
+    "principle": "The Cash Machine knowledge layer remains traceable and versioned. New knowledge must not silently overwrite source truth.",
+    "operations": [
+      "Add supported source material",
+      "Correct verified extraction issues",
+      "Create clearly labeled new curriculum",
+      "Update retrieval metadata",
+      "Update relationships",
+      "Update source references",
+      "Version knowledge changes",
+      "Run retrieval regression tests"
+    ],
+    "source_integrity": [
+      "Preserve source-derived status.",
+      "Preserve newly-created curriculum status.",
+      "Never fabricate missing source classes.",
+      "Never claim a model-generated expansion came from the original source.",
+      "Keep source references attached to supported knowledge."
+    ]
+  },
+  "decision_rule_operations": {
+    "principle": "Decision rules are production logic. They require explicit review and validation.",
+    "required_change_record": [
+      "Rule ID",
+      "Previous rule",
+      "New rule",
+      "Reason for change",
+      "Evidence",
+      "Expected effect",
+      "Affected scenarios",
+      "Regression tests",
+      "Approval status",
+      "Release version"
+    ],
+    "rule": "Observed user behavior can suggest a rule change, but the rule change must be tested before production release."
+  },
+  "retrieval_operations": {
+    "monitor": [
+      "Retrieval success rate",
+      "Relevant-class retrieval",
+      "Irrelevant retrieval",
+      "Over-retrieval",
+      "Under-retrieval",
+      "Source mismatch",
+      "Latency",
+      "Fallback frequency"
+    ],
+    "improvement_sequence": [
+      "Identify retrieval failure.",
+      "Determine whether the failure is query, routing, ranking, metadata, or knowledge related.",
+      "Change the smallest affected layer.",
+      "Run retrieval tests.",
+      "Run diagnostic regression tests.",
+      "Release only after validation."
+    ]
+  },
+  "diagnostic_operations": {
+    "monitor": [
+      "Correct domain selection",
+      "Diagnostic confidence",
+      "User corrections",
+      "Alternative hypotheses",
+      "Repeated misdiagnoses",
+      "Recommendation reversals",
+      "Outcome after recommendation"
+    ],
+    "rule": "The system should become better at finding the user's actual constraint, not simply better at answering the user's first stated tactic."
+  },
+  "recommendation_operations": {
+    "quality_standard": [
+      "Relevant",
+      "Reasoned",
+      "Specific",
+      "Actionable",
+      "Appropriately scoped",
+      "Evidence-based",
+      "Produces a useful output when possible",
+      "Connected to a measurable outcome"
+    ],
+    "monitoring_signals": [
+      "Recommendation accepted",
+      "Recommendation rejected",
+      "Recommendation completed",
+      "Recommendation abandoned",
+      "Expected output created",
+      "Expected outcome observed",
+      "User correction"
+    ]
+  },
+  "threadsworks_operations": {
+    "principle": "Cash Machine AI should continue to act as the strategic intelligence layer while ThreadsWorks remains the execution environment.",
+    "monitor": [
+      "Handoff success",
+      "Input completeness",
+      "Workflow success",
+      "Execution latency",
+      "Output completeness",
+      "Execution errors",
+      "User edits after execution"
+    ],
+    "anti_duplication_rule": "Do not rebuild ThreadsWorks capabilities inside Cash Machine AI. Improve the quality of strategy, context, instructions, and handoff."
+  },
+  "measurement_operations": {
+    "principle": "Measurement exists to support decisions and improvement, not to create dashboards for their own sake.",
+    "measurement_loop": [
+      "Define expected result.",
+      "Execute action.",
+      "Capture actual result.",
+      "Compare expected versus actual.",
+      "Identify meaningful variance.",
+      "Determine likely cause.",
+      "Update state.",
+      "Choose next action."
+    ],
+    "metric_hierarchy": [
+      "Activity",
+      "Attention",
+      "Leads",
+      "Prospects",
+      "Conversations",
+      "Conversions",
+      "Revenue",
+      "Retention",
+      "Economics"
+    ]
+  },
+  "user_business_state": {
+    "principle": "The system should maintain a current working representation of the user's business state while distinguishing explicit facts from model inference.",
+    "state_fields": [
+      "Market",
+      "Buyer",
+      "Problem",
+      "Desired Outcome",
+      "Positioning",
+      "Offer",
+      "Price",
+      "Proof",
+      "Acquisition",
+      "Lead Mechanism",
+      "Prospecting",
+      "Sales Conversation",
+      "Presentation",
+      "Objections",
+      "Close",
+      "Follow-Up",
+      "Delivery",
+      "Retention",
+      "Metrics",
+      "Bottleneck",
+      "Next Improvement"
+    ],
+    "state_history": [
+      "Previous state",
+      "Action taken",
+      "Result",
+      "Evidence",
+      "Updated state",
+      "New diagnosis"
+    ]
+  },
+  "learning_capture": {
+    "purpose": "Capture lessons from real usage without treating every individual interaction as a universal rule.",
+    "capture_sources": [
+      "Successful user outcomes",
+      "Repeated failures",
+      "User corrections",
+      "Support issues",
+      "Validation results",
+      "Production incidents",
+      "Execution data",
+      "Measurement data"
+    ],
+    "classification": [
+      "User-specific learning",
+      "Pattern-level learning",
+      "System-level learning",
+      "Source-level knowledge update",
+      "Product UX learning",
+      "Integration learning"
+    ]
+  },
+  "experimentation_framework": {
+    "experiment_stages": [
+      "Observation",
+      "Hypothesis",
+      "Experiment Design",
+      "Baseline",
+      "Controlled Change",
+      "Measurement",
+      "Evaluation",
+      "Decision",
+      "Release or Reject"
+    ],
+    "required_experiment_fields": [
+      "Experiment ID",
+      "Hypothesis",
+      "Baseline",
+      "Variable changed",
+      "Control or comparison",
+      "Success metric",
+      "Guardrail metrics",
+      "Sample or test scope",
+      "Result",
+      "Decision"
+    ],
+    "rule": "Experiments should answer a defined question. Do not run experiments merely to create activity."
+  },
+  "release_management": {
+    "release_types": [
+      "Knowledge update",
+      "Retrieval update",
+      "Decision-rule update",
+      "Prompt/runtime update",
+      "Recommendation update",
+      "ThreadsWorks contract update",
+      "Measurement update",
+      "UX/product update",
+      "Security/access update"
+    ],
+    "release_gates": [
+      "Change documented",
+      "Expected behavior defined",
+      "Affected tests identified",
+      "Critical regression suite passed",
+      "Source integrity passed where applicable",
+      "Rollback available",
+      "Release monitored"
+    ]
+  },
+  "rollback_and_incident_response": {
+    "rollback_triggers": [
+      "Critical diagnosis degradation",
+      "Source-integrity failure",
+      "Unauthorized access",
+      "False execution claims",
+      "Major ThreadsWorks integration failure",
+      "Material regression",
+      "System-wide reliability issue",
+      "Severe user-impacting behavior"
+    ],
+    "incident_sequence": [
+      "Detect",
+      "Classify",
+      "Contain",
+      "Rollback or disable affected component",
+      "Preserve evidence",
+      "Identify root cause",
+      "Correct",
+      "Run validation",
+      "Release corrected version",
+      "Document incident"
+    ]
+  },
+  "security_and_data_boundaries": {
+    "principles": [
+      "User business context is isolated by user/account boundaries.",
+      "Only authorized data is used for diagnosis.",
+      "Production logs should avoid unnecessary sensitive content.",
+      "Access controls apply to both knowledge and execution capabilities.",
+      "Entitlements must not be bypassed by AI reasoning.",
+      "Changes to production intelligence require controlled authorization."
+    ]
+  },
+  "access_and_monetization_operations": {
+    "product_ladder": [
+      "Free Online Sales Guide",
+      "Free Cash Machine Preview",
+      "$9 Full Cash Machine",
+      "Cash Machine AI",
+      "ThreadsWorks Execution",
+      "ThreadsWorks broader product experience"
+    ],
+    "referral_economics": {
+      "cash_machine_price": 9,
+      "referral_percentage": 0.75,
+      "referrer_amount": 6.75,
+      "retained_gross_amount_before_fees_refunds_and_other_costs": 2.25,
+      "positioning": "The referral program is primarily an acquisition mechanism. The larger strategic value is downstream customer lifetime value and ThreadsWorks adoption."
+    },
+    "operating_rules": [
+      "Respect entitlement boundaries.",
+      "Track upgrades and activation.",
+      "Measure referral performance.",
+      "Do not let monetization pressure distort diagnostic recommendations."
+    ]
+  },
+  "production_metrics": {
+    "system_metrics": [
+      "Availability",
+      "Latency",
+      "Error rate",
+      "Failure rate",
+      "Rollback frequency"
+    ],
+    "intelligence_metrics": [
+      "Retrieval relevance",
+      "Diagnostic accuracy",
+      "Decision quality",
+      "Recommendation completion",
+      "User correction rate",
+      "Low-confidence frequency"
+    ],
+    "execution_metrics": [
+      "Handoff success",
+      "Execution success",
+      "Output completion",
+      "Execution failure rate"
+    ],
+    "business_metrics": [
+      "Activation",
+      "Time to first value",
+      "Lesson-to-action completion",
+      "Actions executed",
+      "Conversations created",
+      "Leads generated",
+      "Sales",
+      "Conversion",
+      "Retention",
+      "ThreadsWorks conversion"
+    ],
+    "rule": "Metrics should be interpreted in context. No single metric should be treated as proof of intelligence quality or business success."
+  },
+  "operating_rhythm": {
+    "continuous": [
+      "System health monitoring",
+      "Critical error monitoring",
+      "Security monitoring",
+      "Execution failure monitoring"
+    ],
+    "daily": [
+      "Review critical failures",
+      "Review severe user-impacting issues",
+      "Review meaningful execution failures"
+    ],
+    "weekly": [
+      "Review intelligence quality",
+      "Review diagnostic patterns",
+      "Review user feedback",
+      "Review production experiments",
+      "Prioritize improvement hypotheses"
+    ],
+    "monthly": [
+      "Review business outcomes",
+      "Review retention and activation",
+      "Review major diagnostic trends",
+      "Review knowledge gaps",
+      "Review decision-rule performance",
+      "Review roadmap priorities",
+      "Review system architecture health"
+    ],
+    "quarterly_or_major_release": [
+      "Full regression review",
+      "Knowledge architecture review",
+      "Decision-rule review",
+      "Integration review",
+      "Security/access review",
+      "Product strategy review"
+    ]
+  },
+  "continuous_improvement_queue": {
+    "states": [
+      "Observed",
+      "Investigating",
+      "Hypothesis Created",
+      "Experimenting",
+      "Validated",
+      "Rejected",
+      "Scheduled",
+      "Released",
+      "Monitoring",
+      "Closed"
+    ],
+    "required_fields": [
+      "Issue or opportunity",
+      "Evidence",
+      "Affected users",
+      "Affected layer",
+      "Priority",
+      "Hypothesis",
+      "Proposed change",
+      "Validation plan",
+      "Owner",
+      "Status",
+      "Release version",
+      "Post-release result"
+    ]
+  },
+  "knowledge_gap_management": {
+    "purpose": "Identify classes, concepts, relationships, decision rules, or examples that are insufficiently represented for production reasoning.",
+    "workflow": [
+      "Detect recurring knowledge failure.",
+      "Locate affected class or concept.",
+      "Determine whether source material supports the missing information.",
+      "If supported, improve structured extraction.",
+      "If not supported, clearly label new curriculum or model reasoning.",
+      "Update knowledge version.",
+      "Run retrieval and diagnostic regression."
+    ]
+  },
+  "intelligence_drift": {
+    "definition": "A meaningful degradation or behavioral shift in diagnosis, decision quality, retrieval, recommendations, or user outcomes over time.",
+    "signals": [
+      "Rising user correction rate",
+      "Declining diagnostic accuracy",
+      "Increasing irrelevant retrieval",
+      "Lower action completion",
+      "Increasing unsupported claims",
+      "Increasing recommendation rejection",
+      "Business outcome degradation"
+    ],
+    "response": [
+      "Confirm the drift.",
+      "Identify affected component.",
+      "Compare against prior validated version.",
+      "Investigate environmental versus system causes.",
+      "Test corrective hypothesis.",
+      "Release only after validation."
+    ]
+  },
+  "success_learning": {
+    "principle": "The system should learn from successful patterns as carefully as it learns from failures.",
+    "questions": [
+      "What problem was present?",
+      "What diagnosis was made?",
+      "What action was recommended?",
+      "What output was created?",
+      "What was executed?",
+      "What result occurred?",
+      "What evidence supports the result?",
+      "Can the pattern generalize?",
+      "What conditions made the strategy successful?"
+    ],
+    "rule": "A successful outcome becomes reusable guidance only when its conditions are understood; do not turn isolated success into universal advice."
+  },
+  "user_value_loop": {
+    "sequence": [
+      "User enters with a business problem.",
+      "Cash Machine AI identifies the likely constraint.",
+      "User learns why the constraint matters.",
+      "User receives a focused action.",
+      "A concrete asset or output is created.",
+      "ThreadsWorks executes the work.",
+      "The user observes the result.",
+      "The result becomes evidence.",
+      "Cash Machine AI updates the business state.",
+      "The next best action becomes clearer."
+    ],
+    "strategic_goal": "Make every interaction move the user closer to a measurable business outcome rather than simply producing more information."
+  },
+  "product_growth_loop": {
+    "sequence": [
+      "Free value",
+      "Cash Machine preview",
+      "Full Cash Machine",
+      "Cash Machine AI activation",
+      "ThreadsWorks execution",
+      "User outcome",
+      "Continued usage",
+      "Referral or expansion"
+    ],
+    "rule": "Growth should follow demonstrated value. The product should not depend on artificial friction that prevents users from reaching useful outcomes."
+  },
+  "anti_patterns": [
+    "Treating production launch as the end of development.",
+    "Changing the AI continuously without validation.",
+    "Automatically rewriting source knowledge from user feedback.",
+    "Optimizing engagement instead of business usefulness.",
+    "Adding features because users request isolated capabilities without diagnosing the underlying need.",
+    "Duplicating ThreadsWorks inside Cash Machine AI.",
+    "Using more data as a substitute for better reasoning.",
+    "Confusing analytics with intelligence.",
+    "Scaling before the underlying system is understood.",
+    "Treating every successful user outcome as universally repeatable.",
+    "Ignoring regression risk.",
+    "Allowing monetization goals to override user diagnosis."
+  ],
+  "phase_11_operating_rules": [
+    "Operate the validated system before optimizing it.",
+    "Observe before changing.",
+    "Diagnose before prescribing.",
+    "Use evidence before creating system-level learning.",
+    "Change the smallest necessary layer.",
+    "Validate before release.",
+    "Measure outcomes, not just activity.",
+    "Keep source truth traceable.",
+    "Preserve user context boundaries.",
+    "Keep ThreadsWorks as the execution environment.",
+    "Rollback when critical behavior degrades.",
+    "Prefer fewer high-value improvements over constant low-value changes."
+  ],
+  "master_operating_questions": [
+    "Is the system working?",
+    "Is the user receiving useful intelligence?",
+    "Is the diagnosis correct?",
+    "Is the recommendation appropriate?",
+    "Did the user execute the action?",
+    "Did the action produce the intended output?",
+    "Did the output produce a meaningful result?",
+    "What evidence changed?",
+    "What is the user's new business state?",
+    "What is the next constraint?",
+    "Is there a repeatable pattern?",
+    "Should the system change?",
+    "What is the smallest validated change?"
+  ],
+  "phase_11_validation": {
+    "ongoing_tests": [
+      "Critical diagnostic regression suite",
+      "Knowledge retrieval regression",
+      "Decision-rule regression",
+      "ThreadsWorks execution regression",
+      "Source-integrity regression",
+      "Access regression",
+      "Security regression",
+      "End-to-end journey regression"
+    ],
+    "release_standard": "No production intelligence change is considered complete until its intended improvement is demonstrated and critical existing behavior remains intact."
+  },
+  "definition_of_done": [
+    "Phase 10 has passed.",
+    "The validated system is deployed in production.",
+    "Production monitoring is operational.",
+    "Critical failure detection is operational.",
+    "Rollback procedures are operational.",
+    "Release versions are traceable.",
+    "Knowledge changes are versioned.",
+    "Decision-rule changes are versioned.",
+    "User feedback can be captured.",
+    "Production evidence can be evaluated.",
+    "Improvement hypotheses can be created and prioritized.",
+    "Controlled experiments can be run.",
+    "Regression testing is part of the release process.",
+    "Business-state updates continue after execution.",
+    "The system can learn from evidence without automatically rewriting itself.",
+    "The product has a recurring operating rhythm.",
+    "A continuous intelligence improvement loop is active."
+  ],
+  "final_architecture": {
+    "core_relationship": "Cash Machine = Knowledge | Cash Machine AI = Intelligence | ThreadsWorks = Execution | Results = Evidence",
+    "full_loop": "Knowledge → Intelligence → User Context → Diagnosis → Decision → Action → Output → ThreadsWorks → Execution → Result → Measurement → State Update → Evidence → Improvement Hypothesis → Validation → Release → Intelligence",
+    "business_loop": "Attention → Conversations → Clarity → Sale → Delivery → Retention → Measurement → Diagnosis → Improvement",
+    "operating_model": "Build → Validate → Launch → Observe → Learn → Improve → Validate → Release → Repeat"
+  },
+  "what_phase_11_does_not_do": [
+    "It does not create another architecture phase.",
+    "It does not create another copy of the Cash Machine curriculum.",
+    "It does not replace Phase 10 validation.",
+    "It does not permit uncontrolled self-modification.",
+    "It does not turn user feedback into automatic truth.",
+    "It does not duplicate ThreadsWorks execution capabilities.",
+    "It does not optimize vanity metrics at the expense of user outcomes.",
+    "It does not remove source traceability.",
+    "It does not make every improvement permanent without evidence."
+  ],
+  "master_definition": "Phase 11 turns Cash Machine AI from a validated product into a living production system. Its job is not to keep adding architecture. Its job is to operate the system, collect evidence, find meaningful patterns, improve the weakest layer, validate the change, and keep the entire Knowledge → Intelligence → Execution → Measurement loop reliable over time.",
+  "final_master_loop": [
+    "LEARN",
+    "DIAGNOSE",
+    "APPLY",
+    "CREATE",
+    "EXECUTE",
+    "MEASURE",
+    "IMPROVE",
+    "VALIDATE",
+    "RELEASE",
+    "LEARN AGAIN"
+  ],
+  "implementation_note": "Phase 11 is the final planned architecture phase in this roadmap. After Phase 11, new work should normally be handled as production operations, controlled improvements, knowledge updates, experiments, releases, or product development rather than inventing additional phases. The system is now designed to evolve through evidence."
+}

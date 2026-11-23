@@ -1,0 +1,36 @@
+name: ThreadsWorks validation
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run lint
+      - name: Authentication regression lock
+        id: auth-tests
+        env:
+          THREADSWORKS_TEST_OFFLINE: '1'
+        run: npm run test:auth
+      - name: Voice-to-Text regression tests
+        id: voice-tests
+        env:
+          THREADSWORKS_TEST_OFFLINE: '1'
+        run: npm run test:voice
+      - name: Automated tests
+        id: tests
+        env:
+          THREADSWORKS_TEST_OFFLINE: '1'
+        run: npm test
+      - name: Production build
+        if: success()
+        run: npm run build

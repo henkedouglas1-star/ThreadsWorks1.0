@@ -1,0 +1,431 @@
+{
+  "system": "Cash Machine AI + ThreadsWorks",
+  "version": "3.0",
+  "ingestion_status": "in_progress",
+  "total_expected_files": 29,
+  "ingested_count": 27,
+  "last_updated": "2026-09-11T12:25:00-07:00",
+  "authority_levels": {
+    "LEVEL_1": "Original Source Truth (e.g. The Cash Machine(1).pdf)",
+    "LEVEL_2": "Canonical Knowledge Structure (Phase 3 Knowledge files & Master Knowledge Index)",
+    "LEVEL_3": "Intelligence Architecture (Phase 4 files)",
+    "LEVEL_4": "Master Implementation Behavior (Phase 5)",
+    "LEVEL_5": "Product + Runtime Implementation (Phase 7, Phase 9, Runtime Configuration)",
+    "LEVEL_6": "Validation (Phase 6 and Phase 10)",
+    "LEVEL_7": "Production Operations (Phase 8 and Phase 11)"
+  },
+  "files": [
+    {
+      "filename": "Cash Machine AI File 1 \u2014 Intelligence Architecture.json",
+      "file_type": "json",
+      "role": "Intelligence Architecture",
+      "phase": 4,
+      "authority_level": "LEVEL_3",
+      "source_status": "Authoritative Intelligence Specification",
+      "version": "1.0",
+      "duplicate_status": "Canonical",
+      "dependency_relationships": [
+        "Governs overall reasoning loop (Learn \u2192 Diagnose \u2192 Apply \u2192 Create \u2192 Execute \u2192 Measure \u2192 Improve)",
+        "Defines Principles P1-P10",
+        "Foundational to Phase 4 File 2 (Diagnostic Engine) and File 3 (Execution Engine)"
+      ],
+      "implementation_relevance": "High. Core reasoning principles, anti-patterns, and decision rules directly configure the Cash Machine AI prompt and runtime logic."
+    },
+    {
+      "filename": "Cash Machine AI File 2 \u2014 Diagnostic & Decision Engine.json",
+      "file_type": "json",
+      "role": "Diagnostic & Decision Engine",
+      "phase": 4,
+      "authority_level": "LEVEL_3",
+      "source_status": "Authoritative Diagnostic Specification",
+      "version": "1.0",
+      "duplicate_status": "Canonical",
+      "dependency_relationships": [
+        "Operationalizes File 1 into a 15-step diagnostic pipeline",
+        "Defines 13 diagnostic domains and mapping to classes 1-220",
+        "Defines bottleneck model chain and diagnostic questioning rules",
+        "Directly pairs with Diagnostic Routing Matrix"
+      ],
+      "implementation_relevance": "High. Forms the runtime state machine for diagnosing user bottlenecks before prescribing tactics."
+    },
+    {
+      "filename": "Cash Machine AI File 3 \u2014 Execution, Measurement & Master Operating System.json",
+      "file_type": "json",
+      "role": "Execution, Measurement & Master Operating System",
+      "phase": 4,
+      "authority_level": "LEVEL_3",
+      "source_status": "Authoritative System Operating Specification",
+      "version": "1.0",
+      "duplicate_status": "Canonical",
+      "dependency_relationships": [
+        "Connects diagnosis from File 2 to ThreadsWorks execution",
+        "Defines handoff contracts, measurement loop, 14 metric categories, and feedback logic",
+        "Establishes master operating system loop and quality tests"
+      ],
+      "implementation_relevance": "High. Directly dictates the handoff contract from Cash Machine strategic reasoning into ThreadsWorks content creation workflows."
+    },
+    {
+      "filename": "Cash Machine AI \u2014 Diagnostic Routing Matrix.csv",
+      "file_type": "csv",
+      "role": "Diagnostic Routing Matrix (Machine-Readable)",
+      "phase": 3,
+      "authority_level": "LEVEL_2",
+      "source_status": "Authoritative Routing Layer",
+      "version": "1.0",
+      "duplicate_status": "Canonical (Machine-Readable)",
+      "dependency_relationships": [
+        "Maps 13 diagnostic domains to class ranges (1\u2013220) and core routing questions",
+        "Directly utilized by the backend retrieval engine to look up relevant classes"
+      ],
+      "implementation_relevance": "High. Programmatic lookup table for domain classification and class ID filtering."
+    },
+    {
+      "filename": "Cash Machine AI \u2014 Diagnostic Routing Matrix (Document extract)",
+      "file_type": "markdown/document",
+      "role": "Diagnostic Routing Matrix (Document Reference)",
+      "phase": 3,
+      "authority_level": "LEVEL_2",
+      "source_status": "Document Extract",
+      "version": "1.0",
+      "duplicate_status": "Document representation of the CSV matrix",
+      "dependency_relationships": [
+        "Mirrors the CSV matrix for audit, documentation, and human readability"
+      ],
+      "implementation_relevance": "Reference. Preserved for provenance and auditing."
+    },
+    {
+      "filename": "Cash Machine AI Knowledge 01.json",
+      "file_type": "json",
+      "role": "Canonical Knowledge Base (Classes 1\u201337)",
+      "phase": 3,
+      "authority_level": "LEVEL_2",
+      "source_status": "Source-Derived (The Cash Machine(1).pdf)",
+      "version": "1.0",
+      "duplicate_status": "Canonical Knowledge Layer 01",
+      "dependency_relationships": [
+        "Covers Sales Foundation (Classes 1\u201314), Finding Something Worth Selling / Opportunity Validation (Classes 15\u201330), Buyer Intelligence (Classes 31\u201336), Customer Research Introduction (Class 37)",
+        "Supplies source-grounded knowledge, learning objectives, framework structures, exercises, and social content assets for initial curriculum span"
+      ],
+      "implementation_relevance": "Critical. Powers dynamic runtime retrieval for Buyer, Market, and Opportunity Validation diagnostic domains."
+    },
+    {
+      "filename": "Cash Machine AI Knowledge 02.json",
+      "file_type": "json",
+      "role": "Canonical Knowledge Base (Classes 38\u201374)",
+      "phase": 3,
+      "authority_level": "LEVEL_2",
+      "source_status": "Source-Derived (The Cash Machine(1).pdf)",
+      "version": "1.0",
+      "duplicate_status": "Canonical Knowledge Layer 02",
+      "dependency_relationships": [
+        "Covers Customer Research (Classes 38\u201348), Market Selection (Classes 49\u201364), Positioning (Classes 65\u201374)",
+        "Supplies structured knowledge on interviews, surveys, customer language, competitor customers, beachhead markets, categories, and differentiation"
+      ],
+      "implementation_relevance": "Critical. Powers dynamic runtime retrieval for Research, Positioning, and Market diagnostic domains."
+    },
+    {
+      "filename": "Cash Machine AI Knowledge 03.json",
+      "file_type": "json",
+      "role": "Canonical Knowledge Base (Classes 75\u2013111)",
+      "phase": 3,
+      "authority_level": "LEVEL_2",
+      "source_status": "Source-Derived (The Cash Machine(1).pdf)",
+      "version": "1.0",
+      "duplicate_status": "Canonical Knowledge Layer 03",
+      "dependency_relationships": [
+        "Covers Refining Positioning (Classes 75\u201378), Building Your Offer (Classes 79\u201398), Selling the Offer / Acquisition (Classes 99\u2013111)",
+        "Supplies comprehensive frameworks for offer structure, pricing presentation, value proposition, risk reduction, buyer friction, sales conversations, questions, and qualification"
+      ],
+      "implementation_relevance": "Critical. Powers dynamic runtime retrieval for Offer, Qualification, and Conversation/Sales diagnostic domains."
+    },
+    {
+      "filename": "Cash Machine AI Knowledge 04.json",
+      "file_type": "json",
+      "role": "Canonical Knowledge Base (Classes 112\u2013148)",
+      "phase": 3,
+      "authority_level": "LEVEL_2",
+      "source_status": "Source-Derived / Explicitly noted Class 125 newly created",
+      "version": "1.0",
+      "duplicate_status": "Canonical Knowledge Layer 04",
+      "dependency_relationships": [
+        "Covers Sales Execution & Follow-Up (Classes 112\u2013120), Customer Acquisition Channels & Lead Generation (Classes 121\u2013132, with Class 125 explicitly marked newly-created curriculum), Sales Communication & Psychology, Negotiation (Classes 133\u2013148)",
+        "Supplies frameworks for follow-up after objections, buying signals, sales calls, organic/paid acquisition, lead magnets, ethical persuasion, negotiation, and discount handling"
+      ],
+      "implementation_relevance": "Critical. Powers dynamic runtime retrieval for Acquisition, Conversion, Conversation/Sales, and Ethics/Fit diagnostic domains."
+    },
+    {
+      "filename": "Cash Machine AI \u2014 Phase 3 Implementation Specification.md",
+      "file_type": "markdown/spec",
+      "role": "Implementation Specification",
+      "phase": 3,
+      "authority_level": "LEVEL_5",
+      "source_status": "Authoritative Implementation Specification",
+      "version": "1.0",
+      "duplicate_status": "Canonical Implementation Contract",
+      "dependency_relationships": [
+        "Establishes 7 runtime components (Context, Diagnostic, Retrieval, Decision, Output, ThreadsWorks Router, Measurement Loop)",
+        "Specifies 8-part Decision Response Contract (Diagnosis, Evidence, Uncertainty, Relevant Knowledge, Decision, Output, Execution, Metric)",
+        "Specifies 6 Initial Acceptance Tests and 8-step build order"
+      ],
+      "implementation_relevance": "High. Authoritative engineering contract for integrating the Cash Machine knowledge runtime with ThreadsWorks."
+    },
+    {
+      "filename": "Cash Machine AI Master Knowledge Index.json",
+      "file_type": "json",
+      "role": "Master Routing Index (JSON)",
+      "phase": 3,
+      "authority_level": "LEVEL_2",
+      "source_status": "Master Canonical Index connecting all 220 classes to 6 Knowledge files",
+      "version": "Phase 3 Final Index",
+      "duplicate_status": "Canonical Index",
+      "dependency_relationships": [
+        "Defines exact boundaries across the 6 Knowledge files (1-37, 38-74, 75-111, 112-148, 149-184, 185-220)",
+        "Links class IDs (CM-001 to CM-220) directly to subsystem, source_status, and target knowledge file"
+      ],
+      "implementation_relevance": "Critical. Used by the backend retrieval engine to route user diagnostics directly to the correct knowledge file."
+    },
+    {
+      "filename": "Cash Machine AI Master Knowledge Index.csv",
+      "file_type": "csv",
+      "role": "Master Routing Index (CSV Matrix)",
+      "phase": 3,
+      "authority_level": "LEVEL_2",
+      "source_status": "Master Canonical Table with full retrieval tags",
+      "version": "Phase 3 Final Index",
+      "duplicate_status": "Tabular representation of Master Index",
+      "dependency_relationships": [
+        "Provides structured metadata table with retrieval tags, source references, and system classifications for all 220 classes"
+      ],
+      "implementation_relevance": "High. Enables fast tabular lookup and indexing across all 220 classes."
+    },
+    {
+      "filename": "Cash Machine AI \u2014 Master System Prompt.txt",
+      "file_type": "text/prompt",
+      "role": "Master System Prompt Specification",
+      "phase": 4,
+      "authority_level": "LEVEL_4",
+      "source_status": "Authoritative Master Prompt Contract",
+      "version": "3.0",
+      "duplicate_status": "Canonical Runtime Prompt",
+      "dependency_relationships": [
+        "Sets operational rules (P1-P14), diagnostic sequence, and strict Response Contract (DIAGNOSIS, EVIDENCE, UNCERTAINTY, RELEVANT CASH MACHINE KNOWLEDGE, DECISION, NEXT ACTION, OUTPUT, THREADSWORKS EXECUTION, METRIC)",
+        "Configures the model persona as Cash Machine AI intelligence layer in ThreadsWorks"
+      ],
+      "implementation_relevance": "Critical. Directly drives the system instruction for the Cash Machine AI diagnostic engine."
+    },
+    {
+      "filename": "Cash Machine AI Knowledge 05.json",
+      "file_type": "json",
+      "role": "Canonical Knowledge Base (Classes 149\u2013184)",
+      "phase": 3,
+      "authority_level": "LEVEL_2",
+      "source_status": "Source-Derived (149-170) / Newly-Created Curriculum (171-184)",
+      "version": "1.0",
+      "duplicate_status": "Canonical Knowledge Layer 05",
+      "dependency_relationships": [
+        "Covers After The Sale (149-159: Onboarding, Delivery, Refunds, Retention, Repeat Purchases, Referrals), Sales Measurement & Management (160-170: Leads, Prospects, Conversion, AOV, CAC, LTV, Sales Cycle, Bottlenecks, Pipeline), Sales Optimization & OS (171-184)"
+      ],
+      "implementation_relevance": "Critical. Powers dynamic runtime retrieval for Customer/Retention, Economics, Operations/Scale, and Sales Measurement diagnostic domains."
+    },
+    {
+      "filename": "Cash Machine AI Knowledge 06.json",
+      "file_type": "json",
+      "role": "Canonical Knowledge Base (Classes 185\u2013220)",
+      "phase": 3,
+      "authority_level": "LEVEL_2",
+      "source_status": "Newly-Created Curriculum (185-197) / Source-Derived (198-220)",
+      "version": "1.0",
+      "duplicate_status": "Canonical Knowledge Layer 06",
+      "dependency_relationships": [
+        "Covers Sales Optimization & Operating System (185-197: Documenting Process, Opportunity Management, Time, Weekly/Monthly Reviews, Scorecards, Targets, Repeatable Sales System), Advanced Sales & Revenue Mastery (198-220: Qualification, Signals, Proof, Sales Page, Checkout Friction, Capacity, B2B vs B2C, High-Ticket, Low-Ticket, Ethics, First Sale to 100 Customers)"
+      ],
+      "implementation_relevance": "Critical. Completes the full 220-class curriculum coverage across all 6 Phase 3 Knowledge Layers."
+    },
+    {
+      "filename": "phase6_master_validation_specification.json",
+      "file_type": "json/spec",
+      "role": "Master Architecture Validation Specification",
+      "phase": 6,
+      "authority_level": "LEVEL_5",
+      "source_status": "Validation Contract for Phases 3-5",
+      "version": "1.0",
+      "duplicate_status": "Canonical Validation Specification",
+      "dependency_relationships": [
+        "Defines 10 test categories, 10 diagnostic test scenarios (VAL-001 to VAL-010), 6 edge case tests, failure localization, and scoring framework",
+        "Enforces that Phase 6 does not add another intelligence layer but proves the existing architecture works"
+      ],
+      "implementation_relevance": "High. Pre-production regression suite and validation gate."
+    },
+    {
+      "filename": "phase2_5_ai_systemization_record.md",
+      "file_type": "markdown/spec",
+      "role": "AI Systemization Record",
+      "phase": 2.5,
+      "authority_level": "LEVEL_3",
+      "source_status": "Canonical Bridge from Phase 2 to Phase 3",
+      "version": "1.0",
+      "duplicate_status": "Systemization Record",
+      "dependency_relationships": [
+        "Converts the 220-class curriculum into canonical knowledge objects, 14 diagnostic taxonomies, diagnostic-first rules, and ThreadsWorks routing patterns"
+      ],
+      "implementation_relevance": "Medium-High. Foundational taxonomy and context model specification."
+    },
+    {
+      "filename": "phase11_launch_continuous_intelligence.json",
+      "file_type": "json/spec",
+      "role": "Master Production Operations & Continuous Intelligence Specification",
+      "phase": 11,
+      "authority_level": "LEVEL_5",
+      "source_status": "Final Planned Architecture Phase & Production Operations",
+      "version": "1.0",
+      "duplicate_status": "Production Operations Specification",
+      "dependency_relationships": [
+        "Defines permanent continuous intelligence loop: Launch -> Observe -> Evidence -> Diagnose -> Improve -> Test -> Validate -> Release",
+        "Governs rollback triggers, production monitoring, intelligence quality monitoring, knowledge operations, and entitlement economics"
+      ],
+      "implementation_relevance": "Critical. Governs production operations, learning loop, and release controls."
+    },
+    {
+      "filename": "phase8_live_user_testing_optimization.json",
+      "file_type": "json/spec",
+      "role": "Master Live Learning & Optimization Specification",
+      "phase": 8,
+      "authority_level": "LEVEL_5",
+      "source_status": "Live Testing & Iterative Optimization Architecture",
+      "version": "1.0",
+      "duplicate_status": "Canonical Live Learning Specification",
+      "dependency_relationships": [
+        "Defines real-world learning loop: Observe Before Changing, Evidence Over Anecdote, Failure Localization (8 layers)",
+        "Provides 10 live test scenarios (LIVE-001 to LIVE-010), change control levels, and master learning repository schema"
+      ],
+      "implementation_relevance": "High. Live test protocols and feedback capture architecture."
+    },
+    {
+      "filename": "master_curriculum_ai_knowledge_blueprint.md",
+      "file_type": "markdown/blueprint",
+      "role": "Master Curriculum Blueprint",
+      "phase": 2,
+      "authority_level": "LEVEL_3",
+      "source_status": "Canonical Planning Blueprint",
+      "version": "1.0",
+      "duplicate_status": "Curriculum Architecture Blueprint",
+      "dependency_relationships": [
+        "Establishes product architecture layers, 220-class master map, closed-loop operating model, and source integrity notes"
+      ],
+      "implementation_relevance": "Medium. Structural map of all 220 curriculum classes."
+    },
+    {
+      "filename": "runtime_configuration_implementation_spec.json",
+      "file_type": "json/spec",
+      "role": "Runtime Configuration & Implementation Contract",
+      "phase": 9,
+      "authority_level": "LEVEL_5",
+      "source_status": "Runtime Wiring Specification connecting Knowledge, Intelligence, and ThreadsWorks",
+      "version": "1.0",
+      "duplicate_status": "Runtime Configuration Specification",
+      "dependency_relationships": [
+        "Defines 13-step request pipeline, 13 diagnostic domains, business state fields, decision runtime rules, recommendation contract, output contract, and ThreadsWorks bridge"
+      ],
+      "implementation_relevance": "Critical. Direct runtime blueprint for the ThreadsWorks integration layer."
+    },
+    {
+      "filename": "phase2_build_record.md",
+      "file_type": "markdown/record",
+      "role": "Phase 2 Build Record",
+      "phase": 2,
+      "authority_level": "LEVEL_3",
+      "source_status": "Development Record for 220-Class System",
+      "version": "1.0",
+      "duplicate_status": "Phase 2 Completion Record",
+      "dependency_relationships": [
+        "Preserves exact build log of curriculum architecture, source integrity decisions (Class 125, Classes 171-197), and operating loop"
+      ],
+      "implementation_relevance": "Medium. Provenance and audit documentation."
+    },
+    {
+      "filename": "phase7_product_integration_deployment.json",
+      "file_type": "json/spec",
+      "role": "Master Product Integration Specification",
+      "phase": 7,
+      "authority_level": "LEVEL_5",
+      "source_status": "Product Integration & Production Deployment Specification",
+      "version": "1.0",
+      "duplicate_status": "Product Integration Specification",
+      "dependency_relationships": [
+        "Defines user experience modes (Learn, Diagnose, Apply, Create, Execute, Measure, Improve)",
+        "Sets ThreadsWorks integration rules, handoff contracts, deployment pipeline, 7 release gates, and 10 acceptance tests (P7-AT-001 to P7-AT-010)"
+      ],
+      "implementation_relevance": "Critical. Defines product UX and integration boundaries with ThreadsWorks."
+    },
+    {
+      "filename": "phase10_full_system_validation.json",
+      "file_type": "json/spec",
+      "role": "Master Full-System Validation Specification",
+      "phase": 10,
+      "authority_level": "LEVEL_5",
+      "source_status": "Full-System Validation Contract prior to Phase 11 Launch",
+      "version": "1.0",
+      "duplicate_status": "Validation Proof Specification",
+      "dependency_relationships": [
+        "Defines 10 validation layers, 15 test categories, 10 core diagnostic scenarios (VAL10-001 to VAL10-010), 10 edge cases (EDGE10-001 to EDGE10-010), regression policies, and production readiness checklists"
+      ],
+      "implementation_relevance": "Critical. Serves as final pre-launch gatekeeper."
+    },
+    {
+      "filename": "phase5_master_implementation_system.json",
+      "file_type": "json/spec",
+      "role": "Master Implementation System Specification",
+      "phase": 5,
+      "authority_level": "LEVEL_5",
+      "source_status": "Single Master Implementation Specification for Phase 5",
+      "version": "1.0",
+      "duplicate_status": "Master Operating System Contract",
+      "dependency_relationships": [
+        "Binds Phase 3 knowledge and Phase 4 intelligence into a unified deployable operating system with complete system prompt and diagnostic scenario suite"
+      ],
+      "implementation_relevance": "Critical. Master Phase 5 specification."
+    },
+    {
+      "filename": "phase9_production_runtime_system_build.json",
+      "file_type": "json/spec",
+      "role": "Master Production Build Specification",
+      "phase": 9,
+      "authority_level": "LEVEL_5",
+      "source_status": "Operational Runtime Build Specification",
+      "version": "1.0",
+      "duplicate_status": "Production Build Specification",
+      "dependency_relationships": [
+        "Specifies 14 production components, user business state transition model, decision rule runtime structure, output engine, evaluation harness, observability, and 15 acceptance tests (P9-AT-001 to P9-AT-015)"
+      ],
+      "implementation_relevance": "Critical. Primary engineering specification for building the operational runtime."
+    },
+    {
+      "filename": "phase5_master_implementation_specification.json",
+      "file_type": "json/spec",
+      "role": "Implementation Contract",
+      "phase": 5,
+      "authority_level": "LEVEL_5",
+      "source_status": "Implementation Specification Variant",
+      "version": "1.0",
+      "duplicate_status": "Implementation Contract",
+      "dependency_relationships": [
+        "Captures runtime loop, priority order, uncertainty rules, execution rules, measurement rules, and behavioral guardrails"
+      ],
+      "implementation_relevance": "High. Concise implementation contract."
+    },
+    {
+      "filename": "master_curriculum_map_220_index.md",
+      "file_type": "markdown/index",
+      "role": "Curriculum Map & Index",
+      "phase": 2,
+      "authority_level": "LEVEL_3",
+      "source_status": "Canonical Index",
+      "version": "1.0",
+      "duplicate_status": "Tabular Curriculum Index",
+      "dependency_relationships": [
+        "Provides structured markdown table mapping all 220 classes across the 14 curriculum blocks"
+      ],
+      "implementation_relevance": "Medium. Quick reference for curriculum classes."
+    }
+  ]
+}

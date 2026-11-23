@@ -1,0 +1,221 @@
+id,class,system,title,source_status,knowledge_status,concept,problem,framework,diagnostic_questions,inputs,decision_rules,exercise,output_asset,threadsworks_action,metrics,related_classes,retrieval_tags,source_reference
+CM-001,1,Sales Foundation,What Selling Actually Is,source_derived,indexed,,,,,,,,,,,,sales foundation | what selling actually is,The Cash Machine source PDF
+CM-002,2,Sales Foundation,Why People Buy,source_derived,indexed,,,,,,,,,,,,sales foundation | why people buy,The Cash Machine source PDF
+CM-003,3,Sales Foundation,Finding The Problem You’re Actually Selling,source_derived,indexed,,,,,,,,,,,,sales foundation | finding the problem you’re actually selling,The Cash Machine source PDF
+CM-004,4,Sales Foundation,Finding The Right Buyer,source_derived,indexed,,,,,,,,,,,,sales foundation | finding the right buyer,The Cash Machine source PDF
+CM-005,5,Sales Foundation,Understanding Buyer Motivation,source_derived,indexed,,,,,,,,,,,,sales foundation | understanding buyer motivation,The Cash Machine source PDF
+CM-006,6,Sales Foundation,Understanding The Buyer’s Current Situation,source_derived,indexed,,,,,,,,,,,,sales foundation | understanding the buyer’s current situation,The Cash Machine source PDF
+CM-007,7,Sales Foundation,Customer Problems vs. Customer Symptoms,source_derived,indexed,,,,,,,,,,,,sales foundation | customer problems vs. customer symptoms,The Cash Machine source PDF
+CM-008,8,Sales Foundation,Understanding Customer Pain,source_derived,indexed,,,,,,,,,,,,sales foundation | understanding customer pain,The Cash Machine source PDF
+CM-009,9,Sales Foundation,Understanding Customer Desire,source_derived,indexed,,,,,,,,,,,,sales foundation | understanding customer desire,The Cash Machine source PDF
+CM-010,10,Sales Foundation,Understanding Value,source_derived,indexed,,,,,,,,,,,,sales foundation | understanding value,The Cash Machine source PDF
+CM-011,11,Sales Foundation,Why People Say No,source_derived,indexed,,,,,,,,,,,,sales foundation | why people say no,The Cash Machine source PDF
+CM-012,12,Sales Foundation,Customer Awareness,source_derived,indexed,,,,,,,,,,,,sales foundation | customer awareness,The Cash Machine source PDF
+CM-013,13,Sales Foundation,The Buyer’s Decision-Making Process,source_derived,indexed,,,,,,,,,,,,sales foundation | the buyer’s decision-making process,The Cash Machine source PDF
+CM-014,14,Sales Foundation,The Buyer’s Perceived Risk,source_derived,indexed,,,,,,,,,,,,sales foundation | the buyer’s perceived risk,The Cash Machine source PDF
+CM-015,15,Opportunity Validation,Identifying A Valuable Problem To Solve,source_derived,indexed,,,,,,,,,,,,opportunity validation | identifying a valuable problem to solve,The Cash Machine source PDF
+CM-016,16,Opportunity Validation,Evaluating Demand Before Building,source_derived,indexed,,,,,,,,,,,,opportunity validation | evaluating demand before building,The Cash Machine source PDF
+CM-017,17,Opportunity Validation,Understanding Existing Alternatives,source_derived,indexed,,,,,,,,,,,,opportunity validation | understanding existing alternatives,The Cash Machine source PDF
+CM-018,18,Opportunity Validation,Finding The Gap Between Problem And Solution,source_derived,indexed,,,,,,,,,,,,opportunity validation | finding the gap between problem and solution,The Cash Machine source PDF
+CM-019,19,Opportunity Validation,Understanding Market Demand,source_derived,indexed,,,,,,,,,,,,opportunity validation | understanding market demand,The Cash Machine source PDF
+CM-020,20,Opportunity Validation,Choosing A Specific Market,source_derived,indexed,,,,,,,,,,,,opportunity validation | choosing a specific market,The Cash Machine source PDF
+CM-021,21,Opportunity Validation,Identifying Customer Jobs To Be Done,source_derived,indexed,,,,,,,,,,,,opportunity validation | identifying customer jobs to be done,The Cash Machine source PDF
+CM-022,22,Opportunity Validation,Turning Problems Into Product Opportunities,source_derived,indexed,,,,,,,,,,,,opportunity validation | turning problems into product opportunities,The Cash Machine source PDF
+CM-023,23,Opportunity Validation,Defining The Customer’s Desired Outcome,source_derived,indexed,,,,,,,,,,,,opportunity validation | defining the customer’s desired outcome,The Cash Machine source PDF
+CM-024,24,Opportunity Validation,Evaluating Willingness To Pay,source_derived,indexed,,,,,,,,,,,,opportunity validation | evaluating willingness to pay,The Cash Machine source PDF
+CM-025,25,Opportunity Validation,Finding The Root Cause Of A Customer Problem,source_derived,indexed,,,,,,,,,,,,opportunity validation | finding the root cause of a customer problem,The Cash Machine source PDF
+CM-026,26,Opportunity Validation,Choosing The Right Solution Type,source_derived,indexed,,,,,,,,,,,,opportunity validation | choosing the right solution type,The Cash Machine source PDF
+CM-027,27,Opportunity Validation,Defining The Value Proposition,source_derived,indexed,,,,,,,,,,,,opportunity validation | defining the value proposition,The Cash Machine source PDF
+CM-028,28,Opportunity Validation,Creating A Simple Offer From A Real Problem,source_derived,indexed,,,,,,,,,,,,opportunity validation | creating a simple offer from a real problem,The Cash Machine source PDF
+CM-029,29,Opportunity Validation,Understanding Product-Market Fit,source_derived,indexed,,,,,,,,,,,,opportunity validation | understanding product-market fit,The Cash Machine source PDF
+CM-030,30,Opportunity Validation,Testing An Offer Before Building The Full Product,source_derived,indexed,,,,,,,,,,,,opportunity validation | testing an offer before building the full product,The Cash Machine source PDF
+CM-031,31,Buyer Intelligence,Building A Buyer Profile From Evidence,source_derived,indexed,,,,,,,,,,,,buyer intelligence | building a buyer profile from evidence,The Cash Machine source PDF
+CM-032,32,Buyer Intelligence,Identifying Buying Triggers,source_derived,indexed,,,,,,,,,,,,buyer intelligence | identifying buying triggers,The Cash Machine source PDF
+CM-033,33,Buyer Intelligence,Understanding Buyer Decision Criteria,source_derived,indexed,,,,,,,,,,,,buyer intelligence | understanding buyer decision criteria,The Cash Machine source PDF
+CM-034,34,Buyer Intelligence,Mapping The Buyer Journey,source_derived,indexed,,,,,,,,,,,,buyer intelligence | mapping the buyer journey,The Cash Machine source PDF
+CM-035,35,Buyer Intelligence,Understanding Buyer Constraints,source_derived,indexed,,,,,,,,,,,,buyer intelligence | understanding buyer constraints,The Cash Machine source PDF
+CM-036,36,Buyer Intelligence,Understanding Buyer Risk,source_derived,indexed,,,,,,,,,,,,buyer intelligence | understanding buyer risk,The Cash Machine source PDF
+CM-037,37,Customer Research,Understanding Customer Research,source_derived,indexed,,,,,,,,,,,,customer research | understanding customer research,The Cash Machine source PDF
+CM-038,38,Customer Research,Conducting Customer Interviews,source_derived,indexed,,,,,,,,,,,,customer research | conducting customer interviews,The Cash Machine source PDF
+CM-039,39,Customer Research,Designing Useful Customer Surveys,source_derived,indexed,,,,,,,,,,,,customer research | designing useful customer surveys,The Cash Machine source PDF
+CM-040,40,Customer Research,Analyzing Customer Research,source_derived,indexed,,,,,,,,,,,,customer research | analyzing customer research,The Cash Machine source PDF
+CM-041,41,Customer Research,Finding Customer Language,source_derived,indexed,,,,,,,,,,,,customer research | finding customer language,The Cash Machine source PDF
+CM-042,42,Customer Research,Finding Patterns In Customer Problems,source_derived,indexed,,,,,,,,,,,,customer research | finding patterns in customer problems,The Cash Machine source PDF
+CM-043,43,Customer Research,Learning From Competitor Customers,source_derived,indexed,,,,,,,,,,,,customer research | learning from competitor customers,The Cash Machine source PDF
+CM-044,44,Customer Research,Discovering Unmet Customer Needs,source_derived,indexed,,,,,,,,,,,,customer research | discovering unmet customer needs,The Cash Machine source PDF
+CM-045,45,Customer Research,Prioritizing Customer Problems,source_derived,indexed,,,,,,,,,,,,customer research | prioritizing customer problems,The Cash Machine source PDF
+CM-046,46,Customer Research,Turning Customer Research Into Better Offers,source_derived,indexed,,,,,,,,,,,,customer research | turning customer research into better offers,The Cash Machine source PDF
+CM-047,47,Customer Research,Discovering Customer Objections Through Research,source_derived,indexed,,,,,,,,,,,,customer research | discovering customer objections through research,The Cash Machine source PDF
+CM-048,48,Customer Research,Building A Customer Research System,source_derived,indexed,,,,,,,,,,,,customer research | building a customer research system,The Cash Machine source PDF
+CM-049,49,Choosing Your Market,Understanding Market Segmentation,source_derived,indexed,,,,,,,,,,,,choosing your market | understanding market segmentation,The Cash Machine source PDF
+CM-050,50,Choosing Your Market,Choosing A Target Market,source_derived,indexed,,,,,,,,,,,,choosing your market | choosing a target market,The Cash Machine source PDF
+CM-051,51,Choosing Your Market,Niche vs. Broad Market Positioning,source_derived,indexed,,,,,,,,,,,,choosing your market | niche vs. broad market positioning,The Cash Machine source PDF
+CM-052,52,Choosing Your Market,Evaluating Market Attractiveness,source_derived,indexed,,,,,,,,,,,,choosing your market | evaluating market attractiveness,The Cash Machine source PDF
+CM-053,53,Choosing Your Market,Understanding Market Size,source_derived,indexed,,,,,,,,,,,,choosing your market | understanding market size,The Cash Machine source PDF
+CM-054,54,Choosing Your Market,Evaluating Market Accessibility,source_derived,indexed,,,,,,,,,,,,choosing your market | evaluating market accessibility,The Cash Machine source PDF
+CM-055,55,Choosing Your Market,Choosing A Beachhead Market,source_derived,indexed,,,,,,,,,,,,choosing your market | choosing a beachhead market,The Cash Machine source PDF
+CM-056,56,Choosing Your Market,Understanding Market Maturity,source_derived,indexed,,,,,,,,,,,,choosing your market | understanding market maturity,The Cash Machine source PDF
+CM-057,57,Choosing Your Market,Finding Market Gaps,source_derived,indexed,,,,,,,,,,,,choosing your market | finding market gaps,The Cash Machine source PDF
+CM-058,58,Choosing Your Market,Validating Market Opportunity,source_derived,indexed,,,,,,,,,,,,choosing your market | validating market opportunity,The Cash Machine source PDF
+CM-059,59,Choosing Your Market,Matching Market Opportunity To Your Strengths,source_derived,indexed,,,,,,,,,,,,choosing your market | matching market opportunity to your strengths,The Cash Machine source PDF
+CM-060,60,Choosing Your Market,Understanding Customer Concentration,source_derived,indexed,,,,,,,,,,,,choosing your market | understanding customer concentration,The Cash Machine source PDF
+CM-061,61,Choosing Your Market,Understanding Market Seasonality,source_derived,indexed,,,,,,,,,,,,choosing your market | understanding market seasonality,The Cash Machine source PDF
+CM-062,62,Choosing Your Market,Understanding Market Trends,source_derived,indexed,,,,,,,,,,,,choosing your market | understanding market trends,The Cash Machine source PDF
+CM-063,63,Choosing Your Market,Identifying Market Entry Barriers,source_derived,indexed,,,,,,,,,,,,choosing your market | identifying market entry barriers,The Cash Machine source PDF
+CM-064,64,Choosing Your Market,Making The Final Market Decision,source_derived,indexed,,,,,,,,,,,,choosing your market | making the final market decision,The Cash Machine source PDF
+CM-065,65,Positioning,Understanding Positioning,source_derived,indexed,,,,,,,,,,,,positioning | understanding positioning,The Cash Machine source PDF
+CM-066,66,Positioning,Defining Your Category,source_derived,indexed,,,,,,,,,,,,positioning | defining your category,The Cash Machine source PDF
+CM-067,67,Positioning,Identifying Your Competitive Position,source_derived,indexed,,,,,,,,,,,,positioning | identifying your competitive position,The Cash Machine source PDF
+CM-068,68,Positioning,Creating A Differentiated Position,source_derived,indexed,,,,,,,,,,,,positioning | creating a differentiated position,The Cash Machine source PDF
+CM-069,69,Positioning,Positioning Around A Specific Problem,source_derived,indexed,,,,,,,,,,,,positioning | positioning around a specific problem,The Cash Machine source PDF
+CM-070,70,Positioning,Positioning Around The Desired Outcome,source_derived,indexed,,,,,,,,,,,,positioning | positioning around the desired outcome,The Cash Machine source PDF
+CM-071,71,Positioning,Positioning Around A Unique Mechanism,source_derived,indexed,,,,,,,,,,,,positioning | positioning around a unique mechanism,The Cash Machine source PDF
+CM-072,72,Positioning,Positioning Through Customer Specificity,source_derived,indexed,,,,,,,,,,,,positioning | positioning through customer specificity,The Cash Machine source PDF
+CM-073,73,Positioning,Creating A Positioning Statement,source_derived,indexed,,,,,,,,,,,,positioning | creating a positioning statement,The Cash Machine source PDF
+CM-074,74,Positioning,Testing Your Positioning,source_derived,indexed,,,,,,,,,,,,positioning | testing your positioning,The Cash Machine source PDF
+CM-075,75,Positioning,Refining Your Positioning,source_derived,indexed,,,,,,,,,,,,positioning | refining your positioning,The Cash Machine source PDF
+CM-076,76,Positioning,Positioning Against Alternatives,source_derived,indexed,,,,,,,,,,,,positioning | positioning against alternatives,The Cash Machine source PDF
+CM-077,77,Positioning,Positioning Across Marketing Channels,source_derived,indexed,,,,,,,,,,,,positioning | positioning across marketing channels,The Cash Machine source PDF
+CM-078,78,Positioning,Maintaining Consistent Positioning As You Grow,source_derived,indexed,,,,,,,,,,,,positioning | maintaining consistent positioning as you grow,The Cash Machine source PDF
+CM-079,79,Building Your Offer,Understanding The Offer,source_derived,indexed,,,,,,,,,,,,building your offer | understanding the offer,The Cash Machine source PDF
+CM-080,80,Building Your Offer,Identifying The Core Problem,source_derived,indexed,,,,,,,,,,,,building your offer | identifying the core problem,The Cash Machine source PDF
+CM-081,81,Building Your Offer,Defining The Desired Outcome,source_derived,indexed,,,,,,,,,,,,building your offer | defining the desired outcome,The Cash Machine source PDF
+CM-082,82,Building Your Offer,Defining The Transformation,source_derived,indexed,,,,,,,,,,,,building your offer | defining the transformation,The Cash Machine source PDF
+CM-083,83,Building Your Offer,Choosing The Right Delivery Format,source_derived,indexed,,,,,,,,,,,,building your offer | choosing the right delivery format,The Cash Machine source PDF
+CM-084,84,Building Your Offer,Structuring The Offer,source_derived,indexed,,,,,,,,,,,,building your offer | structuring the offer,The Cash Machine source PDF
+CM-085,85,Building Your Offer,Creating The Offer Value Proposition,source_derived,indexed,,,,,,,,,,,,building your offer | creating the offer value proposition,The Cash Machine source PDF
+CM-086,86,Building Your Offer,Making The Offer Specific To The Buyer,source_derived,indexed,,,,,,,,,,,,building your offer | making the offer specific to the buyer,The Cash Machine source PDF
+CM-087,87,Building Your Offer,Naming And Packaging The Offer,source_derived,indexed,,,,,,,,,,,,building your offer | naming and packaging the offer,The Cash Machine source PDF
+CM-088,88,Building Your Offer,Building The Offer Around The Customer Journey,source_derived,indexed,,,,,,,,,,,,building your offer | building the offer around the customer journey,The Cash Machine source PDF
+CM-089,89,Building Your Offer,Identifying And Removing Offer Friction,source_derived,indexed,,,,,,,,,,,,building your offer | identifying and removing offer friction,The Cash Machine source PDF
+CM-090,90,Building Your Offer,Reducing Buyer Risk,source_derived,indexed,,,,,,,,,,,,building your offer | reducing buyer risk,The Cash Machine source PDF
+CM-091,91,Building Your Offer,Proving The Value Of The Offer,source_derived,indexed,,,,,,,,,,,,building your offer | proving the value of the offer,The Cash Machine source PDF
+CM-092,92,Building Your Offer,Handling Offer Objections Before The Sale,source_derived,indexed,,,,,,,,,,,,building your offer | handling offer objections before the sale,The Cash Machine source PDF
+CM-093,93,Building Your Offer,Choosing The Right Pricing Model,source_derived,indexed,,,,,,,,,,,,building your offer | choosing the right pricing model,The Cash Machine source PDF
+CM-094,94,Building Your Offer,Presenting The Price,source_derived,indexed,,,,,,,,,,,,building your offer | presenting the price,The Cash Machine source PDF
+CM-095,95,Building Your Offer,Creating A Strong Call To Action,source_derived,indexed,,,,,,,,,,,,building your offer | creating a strong call to action,The Cash Machine source PDF
+CM-096,96,Building Your Offer,Creating A Clear Buying Experience,source_derived,indexed,,,,,,,,,,,,building your offer | creating a clear buying experience,The Cash Machine source PDF
+CM-097,97,Building Your Offer,Creating An Offer That Is Easy To Understand,source_derived,indexed,,,,,,,,,,,,building your offer | creating an offer that is easy to understand,The Cash Machine source PDF
+CM-098,98,Building Your Offer,Creating A Complete Offer,source_derived,indexed,,,,,,,,,,,,building your offer | creating a complete offer,The Cash Machine source PDF
+CM-099,99,Selling The Offer / Acquisition,Turning The Offer Into A Sales Conversation,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | turning the offer into a sales conversation,The Cash Machine source PDF
+CM-100,100,Selling The Offer / Acquisition,Asking Better Sales Questions,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | asking better sales questions,The Cash Machine source PDF
+CM-101,101,Selling The Offer / Acquisition,Finding Potential Buyers,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | finding potential buyers,The Cash Machine source PDF
+CM-102,102,Selling The Offer / Acquisition,Qualifying Prospects,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | qualifying prospects,The Cash Machine source PDF
+CM-103,103,Selling The Offer / Acquisition,Building A Prospect List,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | building a prospect list,The Cash Machine source PDF
+CM-104,104,Selling The Offer / Acquisition,Where To Find Prospects,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | where to find prospects,The Cash Machine source PDF
+CM-105,105,Selling The Offer / Acquisition,Starting A Sales Conversation,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | starting a sales conversation,The Cash Machine source PDF
+CM-106,106,Selling The Offer / Acquisition,Building Rapport Without Being Fake,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | building rapport without being fake,The Cash Machine source PDF
+CM-107,107,Selling The Offer / Acquisition,Discovering The Buyer’s Real Problem,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | discovering the buyer’s real problem,The Cash Machine source PDF
+CM-108,108,Selling The Offer / Acquisition,Presenting The Right Solution,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | presenting the right solution,The Cash Machine source PDF
+CM-109,109,Selling The Offer / Acquisition,Handling Sales Objections,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | handling sales objections,The Cash Machine source PDF
+CM-110,110,Selling The Offer / Acquisition,Asking For The Sale,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | asking for the sale,The Cash Machine source PDF
+CM-111,111,Selling The Offer / Acquisition,Following Up Without Being Pushy,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | following up without being pushy,The Cash Machine source PDF
+CM-112,112,Selling The Offer / Acquisition,Following Up After An Objection,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | following up after an objection,The Cash Machine source PDF
+CM-113,113,Selling The Offer / Acquisition,Recognizing Buying Signals,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | recognizing buying signals,The Cash Machine source PDF
+CM-114,114,Selling The Offer / Acquisition,Closing Different Types Of Sales,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | closing different types of sales,The Cash Machine source PDF
+CM-115,115,Selling The Offer / Acquisition,Selling Through Direct Messages,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | selling through direct messages,The Cash Machine source PDF
+CM-116,116,Selling The Offer / Acquisition,Selling Through Email,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | selling through email,The Cash Machine source PDF
+CM-117,117,Selling The Offer / Acquisition,Selling Through Content,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | selling through content,The Cash Machine source PDF
+CM-118,118,Selling The Offer / Acquisition,Building A Simple Sales Funnel,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | building a simple sales funnel,The Cash Machine source PDF
+CM-119,119,Selling The Offer / Acquisition,Measuring Your Sales Process,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | measuring your sales process,The Cash Machine source PDF
+CM-120,120,Selling The Offer / Acquisition,Selling Through Sales Calls,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | selling through sales calls,The Cash Machine source PDF
+CM-121,121,Selling The Offer / Acquisition,Choosing The Right Sales Channel,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | choosing the right sales channel,The Cash Machine source PDF
+CM-122,122,Selling The Offer / Acquisition,Understanding Customer Acquisition,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | understanding customer acquisition,The Cash Machine source PDF
+CM-123,123,Selling The Offer / Acquisition,Organic Customer Acquisition,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | organic customer acquisition,The Cash Machine source PDF
+CM-124,124,Selling The Offer / Acquisition,Paid Customer Acquisition,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | paid customer acquisition,The Cash Machine source PDF
+CM-125,125,Selling The Offer / Acquisition,Choosing The Right Acquisition Strategy,newly_authored,indexed,,,,,,,,,,,,selling the offer / acquisition | choosing the right acquisition strategy,Phase 2 newly authored curriculum
+CM-126,126,Selling The Offer / Acquisition,Lead Generation,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | lead generation,The Cash Machine source PDF
+CM-127,127,Selling The Offer / Acquisition,Creating Lead Magnets,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | creating lead magnets,The Cash Machine source PDF
+CM-128,128,Selling The Offer / Acquisition,Creating Content That Attracts Buyers,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | creating content that attracts buyers,The Cash Machine source PDF
+CM-129,129,Selling The Offer / Acquisition,Turning Attention Into Leads,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | turning attention into leads,The Cash Machine source PDF
+CM-130,130,Selling The Offer / Acquisition,Turning Leads Into Prospects,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | turning leads into prospects,The Cash Machine source PDF
+CM-131,131,Selling The Offer / Acquisition,Building A Lead Nurturing System,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | building a lead nurturing system,The Cash Machine source PDF
+CM-132,132,Selling The Offer / Acquisition,Building Trust Before The Sale,source_derived,indexed,,,,,,,,,,,,selling the offer / acquisition | building trust before the sale,The Cash Machine source PDF
+CM-133,133,Sales Communication & Psychology,Communicating With Confidence,source_derived,indexed,,,,,,,,,,,,sales communication & psychology | communicating with confidence,The Cash Machine source PDF
+CM-134,134,Sales Communication & Psychology,The Skill Of Listening In Sales,source_derived,indexed,,,,,,,,,,,,sales communication & psychology | the skill of listening in sales,The Cash Machine source PDF
+CM-135,135,Sales Communication & Psychology,Understanding Buyer Emotion,source_derived,indexed,,,,,,,,,,,,sales communication & psychology | understanding buyer emotion,The Cash Machine source PDF
+CM-136,136,Sales Communication & Psychology,Reducing Buyer Uncertainty,source_derived,indexed,,,,,,,,,,,,sales communication & psychology | reducing buyer uncertainty,The Cash Machine source PDF
+CM-137,137,Sales Communication & Psychology,Using Stories In Sales,source_derived,indexed,,,,,,,,,,,,sales communication & psychology | using stories in sales,The Cash Machine source PDF
+CM-138,138,Sales Communication & Psychology,Demonstrating Value,source_derived,indexed,,,,,,,,,,,,sales communication & psychology | demonstrating value,The Cash Machine source PDF
+CM-139,139,Sales Communication & Psychology,Persuasive Communication,source_derived,indexed,,,,,,,,,,,,sales communication & psychology | persuasive communication,The Cash Machine source PDF
+CM-140,140,Sales Communication & Psychology,Ethical Sales Psychology,source_derived,indexed,,,,,,,,,,,,sales communication & psychology | ethical sales psychology,The Cash Machine source PDF
+CM-141,141,Sales Communication & Psychology,Avoiding Manipulation In Sales,source_derived,indexed,,,,,,,,,,,,sales communication & psychology | avoiding manipulation in sales,The Cash Machine source PDF
+CM-142,142,Sales Communication & Psychology,Handling Difficult Sales Conversations,source_derived,indexed,,,,,,,,,,,,sales communication & psychology | handling difficult sales conversations,The Cash Machine source PDF
+CM-143,143,Sales Communication & Psychology,Understanding Negotiation,source_derived,indexed,,,,,,,,,,,,sales communication & psychology | understanding negotiation,The Cash Machine source PDF
+CM-144,144,Sales Communication & Psychology,Knowing When To Negotiate,source_derived,indexed,,,,,,,,,,,,sales communication & psychology | knowing when to negotiate,The Cash Machine source PDF
+CM-145,145,Sales Communication & Psychology,Negotiating Price,source_derived,indexed,,,,,,,,,,,,sales communication & psychology | negotiating price,The Cash Machine source PDF
+CM-146,146,Sales Communication & Psychology,Negotiating Scope,source_derived,indexed,,,,,,,,,,,,sales communication & psychology | negotiating scope,The Cash Machine source PDF
+CM-147,147,Sales Communication & Psychology,Negotiating Terms,source_derived,indexed,,,,,,,,,,,,sales communication & psychology | negotiating terms,The Cash Machine source PDF
+CM-148,148,Sales Communication & Psychology,Handling Discounts,source_derived,indexed,,,,,,,,,,,,sales communication & psychology | handling discounts,The Cash Machine source PDF
+CM-149,149,Sales Communication & Psychology,Protecting Your Value,source_derived,indexed,,,,,,,,,,,,sales communication & psychology | protecting your value,The Cash Machine source PDF
+CM-150,150,After The Sale,Customer Onboarding,source_derived,indexed,,,,,,,,,,,,after the sale | customer onboarding,The Cash Machine source PDF
+CM-151,151,After The Sale,Delivering The Promise,source_derived,indexed,,,,,,,,,,,,after the sale | delivering the promise,The Cash Machine source PDF
+CM-152,152,After The Sale,Creating A Great Customer Experience,source_derived,indexed,,,,,,,,,,,,after the sale | creating a great customer experience,The Cash Machine source PDF
+CM-153,153,After The Sale,Handling Customer Problems,source_derived,indexed,,,,,,,,,,,,after the sale | handling customer problems,The Cash Machine source PDF
+CM-154,154,After The Sale,Handling Refunds,source_derived,indexed,,,,,,,,,,,,after the sale | handling refunds,The Cash Machine source PDF
+CM-155,155,After The Sale,Customer Retention,source_derived,indexed,,,,,,,,,,,,after the sale | customer retention,The Cash Machine source PDF
+CM-156,156,After The Sale,Creating Repeat Purchases,source_derived,indexed,,,,,,,,,,,,after the sale | creating repeat purchases,The Cash Machine source PDF
+CM-157,157,After The Sale,Upsells,source_derived,indexed,,,,,,,,,,,,after the sale | upsells,The Cash Machine source PDF
+CM-158,158,After The Sale,Cross-Sells,source_derived,indexed,,,,,,,,,,,,after the sale | cross-sells,The Cash Machine source PDF
+CM-159,159,After The Sale,Customer Referrals,source_derived,indexed,,,,,,,,,,,,after the sale | customer referrals,The Cash Machine source PDF
+CM-160,160,Sales Measurement & Management,Measuring Sales Metrics,source_derived,indexed,,,,,,,,,,,,sales measurement & management | measuring sales metrics,The Cash Machine source PDF
+CM-161,161,Sales Measurement & Management,Measuring Leads,source_derived,indexed,,,,,,,,,,,,sales measurement & management | measuring leads,The Cash Machine source PDF
+CM-162,162,Sales Measurement & Management,Measuring Prospects,source_derived,indexed,,,,,,,,,,,,sales measurement & management | measuring prospects,The Cash Machine source PDF
+CM-163,163,Sales Measurement & Management,Measuring Conversion,source_derived,indexed,,,,,,,,,,,,sales measurement & management | measuring conversion,The Cash Machine source PDF
+CM-164,164,Sales Measurement & Management,Measuring Average Order Value,source_derived,indexed,,,,,,,,,,,,sales measurement & management | measuring average order value,The Cash Machine source PDF
+CM-165,165,Sales Measurement & Management,Measuring Customer Acquisition Cost,source_derived,indexed,,,,,,,,,,,,sales measurement & management | measuring customer acquisition cost,The Cash Machine source PDF
+CM-166,166,Sales Measurement & Management,Measuring Customer Lifetime Value,source_derived,indexed,,,,,,,,,,,,sales measurement & management | measuring customer lifetime value,The Cash Machine source PDF
+CM-167,167,Sales Measurement & Management,Measuring Sales Cycle,source_derived,indexed,,,,,,,,,,,,sales measurement & management | measuring sales cycle,The Cash Machine source PDF
+CM-168,168,Sales Measurement & Management,Finding Sales Bottlenecks,source_derived,indexed,,,,,,,,,,,,sales measurement & management | finding sales bottlenecks,The Cash Machine source PDF
+CM-169,169,Sales Measurement & Management,Improving Conversion,source_derived,indexed,,,,,,,,,,,,sales measurement & management | improving conversion,The Cash Machine source PDF
+CM-170,170,Sales Measurement & Management,Building A Sales Pipeline,source_derived,indexed,,,,,,,,,,,,sales measurement & management | building a sales pipeline,The Cash Machine source PDF
+CM-171,171,Sales Optimization & Operating System,Understanding Sales Performance,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | understanding sales performance,Phase 2 newly authored curriculum
+CM-172,172,Sales Optimization & Operating System,Diagnosing Sales Declines,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | diagnosing sales declines,Phase 2 newly authored curriculum
+CM-173,173,Sales Optimization & Operating System,Diagnosing Sales Growth,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | diagnosing sales growth,Phase 2 newly authored curriculum
+CM-174,174,Sales Optimization & Operating System,Comparing Sales Channels,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | comparing sales channels,Phase 2 newly authored curriculum
+CM-175,175,Sales Optimization & Operating System,Measuring Lead Quality,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | measuring lead quality,Phase 2 newly authored curriculum
+CM-176,176,Sales Optimization & Operating System,Measuring Sales Activity,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | measuring sales activity,Phase 2 newly authored curriculum
+CM-177,177,Sales Optimization & Operating System,Improving Lead Quality,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | improving lead quality,Phase 2 newly authored curriculum
+CM-178,178,Sales Optimization & Operating System,Improving Qualification,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | improving qualification,Phase 2 newly authored curriculum
+CM-179,179,Sales Optimization & Operating System,Improving Sales Conversations,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | improving sales conversations,Phase 2 newly authored curriculum
+CM-180,180,Sales Optimization & Operating System,Improving Follow-Up,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | improving follow-up,Phase 2 newly authored curriculum
+CM-181,181,Sales Optimization & Operating System,Improving Offer Conversion,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | improving offer conversion,Phase 2 newly authored curriculum
+CM-182,182,Sales Optimization & Operating System,Improving Sales Messaging,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | improving sales messaging,Phase 2 newly authored curriculum
+CM-183,183,Sales Optimization & Operating System,Building A Sales Message Library,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | building a sales message library,Phase 2 newly authored curriculum
+CM-184,184,Sales Optimization & Operating System,Building A Sales Process,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | building a sales process,Phase 2 newly authored curriculum
+CM-185,185,Sales Optimization & Operating System,Documenting The Sales Process,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | documenting the sales process,Phase 2 newly authored curriculum
+CM-186,186,Sales Optimization & Operating System,Managing Sales Opportunities,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | managing sales opportunities,Phase 2 newly authored curriculum
+CM-187,187,Sales Optimization & Operating System,Prioritizing Sales Activity,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | prioritizing sales activity,Phase 2 newly authored curriculum
+CM-188,188,Sales Optimization & Operating System,Managing Sales Time,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | managing sales time,Phase 2 newly authored curriculum
+CM-189,189,Sales Optimization & Operating System,Creating A Weekly Sales Review,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | creating a weekly sales review,Phase 2 newly authored curriculum
+CM-190,190,Sales Optimization & Operating System,Creating A Monthly Revenue Review,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | creating a monthly revenue review,Phase 2 newly authored curriculum
+CM-191,191,Sales Optimization & Operating System,Building A Sales Scorecard,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | building a sales scorecard,Phase 2 newly authored curriculum
+CM-192,192,Sales Optimization & Operating System,Creating Sales Targets,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | creating sales targets,Phase 2 newly authored curriculum
+CM-193,193,Sales Optimization & Operating System,Reverse Engineering Revenue,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | reverse engineering revenue,Phase 2 newly authored curriculum
+CM-194,194,Sales Optimization & Operating System,Building A Repeatable Sales System,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | building a repeatable sales system,Phase 2 newly authored curriculum
+CM-195,195,Sales Optimization & Operating System,Finding The Next Growth Constraint,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | finding the next growth constraint,Phase 2 newly authored curriculum
+CM-196,196,Sales Optimization & Operating System,Creating A Sales Improvement Plan,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | creating a sales improvement plan,Phase 2 newly authored curriculum
+CM-197,197,Sales Optimization & Operating System,Building Your Sales Operating System,newly_authored,indexed,,,,,,,,,,,,sales optimization & operating system | building your sales operating system,Phase 2 newly authored curriculum
+CM-198,198,Advanced Sales & Revenue Mastery,Advanced Sales Qualification,source_derived,indexed,,,,,,,,,,,,advanced sales & revenue mastery | advanced sales qualification,The Cash Machine source PDF
+CM-199,199,Advanced Sales & Revenue Mastery,Reading Buyer Signals And Intent,source_derived,indexed,,,,,,,,,,,,advanced sales & revenue mastery | reading buyer signals and intent,The Cash Machine source PDF
+CM-200,200,Advanced Sales & Revenue Mastery,Building Trust And Proof,source_derived,indexed,,,,,,,,,,,,advanced sales & revenue mastery | building trust and proof,The Cash Machine source PDF
+CM-201,201,Advanced Sales & Revenue Mastery,Creating A High-Converting Sales Page,source_derived,indexed,,,,,,,,,,,,advanced sales & revenue mastery | creating a high-converting sales page,The Cash Machine source PDF
+CM-202,202,Advanced Sales & Revenue Mastery,Removing Checkout And Buying Friction,source_derived,indexed,,,,,,,,,,,,advanced sales & revenue mastery | removing checkout and buying friction,The Cash Machine source PDF
+CM-203,203,Advanced Sales & Revenue Mastery,Running A Revenue Review,source_derived,indexed,,,,,,,,,,,,advanced sales & revenue mastery | running a revenue review,The Cash Machine source PDF
+CM-204,204,Advanced Sales & Revenue Mastery,Scaling Without Breaking The Sales System,source_derived,indexed,,,,,,,,,,,,advanced sales & revenue mastery | scaling without breaking the sales system,The Cash Machine source PDF
+CM-205,205,Advanced Sales & Revenue Mastery,The Daily Sales Operating System,source_derived,indexed,,,,,,,,,,,,advanced sales & revenue mastery | the daily sales operating system,The Cash Machine source PDF
+CM-206,206,Final Advanced Sales & Revenue Mastery,Buyer Awareness & Intent In Practice,source_derived,indexed,,,,,,,,,,,,final advanced sales & revenue mastery | buyer awareness & intent in practice,The Cash Machine source PDF
+CM-207,207,Final Advanced Sales & Revenue Mastery,Advanced Sales Qualification,source_derived,indexed,,,,,,,,,,,,final advanced sales & revenue mastery | advanced sales qualification,The Cash Machine source PDF
+CM-208,208,Final Advanced Sales & Revenue Mastery,Building Trust & Proof,source_derived,indexed,,,,,,,,,,,,final advanced sales & revenue mastery | building trust & proof,The Cash Machine source PDF
+CM-209,209,Final Advanced Sales & Revenue Mastery,Sales Page Architecture,source_derived,indexed,,,,,,,,,,,,final advanced sales & revenue mastery | sales page architecture,The Cash Machine source PDF
+CM-210,210,Final Advanced Sales & Revenue Mastery,Checkout Conversion,source_derived,indexed,,,,,,,,,,,,final advanced sales & revenue mastery | checkout conversion,The Cash Machine source PDF
+CM-211,211,Final Advanced Sales & Revenue Mastery,Pricing Psychology & Price Anchoring,source_derived,indexed,,,,,,,,,,,,final advanced sales & revenue mastery | pricing psychology & price anchoring,The Cash Machine source PDF
+CM-212,212,Final Advanced Sales & Revenue Mastery,Sales Forecasting,source_derived,indexed,,,,,,,,,,,,final advanced sales & revenue mastery | sales forecasting,The Cash Machine source PDF
+CM-213,213,Final Advanced Sales & Revenue Mastery,Sales Capacity & Time Management,source_derived,indexed,,,,,,,,,,,,final advanced sales & revenue mastery | sales capacity & time management,The Cash Machine source PDF
+CM-214,214,Final Advanced Sales & Revenue Mastery,Partnerships & Strategic Selling,source_derived,indexed,,,,,,,,,,,,final advanced sales & revenue mastery | partnerships & strategic selling,The Cash Machine source PDF
+CM-215,215,Final Advanced Sales & Revenue Mastery,B2B vs B2C Sales,source_derived,indexed,,,,,,,,,,,,final advanced sales & revenue mastery | b2b vs b2c sales,The Cash Machine source PDF
+CM-216,216,Final Advanced Sales & Revenue Mastery,Selling High-Ticket Offers,source_derived,indexed,,,,,,,,,,,,final advanced sales & revenue mastery | selling high-ticket offers,The Cash Machine source PDF
+CM-217,217,Final Advanced Sales & Revenue Mastery,Selling Low-Ticket Offers,source_derived,indexed,,,,,,,,,,,,final advanced sales & revenue mastery | selling low-ticket offers,The Cash Machine source PDF
+CM-218,218,Final Advanced Sales & Revenue Mastery,Selling Services vs Products,source_derived,indexed,,,,,,,,,,,,final advanced sales & revenue mastery | selling services vs products,The Cash Machine source PDF
+CM-219,219,Final Advanced Sales & Revenue Mastery,"Sales Ethics, Reputation & When Not To Sell",source_derived,indexed,,,,,,,,,,,,"final advanced sales & revenue mastery | sales ethics, reputation & when not to sell",The Cash Machine source PDF
+CM-220,220,Final Advanced Sales & Revenue Mastery,From First Sale To 100 Customers,source_derived,indexed,,,,,,,,,,,,final advanced sales & revenue mastery | from first sale to 100 customers,The Cash Machine source PDF

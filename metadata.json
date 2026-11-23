@@ -1,0 +1,6 @@
+{
+  "name": "ThreadsWorks",
+  "description": "Persuasive content creation engine, calendar scheduler, performance analytics, and strategic writing platform for digital creators.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,754 @@
+{
+  "categories": [
+    {
+      "name": "Category 1: Curiosity & Attention Hooks",
+      "hooks": [
+        {
+          "id": 1,
+          "name": "Curiosity Gap Hook",
+          "description": "Creates a gap between what the reader knows and what they want to know. It reveals enough information to create interest but holds back the complete answer.",
+          "best_used_for": "Education, insights, discoveries, lessons, and thought leadership.",
+          "example": "I spent 6 months studying successful creators. The biggest lesson wasn't what I expected."
+        },
+        {
+          "id": 2,
+          "name": "Open Loop Hook",
+          "description": "Starts with an incomplete idea, story, or statement that encourages the reader to continue to discover the conclusion.",
+          "best_used_for": "Personal stories, lessons, transformations, and experiences.",
+          "example": "I almost deleted my entire content strategy until I realized one mistake."
+        },
+        {
+          "id": 3,
+          "name": "Hidden Truth Hook",
+          "description": "Reveals an overlooked reality that most people miss. Creates interest by exposing something beneath the surface.",
+          "best_used_for": "Authority content, education, and perspective shifts.",
+          "example": "Most creators don't have a content problem. They have a clarity problem."
+        },
+        {
+          "id": 4,
+          "name": "Unexpected Insight Hook",
+          "description": "Introduces a surprising observation that challenges normal assumptions.",
+          "best_used_for": "Opinions, lessons, and educational content.",
+          "example": "The creators growing fastest aren't posting more. They're making better decisions."
+        },
+        {
+          "id": 5,
+          "name": "Discovery Hook",
+          "description": "Shares something the creator recently discovered that changed their thinking.",
+          "best_used_for": "Personal brands, experiments, and learning content.",
+          "example": "I discovered why my best posts performed differently from everything else."
+        },
+        {
+          "id": 6,
+          "name": "Secret Lesson Hook",
+          "description": "Frames the content as a valuable lesson learned through experience.",
+          "best_used_for": "Authority building and storytelling.",
+          "example": "The lesson I learned after creating 500 pieces of content."
+        },
+        {
+          "id": 7,
+          "name": "What I Found Hook",
+          "description": "Creates curiosity by sharing a finding, pattern, or conclusion.",
+          "best_used_for": "Research, analysis, experiments, and observations.",
+          "example": "I analyzed my last 100 posts. Here's what stood out."
+        },
+        {
+          "id": 8,
+          "name": "The Thing I Didn't Expect Hook",
+          "description": "Uses surprise to create curiosity by highlighting an unexpected outcome.",
+          "best_used_for": "Stories, results, experiments, and case studies.",
+          "example": "The hardest part of building an audience wasn't creating content."
+        },
+        {
+          "id": 9,
+          "name": "Pattern Recognition Hook",
+          "description": "Shows the creator noticed a repeated pattern others may not see.",
+          "best_used_for": "Experts, analysts, and experienced creators.",
+          "example": "I noticed successful creators all do this before they publish."
+        },
+        {
+          "id": 10,
+          "name": "Observation Hook",
+          "description": "Starts with a personal observation about people, behavior, trends, or experiences.",
+          "best_used_for": "Opinions, commentary, and social content.",
+          "example": "I've noticed something interesting about creators under 1,000 followers."
+        }
+      ]
+    },
+    {
+      "name": "Category 2: Contrarian & Opinion Hooks",
+      "hooks": [
+        {
+          "id": 11,
+          "name": "Contrarian Opinion Hook",
+          "description": "Challenges a common belief by presenting a different perspective.",
+          "best_used_for": "Thought leadership, debates, and authority.",
+          "example": "You don't need more followers to build a successful brand."
+        },
+        {
+          "id": 12,
+          "name": "Unpopular Opinion Hook",
+          "description": "Introduces a viewpoint that goes against popular advice.",
+          "best_used_for": "Engagement and conversation.",
+          "example": "Unpopular opinion: posting every day isn't the answer."
+        },
+        {
+          "id": 13,
+          "name": "Common Belief Challenge Hook",
+          "description": "Questions something widely accepted and creates a new way of thinking.",
+          "best_used_for": "Education and mindset content.",
+          "example": "Everyone says consistency is the key. I think they're missing something."
+        },
+        {
+          "id": 14,
+          "name": "Reverse Advice Hook",
+          "description": "Flips traditional advice and presents the opposite approach.",
+          "best_used_for": "Attention, opinions, and strategy content.",
+          "example": "The fastest way to improve your content might be creating less."
+        },
+        {
+          "id": 15,
+          "name": "You're Doing It Wrong Hook",
+          "description": "Highlights a mistake or misunderstanding in a direct way.",
+          "best_used_for": "Teaching and problem-solving content.",
+          "example": "You're not struggling because you lack ideas. You're struggling because you lack a process."
+        },
+        {
+          "id": 16,
+          "name": "Industry Myth Hook",
+          "description": "Corrects misinformation or outdated beliefs within a specific field.",
+          "best_used_for": "Experts, educators, and niche creators.",
+          "example": "The biggest myth about growing on Threads is that you need viral posts."
+        },
+        {
+          "id": 17,
+          "name": "Conventional Wisdom Flip Hook",
+          "description": "Takes common advice and reframes it with a different perspective.",
+          "best_used_for": "Thought leadership.",
+          "example": "Working harder isn't always the answer. Better systems are."
+        },
+        {
+          "id": 18,
+          "name": "Debate Starter Hook",
+          "description": "Creates a topic where people naturally want to share their opinion.",
+          "best_used_for": "Engagement and community building.",
+          "example": "Creators: what matters more, followers or trust?"
+        },
+        {
+          "id": 19,
+          "name": "Hot Take Hook",
+          "description": "Uses a strong opinion designed to create attention and discussion.",
+          "best_used_for": "Experienced creators with a clear viewpoint.",
+          "example": "Most content advice is making creators overcomplicate everything."
+        },
+        {
+          "id": 20,
+          "name": "Perspective Shift Hook",
+          "description": "Changes how the reader views a familiar problem or situation.",
+          "best_used_for": "Educational and transformational content.",
+          "example": "Your audience isn't ignoring you. They just don't understand your value yet."
+        }
+      ]
+    },
+    {
+      "name": "Category 3: Problem & Pain Hooks",
+      "hooks": [
+        {
+          "id": 21,
+          "name": "Problem Identification Hook",
+          "description": "Clearly identifies a problem the audience is experiencing. The reader recognizes themselves and becomes interested in the solution.",
+          "best_used_for": "Education, sales, coaching, and problem-solving content.",
+          "example": "Your content isn't failing because nobody cares. It's failing because your message is unclear."
+        },
+        {
+          "id": 22,
+          "name": "Frustration Hook",
+          "description": "Starts by acknowledging an emotional struggle or frustration the audience experiences.",
+          "best_used_for": "Relatable content, community building, and audience connection.",
+          "example": "Nothing is more frustrating than spending hours creating content that nobody responds to."
+        },
+        {
+          "id": 23,
+          "name": "Pain Point Hook",
+          "description": "Highlights a specific challenge, obstacle, or struggle that the audience wants solved.",
+          "best_used_for": "Educational content, products, services, and solutions.",
+          "example": "You have ideas. You have knowledge. But turning them into content feels impossible."
+        },
+        {
+          "id": 24,
+          "name": "Mistake Hook",
+          "description": "Points out a common mistake that prevents people from achieving their desired outcome.",
+          "best_used_for": "Teaching, authority, and awareness content.",
+          "example": "The biggest mistake creators make is trying to create content before understanding their audience."
+        },
+        {
+          "id": 25,
+          "name": "Warning Hook",
+          "description": "Creates urgency by showing a mistake, risk, or consequence the audience should avoid.",
+          "best_used_for": "Advice, strategy, and prevention-based content.",
+          "example": "Before you spend another month creating content, fix this first."
+        },
+        {
+          "id": 26,
+          "name": "Cost Of Inaction Hook",
+          "description": "Shows what happens if someone continues with their current approach.",
+          "best_used_for": "Motivation, sales, and transformation content.",
+          "example": "If you keep posting without a strategy, you'll keep getting random results."
+        },
+        {
+          "id": 27,
+          "name": "Failure Pattern Hook",
+          "description": "Identifies a repeated behavior that causes people to fail.",
+          "best_used_for": "Lessons, coaching, and educational content.",
+          "example": "I've watched hundreds of creators fail for the same reason."
+        },
+        {
+          "id": 28,
+          "name": "Hidden Problem Hook",
+          "description": "Reveals that the obvious problem is not the real problem.",
+          "best_used_for": "Expert content and mindset shifts.",
+          "example": "You think you need more motivation. You actually need a better process."
+        },
+        {
+          "id": 29,
+          "name": "Root Cause Hook",
+          "description": "Explains the deeper reason behind a visible problem.",
+          "best_used_for": "Educational and authority content.",
+          "example": "The reason your posts aren't converting has nothing to do with your writing."
+        },
+        {
+          "id": 30,
+          "name": "Why You're Stuck Hook",
+          "description": "Directly addresses why someone has not achieved their desired result.",
+          "best_used_for": "Growth, coaching, and personal development content.",
+          "example": "You're not stuck because you're bad at content. You're stuck because you're guessing."
+        }
+      ]
+    },
+    {
+      "name": "Category 4: Personal Story Hooks",
+      "hooks": [
+        {
+          "id": 31,
+          "name": "Personal Experience Hook",
+          "description": "Uses the creator's own experience as the foundation of the content.",
+          "best_used_for": "Personal brands, storytelling, and trust building.",
+          "example": "I spent the last year learning what actually makes people follow creators."
+        },
+        {
+          "id": 32,
+          "name": "Origin Story Hook",
+          "description": "Explains where an idea, business, belief, or journey began.",
+          "best_used_for": "Founder stories, personal brands, and introductions.",
+          "example": "I started building this because I was tired of seeing creators struggle with the same problem."
+        },
+        {
+          "id": 33,
+          "name": "Failure Story Hook",
+          "description": "Uses a mistake or failure as the opening to create trust and curiosity.",
+          "best_used_for": "Lessons, vulnerability, and storytelling.",
+          "example": "I spent months doing the wrong thing before I understood this."
+        },
+        {
+          "id": 34,
+          "name": "Success Story Hook",
+          "description": "Shares a positive outcome and leads into the lessons behind it.",
+          "best_used_for": "Case studies, achievements, and proof.",
+          "example": "I finally figured out what changed my content results."
+        },
+        {
+          "id": 35,
+          "name": "Turning Point Hook",
+          "description": "Focuses on a moment where the creator's thinking or approach changed.",
+          "best_used_for": "Stories, lessons, and transformation content.",
+          "example": "The moment I stopped chasing followers was the moment everything changed."
+        },
+        {
+          "id": 36,
+          "name": "Confession Hook",
+          "description": "Shares an honest admission that creates connection and trust.",
+          "best_used_for": "Personal brands and relatable content.",
+          "example": "I need to admit something. I was creating content the wrong way."
+        },
+        {
+          "id": 37,
+          "name": "Lesson Learned Hook",
+          "description": "Introduces a valuable lesson gained from experience.",
+          "best_used_for": "Education and authority.",
+          "example": "Three years of creating content taught me one important lesson."
+        },
+        {
+          "id": 38,
+          "name": "Before I Knew This Hook",
+          "description": "Creates contrast between previous thinking and current understanding.",
+          "best_used_for": "Transformation and educational stories.",
+          "example": "Before I understood content strategy, I thought more posting was the answer."
+        },
+        {
+          "id": 39,
+          "name": "Journey Hook",
+          "description": "Invites readers into an ongoing process or personal journey.",
+          "best_used_for": "Building a following and documenting progress.",
+          "example": "I'm building a brand from zero. Here's what I'm learning."
+        },
+        {
+          "id": 40,
+          "name": "Vulnerability Hook",
+          "description": "Shares an honest struggle, uncertainty, or emotional experience.",
+          "best_used_for": "Connection, storytelling, and community.",
+          "example": "I almost gave up on this idea. Here's what changed my mind."
+        }
+      ]
+    },
+    {
+      "name": "Category 5: Authority & Expertise Hooks",
+      "hooks": [
+        {
+          "id": 41,
+          "name": "Expert Insight Hook",
+          "description": "Uses knowledge, experience, or expertise to introduce a valuable perspective.",
+          "best_used_for": "Thought leadership, education, consulting, and authority building.",
+          "example": "After analyzing hundreds of creators, I noticed the ones who grow consistently do this differently."
+        },
+        {
+          "id": 42,
+          "name": "Experience-Based Hook",
+          "description": "Uses time spent doing something as credibility for the insight being shared.",
+          "best_used_for": "Personal brands, professionals, and experienced creators.",
+          "example": "After 5 years of building online, here's what I would do differently."
+        },
+        {
+          "id": 43,
+          "name": "Research Hook",
+          "description": "Introduces findings from research, analysis, testing, or investigation.",
+          "best_used_for": "Educational content, data-driven posts, and authority.",
+          "example": "I analyzed 1,000 posts to find what actually makes people stop scrolling."
+        },
+        {
+          "id": 44,
+          "name": "Data Hook",
+          "description": "Uses numbers, measurements, or specific results to create credibility.",
+          "best_used_for": "Case studies, experiments, and proof-based content.",
+          "example": "I published 200 posts. These 10 performed completely differently."
+        },
+        {
+          "id": 45,
+          "name": "Case Study Hook",
+          "description": "Breaks down a specific example to reveal lessons and insights.",
+          "best_used_for": "Marketing, business, education, and analysis.",
+          "example": "Why this simple post generated more conversations than my most polished content."
+        },
+        {
+          "id": 46,
+          "name": "Analysis Hook",
+          "description": "Examines something closely to explain why it worked or failed.",
+          "best_used_for": "Experts, creators, marketers, and educators.",
+          "example": "Breaking down why this creator's content gets attention."
+        },
+        {
+          "id": 47,
+          "name": "Breakdown Hook",
+          "description": "Promises to explain a concept, strategy, or example step by step.",
+          "best_used_for": "Tutorials, education, and frameworks.",
+          "example": "Here's the exact process behind creating content people remember."
+        },
+        {
+          "id": 48,
+          "name": "Experiment Hook",
+          "description": "Shares a test, challenge, or experiment with a result.",
+          "best_used_for": "Growth, learning, and curiosity-driven content.",
+          "example": "I tested posting differently for 30 days. Here's what happened."
+        },
+        {
+          "id": 49,
+          "name": "Results Hook",
+          "description": "Leads with an outcome or achievement to create interest.",
+          "best_used_for": "Proof, case studies, and transformation content.",
+          "example": "This one change helped me create better content in half the time."
+        },
+        {
+          "id": 50,
+          "name": "Experience Observation Hook",
+          "description": "Shares a pattern noticed through repeated experience.",
+          "best_used_for": "Experts, creators, and industry commentary.",
+          "example": "After watching hundreds of creators, one pattern keeps showing up."
+        }
+      ]
+    },
+    {
+      "name": "Category 6: Educational Hooks",
+      "hooks": [
+        {
+          "id": 51,
+          "name": "How-To Hook",
+          "description": "Promises to teach a specific skill, solution, or process.",
+          "best_used_for": "Tutorials, educational posts, and value content.",
+          "example": "How to turn one idea into a week of content."
+        },
+        {
+          "id": 52,
+          "name": "Step-By-Step Hook",
+          "description": "Promises a clear sequence of actions the reader can follow.",
+          "best_used_for": "Processes, guides, and tutorials.",
+          "example": "The 5 steps I use to create content from a blank page."
+        },
+        {
+          "id": 53,
+          "name": "Framework Hook",
+          "description": "Introduces a repeatable model or system for achieving an outcome.",
+          "best_used_for": "Teaching, consulting, and authority.",
+          "example": "The Content → Conversation → Client framework every creator should understand."
+        },
+        {
+          "id": 54,
+          "name": "Process Hook",
+          "description": "Shows the method behind achieving a result.",
+          "best_used_for": "Behind-the-scenes, education, and transparency.",
+          "example": "My process for turning random thoughts into finished posts."
+        },
+        {
+          "id": 55,
+          "name": "Checklist Hook",
+          "description": "Provides a list of items someone can use to improve a result.",
+          "best_used_for": "Quick value, education, and saves.",
+          "example": "Before publishing your next post, check these 5 things."
+        },
+        {
+          "id": 56,
+          "name": "Tutorial Hook",
+          "description": "Positions the content as a practical walkthrough.",
+          "best_used_for": "Teaching and skill development.",
+          "example": "I'll show you exactly how I structure my best-performing posts."
+        },
+        {
+          "id": 57,
+          "name": "Guide Hook",
+          "description": "Offers a complete explanation or roadmap.",
+          "best_used_for": "Beginners and educational content.",
+          "example": "The beginner's guide to building a personal brand with content."
+        },
+        {
+          "id": 58,
+          "name": "Explanation Hook",
+          "description": "Promises to simplify a confusing topic.",
+          "best_used_for": "Education and thought leadership.",
+          "example": "Let me explain why most creators struggle to grow."
+        },
+        {
+          "id": 59,
+          "name": "Beginner Hook",
+          "description": "Speaks directly to people starting from zero.",
+          "best_used_for": "New audiences and educational content.",
+          "example": "If you're starting your content journey, focus on this first."
+        },
+        {
+          "id": 60,
+          "name": "Advanced Strategy Hook",
+          "description": "Targets experienced audiences with deeper insights.",
+          "best_used_for": "Experts, professionals, and advanced creators.",
+          "example": "Most creators optimize their posts. Advanced creators optimize their message."
+        }
+      ]
+    },
+    {
+      "name": "Category 7: Transformation Hooks",
+      "hooks": [
+        {
+          "id": 61,
+          "name": "Before And After Hook",
+          "description": "Shows a clear contrast between a previous state and a new improved state.",
+          "best_used_for": "Transformations, case studies, personal stories, and results.",
+          "example": "I went from randomly posting every day to having a repeatable content process."
+        },
+        {
+          "id": 62,
+          "name": "Transformation Story Hook",
+          "description": "Introduces a journey of change, growth, or improvement.",
+          "best_used_for": "Personal brands, testimonials, and lessons.",
+          "example": "Six months ago, I had no idea what I was doing with content. Today, I create with a completely different approach."
+        },
+        {
+          "id": 63,
+          "name": "Growth Journey Hook",
+          "description": "Documents progress over time and shares lessons from the process.",
+          "best_used_for": "Building in public, creators, founders, and communities.",
+          "example": "I'm documenting my journey from zero followers to building an audience."
+        },
+        {
+          "id": 64,
+          "name": "Progress Update Hook",
+          "description": "Shares current progress, milestones, or improvements.",
+          "best_used_for": "Building trust and showing momentum.",
+          "example": "30 days into improving my content process. Here's what changed."
+        },
+        {
+          "id": 65,
+          "name": "Results Reveal Hook",
+          "description": "Leads with an outcome, result, or discovery and explains how it happened.",
+          "best_used_for": "Proof, experiments, and case studies.",
+          "example": "I changed one part of my content workflow and saw a completely different response."
+        },
+        {
+          "id": 66,
+          "name": "From X To Y Hook",
+          "description": "Uses a specific transformation between two points.",
+          "best_used_for": "Stories, business results, and personal growth.",
+          "example": "From struggling to find ideas to having 30 days of content ready."
+        },
+        {
+          "id": 67,
+          "name": "Improvement Hook",
+          "description": "Focuses on making something better through a specific change.",
+          "best_used_for": "Education and optimization content.",
+          "example": "The small change that made my writing 10x clearer."
+        },
+        {
+          "id": 68,
+          "name": "Upgrade Hook",
+          "description": "Shows how someone can improve their current approach.",
+          "best_used_for": "Strategy, tools, and skill development.",
+          "example": "Your content doesn't need more effort. It needs a better workflow."
+        },
+        {
+          "id": 69,
+          "name": "Evolution Hook",
+          "description": "Shows how a belief, strategy, or approach has developed over time.",
+          "best_used_for": "Personal brands and thought leadership.",
+          "example": "How my approach to content changed after creating thousands of posts."
+        },
+        {
+          "id": 70,
+          "name": "Breakthrough Hook",
+          "description": "Highlights a moment of realization that created a major improvement.",
+          "best_used_for": "Stories, lessons, and inspiration.",
+          "example": "The breakthrough was realizing I didn't need more ideas. I needed a better process."
+        }
+      ]
+    },
+    {
+      "name": "Category 8: Audience Connection Hooks",
+      "hooks": [
+        {
+          "id": 71,
+          "name": "Identity Hook",
+          "description": "Speaks directly to a specific type of person and creates recognition.",
+          "best_used_for": "Niche audiences and community building.",
+          "example": "For creators who have knowledge but struggle to turn it into content."
+        },
+        {
+          "id": 72,
+          "name": "Community Hook",
+          "description": "Addresses a group of people with a shared experience or goal.",
+          "best_used_for": "Engagement and audience building.",
+          "example": "Creators, what's the hardest part about staying consistent?"
+        },
+        {
+          "id": 73,
+          "name": "Creator Hook",
+          "description": "Specifically targets content creators and their challenges.",
+          "best_used_for": "Creator education and personal branding.",
+          "example": "Creators don't need more inspiration. They need a better way to capture ideas."
+        },
+        {
+          "id": 74,
+          "name": "Founder Hook",
+          "description": "Speaks to entrepreneurs, builders, and business owners.",
+          "best_used_for": "Business, startup, and leadership content.",
+          "example": "Founders spend too much time creating content and not enough time building trust."
+        },
+        {
+          "id": 75,
+          "name": "Beginner Hook",
+          "description": "Helps new people overcome confusion and take their first step.",
+          "best_used_for": "Education and beginner audiences.",
+          "example": "If you are starting from zero, don't make this mistake."
+        },
+        {
+          "id": 76,
+          "name": "Expert Audience Hook",
+          "description": "Targets experienced people looking for advanced insights.",
+          "best_used_for": "Professional audiences and specialists.",
+          "example": "Once you understand the basics, this is where growth actually happens."
+        },
+        {
+          "id": 77,
+          "name": "If You're... Hook",
+          "description": "Creates immediate relevance by identifying a specific situation or audience.",
+          "best_used_for": "Connection and targeted messaging.",
+          "example": "If you're posting consistently but getting no response, read this."
+        },
+        {
+          "id": 78,
+          "name": "Relatable Situation Hook",
+          "description": "Describes an experience the audience recognizes instantly.",
+          "best_used_for": "Engagement and emotional connection.",
+          "example": "You open your notes app, see 50 ideas, and still don't know what to post."
+        },
+        {
+          "id": 79,
+          "name": "Shared Experience Hook",
+          "description": "Creates connection by referencing something many people experience.",
+          "best_used_for": "Community and relationship building.",
+          "example": "We've all had that moment where we question if our content is working."
+        },
+        {
+          "id": 80,
+          "name": "Conversation Starter Hook",
+          "description": "Invites discussion instead of simply delivering information.",
+          "best_used_for": "Replies, engagement, and community.",
+          "example": "What is one content lesson you learned the hard way?"
+        }
+      ]
+    },
+    {
+      "name": "Category 9: Engagement Hooks",
+      "hooks": [
+        {
+          "id": 81,
+          "name": "Question Hook",
+          "description": "Uses a direct question to make the reader pause, reflect, and mentally answer.",
+          "best_used_for": "Engagement, conversations, opinions, and community building.",
+          "example": "What would you create if you knew nobody would judge you?"
+        },
+        {
+          "id": 82,
+          "name": "Poll Hook",
+          "description": "Creates a simple choice or comparison that encourages people to participate.",
+          "best_used_for": "Community engagement and audience research.",
+          "example": "Which matters more for growth: better content or better distribution?"
+        },
+        {
+          "id": 83,
+          "name": "Opinion Request Hook",
+          "description": "Asks the audience to share their perspective or experience.",
+          "best_used_for": "Replies, conversations, and relationship building.",
+          "example": "What's one piece of content advice you disagree with?"
+        },
+        {
+          "id": 84,
+          "name": "Debate Hook",
+          "description": "Introduces two sides of an idea to encourage discussion.",
+          "best_used_for": "High engagement and thought leadership.",
+          "example": "Is posting daily actually helping creators, or just keeping them busy?"
+        },
+        {
+          "id": 85,
+          "name": "Fill-In-The-Blank Hook",
+          "description": "Creates participation by asking readers to complete a statement.",
+          "best_used_for": "Community, engagement, and audience insights.",
+          "example": "The biggest lesson I learned from creating content is ______."
+        },
+        {
+          "id": 86,
+          "name": "Challenge Hook",
+          "description": "Invites the audience to try something or change their behavior.",
+          "best_used_for": "Action, accountability, and growth.",
+          "example": "Try creating content from your experiences for 7 days instead of searching for ideas."
+        },
+        {
+          "id": 87,
+          "name": "Prediction Hook",
+          "description": "Makes a forecast about the future based on observations or trends.",
+          "best_used_for": "Industry insights, trends, and authority.",
+          "example": "The creators who win next year won't be the ones posting the most."
+        },
+        {
+          "id": 88,
+          "name": "Agreement Hook",
+          "description": "Creates connection by stating something the audience likely agrees with.",
+          "best_used_for": "Relatability and trust building.",
+          "example": "Creating content is easier when you stop trying to sound like everyone else."
+        },
+        {
+          "id": 89,
+          "name": "Disagreement Hook",
+          "description": "Creates attention by presenting a viewpoint the audience may challenge.",
+          "best_used_for": "Opinions and discussion.",
+          "example": "I don't think creators need more motivation. I think they need less friction."
+        },
+        {
+          "id": 90,
+          "name": "Story Prompt Hook",
+          "description": "Encourages the audience to share their own experiences.",
+          "best_used_for": "Community building and replies.",
+          "example": "Tell me about the moment you realized you needed to change your strategy."
+        }
+      ]
+    },
+    {
+      "name": "Category 10: Conversion & Business Hooks",
+      "hooks": [
+        {
+          "id": 91,
+          "name": "Offer Awareness Hook",
+          "description": "Introduces a problem or opportunity connected to a product, service, or solution.",
+          "best_used_for": "Sales content and audience education.",
+          "example": "Most creators don't need another content tool. They need a process that turns ideas into results."
+        },
+        {
+          "id": 92,
+          "name": "Solution Hook",
+          "description": "Positions an approach, method, or solution to solve a specific problem.",
+          "best_used_for": "Products, services, and educational content.",
+          "example": "The easiest way to create better content is to start with a repeatable workflow."
+        },
+        {
+          "id": 93,
+          "name": "Benefit Hook",
+          "description": "Leads with the outcome or advantage the audience wants.",
+          "best_used_for": "Marketing and conversion.",
+          "example": "Create a week's worth of content without spending hours staring at a blank screen."
+        },
+        {
+          "id": 94,
+          "name": "Outcome Hook",
+          "description": "Focuses on the desired result rather than the process.",
+          "best_used_for": "Offers, transformations, and value-based content.",
+          "example": "Build a personal brand that attracts the right audience while you focus on your work."
+        },
+        {
+          "id": 95,
+          "name": "Objection Handling Hook",
+          "description": "Addresses a concern, doubt, or reason someone may avoid taking action.",
+          "best_used_for": "Sales, education, and trust building.",
+          "example": "You don't need thousands of followers to start making money from your content."
+        },
+        {
+          "id": 96,
+          "name": "Customer Problem Hook",
+          "description": "Starts with the exact problem a potential customer experiences.",
+          "best_used_for": "Marketing, products, and services.",
+          "example": "You are creating content every week but it still isn't bringing opportunities."
+        },
+        {
+          "id": 97,
+          "name": "Value Demonstration Hook",
+          "description": "Shows the usefulness of a strategy, idea, or solution through an example.",
+          "best_used_for": "Authority, teaching, and product education.",
+          "example": "Here's how one idea can become five different pieces of content."
+        },
+        {
+          "id": 98,
+          "name": "Proof Hook",
+          "description": "Uses evidence, results, examples, or experience to build credibility.",
+          "best_used_for": "Case studies, testimonials, and trust.",
+          "example": "I tested this content process for 30 days. Here's what happened."
+        },
+        {
+          "id": 99,
+          "name": "Decision Hook",
+          "description": "Helps the audience make a choice between options or approaches.",
+          "best_used_for": "Strategy, buying decisions, and education.",
+          "example": "Should you focus on creating more content or improving the content you already make?"
+        },
+        {
+          "id": 100,
+          "name": "Call-To-Action Hook",
+          "description": "Directly encourages the audience to take a specific action.",
+          "best_used_for": "Engagement, community, lead generation, and conversion.",
+          "example": "Comment 'guide' and I'll share the process I use to plan content."
+        }
+      ]
+    }
+  ]
+}

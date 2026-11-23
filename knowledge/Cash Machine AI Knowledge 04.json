@@ -1,0 +1,28 @@
+{
+  "file": "Cash Machine AI Knowledge 04",
+  "coverage": {
+    "classes_start": 112,
+    "classes_end": 148,
+    "class_count": 37
+  },
+  "purpose": "Machine-readable structured knowledge for Cash Machine AI retrieval, diagnosis, recommendation, exercises, content generation, and ThreadsWorks execution.",
+  "source_integrity": "Source-derived records are preserved as such. Class 125 is explicitly marked newly-created because it is missing from the original source.",
+  "schema": [
+    "id",
+    "system",
+    "subsystem",
+    "class",
+    "title",
+    "source_status",
+    "knowledge_status",
+    "learning_objective",
+    "core_problem",
+    "framework_or_process",
+    "practical_exercise",
+    "real_world_scenario",
+    "application",
+    "key_takeaway",
+    "social_content_assets",
+    "source_reference"
+  ]
+}

@@ -1,0 +1,952 @@
+{
+  "phase": 9,
+  "title": "Cash Machine AI — Production Runtime & System Build",
+  "version": "1.0",
+  "status": "Master Production Build Specification",
+  "purpose": "Turn the completed Cash Machine AI architecture into an operational runtime inside ThreadsWorks. Phase 9 is the build phase: it defines the production components, runtime contracts, state handling, retrieval, diagnostics, decision rules, execution handoffs, measurement, observability, access control, versioning, and failure behavior required to make the system actually run. It does not create another conceptual intelligence layer.",
+  "source_of_truth": {
+    "architecture": "Phases 3–8",
+    "knowledge": "Phase 3 structured Cash Machine knowledge and master index",
+    "intelligence": "Phase 4 Intelligence Architecture, Diagnostic Decision Engine, and Execution Integration",
+    "implementation": "Phase 5 Master Implementation System",
+    "validation": "Phase 6 Master Validation Specification",
+    "deployment": "Phase 7 Product Integration & Deployment",
+    "optimization": "Phase 8 Live User Testing & Intelligence Optimization",
+    "original_source": "The Cash Machine source PDF remains the source of truth for source-derived material.",
+    "source_integrity_note": "Class 125 and Classes 171–197 are newly authored curriculum additions and must remain identified as such. The production runtime must never represent them as recovered source text."
+  },
+  "system_identity": {
+    "cash_machine": "The knowledge.",
+    "cash_machine_ai": "The intelligence.",
+    "threadsworks": "The execution environment.",
+    "results_and_metrics": "The feedback evidence.",
+    "master_relationship": "Cash Machine provides knowledge. Cash Machine AI interprets that knowledge against user context and determines what should happen next. ThreadsWorks performs supported execution. Results and metrics feed the next diagnosis."
+  },
+  "phase_progression": [
+    "Phase 3 — Knowledge",
+    "Phase 4 — Intelligence",
+    "Phase 5 — Implementation",
+    "Phase 6 — Validation",
+    "Phase 7 — Product Integration & Deployment",
+    "Phase 8 — Live User Testing & Intelligence Optimization",
+    "Phase 9 — Production Runtime & System Build",
+    "Phase 10 — Full System Validation",
+    "Phase 11 — Launch & Continuous Intelligence"
+  ],
+  "master_runtime_architecture": {
+    "primary_chain": [
+      "User Input",
+      "Desired Outcome",
+      "User Business Context",
+      "Current Situation",
+      "Evidence",
+      "Diagnostic Domain",
+      "Knowledge Retrieval",
+      "Hypotheses",
+      "Diagnosis",
+      "Decision Rule",
+      "Next Best Action",
+      "Concrete Output",
+      "ThreadsWorks Execution",
+      "Result",
+      "Metric",
+      "Interpretation",
+      "State Update",
+      "New Diagnosis"
+    ],
+    "master_loop": [
+      "Understand",
+      "Diagnose",
+      "Route",
+      "Decide",
+      "Recommend",
+      "Create",
+      "Execute",
+      "Measure",
+      "Learn",
+      "Repeat"
+    ],
+    "business_loop": [
+      "Market",
+      "Buyer",
+      "Problem",
+      "Positioning",
+      "Offer",
+      "Marketing",
+      "Leads",
+      "Prospects",
+      "Conversations",
+      "Presentation",
+      "Objections",
+      "Close",
+      "Delivery",
+      "Retention",
+      "Measurement",
+      "Diagnosis",
+      "Improvement",
+      "Repeat"
+    ]
+  },
+  "production_objective": "The production system must behave as a diagnostic and decision system grounded in the Cash Machine knowledge base, not as a generic chatbot sitting on top of a course.",
+  "production_components": {
+    "1_knowledge_runtime": "Retrieves structured Cash Machine knowledge.",
+    "2_retrieval_router": "Determines which knowledge is relevant to the current problem.",
+    "3_context_manager": "Maintains the user's relevant business state.",
+    "4_diagnostic_engine": "Identifies the most likely bottleneck or opportunity.",
+    "5_decision_engine": "Applies decision rules to select the next best action.",
+    "6_recommendation_engine": "Explains and presents the action.",
+    "7_output_engine": "Produces the intended business artifact or decision.",
+    "8_threadsworks_bridge": "Hands supported execution into ThreadsWorks.",
+    "9_measurement_engine": "Captures and interprets relevant outcomes.",
+    "10_state_update_engine": "Updates the user's business state from new evidence.",
+    "11_evaluation_harness": "Tests runtime behavior against expected outcomes.",
+    "12_observability_layer": "Records enough operational information to diagnose failures.",
+    "13_access_layer": "Applies product entitlements and usage permissions.",
+    "14_version_control": "Tracks knowledge, rules, prompts, runtime versions, and deployments."
+  },
+  "knowledge_runtime": {
+    "inputs": [
+      "User problem",
+      "Desired outcome",
+      "Business context",
+      "Diagnostic domain",
+      "Relevant class IDs",
+      "Related concepts",
+      "Metrics",
+      "Previous diagnosis"
+    ],
+    "knowledge_sources": [
+      "Cash Machine AI Knowledge 01",
+      "Cash Machine AI Knowledge 02",
+      "Cash Machine AI Knowledge 03",
+      "Cash Machine AI Knowledge 04",
+      "Cash Machine AI Knowledge 05",
+      "Cash Machine AI Knowledge 06",
+      "Cash Machine AI Master Knowledge Index"
+    ],
+    "requirements": [
+      "All 220 class records must be addressable.",
+      "Class IDs must remain stable.",
+      "Class-to-file routing must remain stable unless intentionally versioned.",
+      "Source status must be preserved.",
+      "Relevant knowledge must be retrievable without loading the entire curriculum unnecessarily.",
+      "Retrieved knowledge must retain enough context for reasoning.",
+      "Related classes should be expanded only when materially useful."
+    ],
+    "retrieval_rule": "Retrieve narrowly before expanding.",
+    "retrieval_failure_behavior": "If relevant knowledge cannot be confidently retrieved, state the limitation, use available supported knowledge only, and ask for information or route to a diagnostic step rather than inventing content."
+  },
+  "retrieval_pipeline": [
+    "Receive user request or result.",
+    "Identify desired outcome.",
+    "Inspect current business context.",
+    "Classify the problem into candidate diagnostic domains.",
+    "Use the master index to locate candidate classes.",
+    "Rank candidate knowledge by decision relevance.",
+    "Retrieve the smallest sufficient knowledge set.",
+    "Expand to related classes only when needed.",
+    "Pass grounded knowledge into the diagnostic and decision layers.",
+    "Record retrieval references for observability and evaluation."
+  ],
+  "retrieval_ranking": {
+    "priority_order": [
+      "Direct diagnostic relevance",
+      "Decision relevance",
+      "User business stage",
+      "Current bottleneck",
+      "Desired outcome",
+      "Evidence compatibility",
+      "Related-class relevance",
+      "Keyword similarity"
+    ],
+    "rule": "Keyword similarity is useful for discovery but should not override diagnostic or decision relevance."
+  },
+  "user_business_state": {
+    "purpose": "Maintain a current representation of the user's business situation so Cash Machine AI can reason from accumulated context instead of treating every interaction as a blank conversation.",
+    "state_fields": [
+      "Business",
+      "Market",
+      "Buyer",
+      "Problem",
+      "Desired Outcome",
+      "Positioning",
+      "Offer",
+      "Price",
+      "Proof",
+      "Acquisition Channels",
+      "Lead Mechanism",
+      "Prospecting",
+      "Sales Conversations",
+      "Presentation",
+      "Objections",
+      "Close",
+      "Follow-Up",
+      "Delivery",
+      "Retention",
+      "Metrics",
+      "Current Goal",
+      "Current Bottleneck",
+      "Current Experiment",
+      "Completed Actions",
+      "Recent Results",
+      "Next Improvement"
+    ],
+    "state_rules": [
+      "Use existing relevant context before asking the user to repeat it.",
+      "Newer explicit user information overrides stale assumptions.",
+      "Do not invent missing state.",
+      "Distinguish facts from AI inference.",
+      "Record meaningful actions and results.",
+      "Do not permanently treat an inference as a fact without supporting evidence.",
+      "State should support diagnosis rather than become unnecessary data collection."
+    ]
+  },
+  "state_transition_model": {
+    "transition": "Current State → Action → Result → Evidence → Updated State → New Diagnosis",
+    "example": {
+      "before": "User has an offer but no sales.",
+      "action": "Improve offer clarity and buyer-specific messaging.",
+      "result": "User receives more qualified conversations.",
+      "evidence": "Conversation quality improves while close rate remains low.",
+      "updated_state": "Acquisition/message constraint improved; conversion remains constrained.",
+      "new_diagnosis": "Investigate trust, objections, presentation, or close."
+    }
+  },
+  "diagnostic_runtime": {
+    "primary_question": "What is most likely preventing the user from achieving the desired outcome right now?",
+    "sequence": [
+      "Desired Outcome",
+      "Stated Problem",
+      "Current Situation",
+      "Evidence",
+      "Existing Context",
+      "Candidate Hypotheses",
+      "Targeted Questions",
+      "Diagnostic Domain",
+      "Bottleneck or Opportunity",
+      "Confidence",
+      "Decision"
+    ],
+    "diagnostic_domains": [
+      {
+        "domain": "Demand / Market",
+        "classes": "15–30, 49–64"
+      },
+      {
+        "domain": "Buyer",
+        "classes": "1–14, 31–36"
+      },
+      {
+        "domain": "Research",
+        "classes": "37–48"
+      },
+      {
+        "domain": "Positioning",
+        "classes": "65–78"
+      },
+      {
+        "domain": "Offer",
+        "classes": "79–98"
+      },
+      {
+        "domain": "Acquisition",
+        "classes": "99–132"
+      },
+      {
+        "domain": "Qualification",
+        "classes": "102, 130, 178, 198, 207"
+      },
+      {
+        "domain": "Conversation / Sales",
+        "classes": "99–120, 133–149"
+      },
+      {
+        "domain": "Conversion",
+        "classes": "89–98, 118–119, 163, 168–169, 201–202, 209–210"
+      },
+      {
+        "domain": "Customer / Retention",
+        "classes": "150–159"
+      },
+      {
+        "domain": "Economics",
+        "classes": "160–167, 190–193, 212"
+      },
+      {
+        "domain": "Operations / Scale",
+        "classes": "170–205, 213, 220"
+      },
+      {
+        "domain": "Ethics / Fit",
+        "classes": "140–149, 219"
+      }
+    ],
+    "question_rule": "Ask only questions whose answers could materially change the diagnosis, decision, or next action."
+  },
+  "decision_rule_runtime": {
+    "purpose": "Convert structured Cash Machine principles into executable reasoning conditions.",
+    "rule_structure": [
+      "Rule ID",
+      "Trigger",
+      "Required Evidence",
+      "Relevant Context",
+      "Condition",
+      "Decision",
+      "Recommended Action",
+      "Expected Output",
+      "Success Signal",
+      "Confidence Requirement",
+      "Exceptions",
+      "Related Classes",
+      "Source Status",
+      "Version"
+    ],
+    "logic": [
+      "Identify condition.",
+      "Check required evidence.",
+      "Check relevant business state.",
+      "Apply decision rule.",
+      "Determine confidence.",
+      "Select next best action.",
+      "Define expected output.",
+      "Define measurement."
+    ],
+    "principles": [
+      "Diagnose before prescribing.",
+      "Use evidence rather than assumptions.",
+      "Prioritize the highest-impact constraint.",
+      "Do not optimize vanity metrics.",
+      "Do not recommend discounts automatically when price resistance appears.",
+      "Standardize before automating.",
+      "Preserve human judgment for materially contextual decisions."
+    ],
+    "rule_library_requirement": "Phase 9 must operationalize the distributed decision rules into a production-accessible rule library. The architecture and examples are defined; the full executable rule inventory should be built from the validated Cash Machine knowledge and intelligence layers."
+  },
+  "diagnosis_confidence": {
+    "high": "Evidence strongly supports one diagnosis and alternatives are weak.",
+    "medium": "A diagnosis is plausible but one or more important assumptions remain unverified.",
+    "low": "Evidence is insufficient or multiple diagnoses remain similarly plausible.",
+    "behavior": [
+      "High confidence: recommend directly.",
+      "Medium confidence: recommend a focused action or test while stating the key assumption.",
+      "Low confidence: ask for the minimum useful information or run a diagnostic experiment."
+    ]
+  },
+  "recommendation_runtime": {
+    "required_fields": [
+      "Diagnosis",
+      "Evidence",
+      "Why",
+      "Relevant Cash Machine Knowledge",
+      "Decision",
+      "Next Best Action",
+      "Concrete Output",
+      "ThreadsWorks Execution",
+      "Metric / Success Signal",
+      "What Happens Next"
+    ],
+    "priority_order": [
+      "Fix the highest-impact constraint.",
+      "Improve the weakest validated stage.",
+      "Reduce unnecessary friction.",
+      "Increase clarity or evidence.",
+      "Run the smallest useful experiment.",
+      "Execute.",
+      "Measure."
+    ],
+    "rule": "Every recommendation must connect to the diagnosed constraint."
+  },
+  "output_engine": {
+    "purpose": "Turn decisions into useful business outputs rather than stopping at advice.",
+    "supported_output_types": [
+      "Decision",
+      "Market definition",
+      "Buyer profile",
+      "Customer research plan",
+      "Problem statement",
+      "Positioning statement",
+      "Offer",
+      "Pricing structure",
+      "Proof plan",
+      "Lead mechanism",
+      "Acquisition plan",
+      "Prospect list structure",
+      "Sales conversation plan",
+      "Sales message",
+      "Objection response",
+      "Follow-up sequence",
+      "Sales page structure",
+      "CTA",
+      "Campaign",
+      "Content asset",
+      "Sales process",
+      "Scorecard",
+      "Revenue review",
+      "Improvement plan",
+      "Experiment"
+    ],
+    "completion_rule": "A meaningful interaction should end with a decision, concrete output, executable action, or clearly defined diagnostic next step."
+  },
+  "threadsworks_bridge": {
+    "role": "Execution bridge between Cash Machine AI strategy and existing ThreadsWorks capabilities.",
+    "cash_machine_ai_provides": [
+      "User objective",
+      "Diagnosis",
+      "Bottleneck",
+      "Relevant knowledge",
+      "Strategy",
+      "Audience",
+      "Offer",
+      "Positioning",
+      "Messaging requirements",
+      "Output specification",
+      "Constraints",
+      "Success criteria"
+    ],
+    "threadsworks_provides": [
+      "Content creation",
+      "Content transformation",
+      "Threads workflows",
+      "Messaging workflows",
+      "Campaign execution",
+      "Publishing",
+      "Existing text-to-video workflows",
+      "Existing Google Veo-first video workflow",
+      "Existing voice and animation capabilities",
+      "Other supported execution workflows"
+    ],
+    "non_duplication_rule": "Cash Machine AI must not rebuild an existing ThreadsWorks execution capability. It should provide the strategic context and hand the work into the appropriate existing workflow."
+  },
+  "threadsworks_action_contract": {
+    "contract_fields": [
+      "Action ID",
+      "Objective",
+      "Diagnosis",
+      "Strategy",
+      "Required Inputs",
+      "Audience",
+      "Offer",
+      "Positioning",
+      "Content / Asset Requirements",
+      "User Preferences",
+      "Constraints",
+      "Expected Output",
+      "Success Criteria",
+      "Execution Workflow",
+      "Return Data"
+    ],
+    "handoff_sequence": [
+      "Determine required execution.",
+      "Confirm relevant context.",
+      "Package the execution contract.",
+      "Send to supported ThreadsWorks workflow.",
+      "Receive execution result.",
+      "Record result.",
+      "Update business state.",
+      "Measure when applicable."
+    ]
+  },
+  "measurement_runtime": {
+    "purpose": "Turn execution results into evidence for subsequent decisions.",
+    "metric_categories": [
+      "Leads",
+      "Lead Quality",
+      "Prospects",
+      "Conversations",
+      "Conversion",
+      "Average Order Value",
+      "Customer Acquisition Cost",
+      "Customer Lifetime Value",
+      "Sales Cycle",
+      "Retention",
+      "Revenue",
+      "Sales Activity"
+    ],
+    "rules": [
+      "Measure the outcome connected to the action.",
+      "Do not optimize metrics in isolation.",
+      "Do not treat correlation as proof of causation.",
+      "Interpret metrics within the user's current business stage.",
+      "Use results as evidence for the next diagnosis.",
+      "If results improve, determine what can be repeated.",
+      "If results do not improve, reassess the diagnosis before increasing activity.",
+      "If results decline, identify what changed before prescribing another tactic."
+    ]
+  },
+  "feedback_runtime": {
+    "sequence": [
+      "Execution",
+      "Result",
+      "Metric",
+      "Interpretation",
+      "State Update",
+      "New Diagnosis",
+      "Next Improvement"
+    ],
+    "result_categories": [
+      "Improved",
+      "Unchanged",
+      "Declined",
+      "Inconclusive",
+      "Insufficient Data"
+    ],
+    "interpretation_rule": "A result is evidence for the next decision. It is not automatically proof that the prior action caused the outcome."
+  },
+  "evaluation_harness": {
+    "purpose": "Create a repeatable mechanism for testing the actual production runtime.",
+    "test_record": [
+      "Test ID",
+      "Scenario",
+      "Input",
+      "Expected Desired Outcome",
+      "Expected Diagnostic Domain",
+      "Expected Diagnosis",
+      "Expected Relevant Knowledge",
+      "Expected Decision",
+      "Expected Action",
+      "Expected Output",
+      "Expected ThreadsWorks Handoff",
+      "Expected Metric",
+      "Actual Result",
+      "Score",
+      "Pass / Fail",
+      "Failure Layer"
+    ],
+    "test_types": [
+      "Retrieval accuracy",
+      "Diagnostic accuracy",
+      "Decision quality",
+      "Recommendation quality",
+      "Output quality",
+      "ThreadsWorks execution",
+      "Measurement",
+      "State update",
+      "Source integrity",
+      "Regression",
+      "Edge case",
+      "End-to-end"
+    ],
+    "rule": "Phase 10 will perform the full-system proof. Phase 9 must build the harness needed to run that proof."
+  },
+  "production_scenarios": [
+    {
+      "id": "P9-E2E-001",
+      "input": "I need more followers.",
+      "expected_behavior": "Investigate the underlying business constraint rather than automatically prescribing follower growth."
+    },
+    {
+      "id": "P9-E2E-002",
+      "input": "People like my content but nobody buys.",
+      "expected_behavior": "Separate attention from conversations, buyer fit, trust, offer clarity, and conversion."
+    },
+    {
+      "id": "P9-E2E-003",
+      "input": "I don't know what to sell.",
+      "expected_behavior": "Investigate problem, buyer, demand, desired outcome, willingness to pay, solution type, and opportunity validation."
+    },
+    {
+      "id": "P9-E2E-004",
+      "input": "People disappear when I tell them the price.",
+      "expected_behavior": "Investigate value, risk, offer clarity, proof, positioning, and price rather than automatically discounting."
+    },
+    {
+      "id": "P9-E2E-005",
+      "input": "I get leads but nobody becomes a customer.",
+      "expected_behavior": "Investigate lead quality, qualification, conversations, offer, objections, trust, and conversion."
+    },
+    {
+      "id": "P9-E2E-006",
+      "input": "My sales suddenly dropped.",
+      "expected_behavior": "Identify what changed across acquisition, conversations, conversion, offer, buyer behavior, and economics."
+    },
+    {
+      "id": "P9-E2E-007",
+      "input": "I have sales but I can't scale.",
+      "expected_behavior": "Evaluate validation, offer conversion, acquisition economics, fulfillment, support, capacity, and process."
+    },
+    {
+      "id": "P9-E2E-008",
+      "input": "I want to automate my sales process.",
+      "expected_behavior": "Standardize first, separate repetitive work from judgment, and preserve human judgment where necessary."
+    },
+    {
+      "id": "P9-E2E-009",
+      "input": "I made my first sale.",
+      "expected_behavior": "Capture evidence, buyer language, objections, value, process, and the next learning opportunity."
+    },
+    {
+      "id": "P9-E2E-010",
+      "input": "I have 10 customers now.",
+      "expected_behavior": "Shift attention toward repeatability, retention, economics, operating capacity, and controlled growth."
+    }
+  ],
+  "edge_case_runtime": {
+    "insufficient_information": "Ask only the questions required to materially improve the decision.",
+    "multiple_bottlenecks": "Prioritize the highest-impact constraint and explain why.",
+    "conflicting_evidence": "Acknowledge the conflict and identify evidence needed to resolve it.",
+    "no_clear_diagnosis": "Use a focused diagnostic experiment rather than false certainty.",
+    "user_disagrees_with_diagnosis": "Re-examine evidence and assumptions instead of forcing the diagnosis.",
+    "tactic_conflicts_with_diagnosis": "Explain the mismatch and redirect to the actual constraint.",
+    "unsupported_source_question": "State that the source does not establish the claim.",
+    "ethical_or_fit_problem": "Do not optimize a sale when the method or offer creates a material ethical or fit problem.",
+    "execution_unavailable": "Return the completed strategy/output and clearly identify the remaining execution step."
+  },
+  "observability": {
+    "purpose": "Make production behavior inspectable enough to identify failures and improve the system.",
+    "recordable_events": [
+      "User request",
+      "Desired outcome",
+      "Relevant state",
+      "Diagnostic domain",
+      "Retrieved class IDs",
+      "Retrieved source status",
+      "Diagnostic questions",
+      "Diagnosis",
+      "Confidence",
+      "Decision rule IDs",
+      "Recommendation",
+      "Output",
+      "ThreadsWorks action",
+      "Execution status",
+      "Result",
+      "Metric",
+      "State update",
+      "Failure classification"
+    ],
+    "privacy_rule": "Record only information necessary for operation, evaluation, security, and improvement. Do not expose internal implementation details to users unless needed."
+  },
+  "failure_localization": {
+    "layers": [
+      "Input",
+      "Context",
+      "Retrieval",
+      "Routing",
+      "Knowledge",
+      "Diagnosis",
+      "Decision Rule",
+      "Recommendation",
+      "Output",
+      "ThreadsWorks Integration",
+      "Execution",
+      "Measurement",
+      "State Update",
+      "Access / Entitlement",
+      "Version / Configuration"
+    ],
+    "rule": "When a production result is poor, identify the layer that failed before changing the system. Do not rewrite intelligence to fix an execution or UX problem."
+  },
+  "error_and_fallback_behavior": {
+    "retrieval_error": "Retry or broaden retrieval within defined limits, then disclose the limitation.",
+    "diagnostic_error": "Reduce confidence, revisit evidence, and ask a targeted question.",
+    "decision_rule_error": "Do not apply an unsupported rule; fall back to validated general diagnostic behavior.",
+    "threadsworks_error": "Preserve the strategy and output, report execution failure, and provide the next available path.",
+    "measurement_error": "Do not fabricate results; mark the result as unmeasured or inconclusive.",
+    "state_error": "Prefer explicit current user information and prevent stale state from driving a major decision.",
+    "access_error": "Respect entitlement boundaries without producing contradictory product behavior.",
+    "system_error": "Fail safely, preserve user work when possible, and avoid claiming successful execution."
+  },
+  "access_and_entitlements": {
+    "product_ladder": [
+      "Free Online Sales Guide",
+      "Free Cash Machine Preview",
+      "$9 Full Cash Machine",
+      "Cash Machine AI",
+      "ThreadsWorks"
+    ],
+    "principle": "Entitlements determine what the user may access; they should not alter the underlying truthfulness or reasoning standards of Cash Machine AI.",
+    "requirements": [
+      "Define access to curriculum.",
+      "Define access to AI diagnosis.",
+      "Define access to exercises and outputs.",
+      "Define access to ThreadsWorks execution.",
+      "Define usage limits where applicable.",
+      "Define upgrade states.",
+      "Preserve referral attribution where applicable."
+    ]
+  },
+  "security_and_data_boundaries": {
+    "principles": [
+      "Separate user data from shared knowledge.",
+      "Do not expose one user's business context to another user.",
+      "Do not invent business data.",
+      "Distinguish facts, retrieved knowledge, and inference.",
+      "Limit data collection to useful operational needs.",
+      "Protect credentials and integration tokens.",
+      "Do not treat user metrics as public information.",
+      "Maintain auditable version information for material AI decisions."
+    ]
+  },
+  "versioning": {
+    "versioned_objects": [
+      "Knowledge files",
+      "Master knowledge index",
+      "Diagnostic taxonomy",
+      "Decision rules",
+      "Master system prompt",
+      "Retrieval configuration",
+      "User state schema",
+      "ThreadsWorks action contracts",
+      "Measurement logic",
+      "Evaluation tests",
+      "Runtime configuration"
+    ],
+    "change_rules": [
+      "Every material production change receives a version.",
+      "Changes must identify what layer changed.",
+      "Changes must identify expected impact.",
+      "Changes must pass the appropriate validation level.",
+      "Production should be able to identify which versions were active for a result."
+    ]
+  },
+  "deployment_sequence": [
+    "Prepare production knowledge.",
+    "Validate master index routing.",
+    "Deploy retrieval runtime.",
+    "Deploy business-state management.",
+    "Deploy diagnostic runtime.",
+    "Deploy decision-rule library.",
+    "Deploy recommendation runtime.",
+    "Deploy output generation.",
+    "Connect ThreadsWorks execution contracts.",
+    "Connect measurement and state updates.",
+    "Connect observability.",
+    "Connect access and entitlement controls.",
+    "Run Phase 6 regression tests.",
+    "Run Phase 9 integration tests.",
+    "Prepare for Phase 10 full-system validation."
+  ],
+  "production_readiness_gates": {
+    "knowledge": [
+      "All required knowledge files are available.",
+      "Master index routes correctly.",
+      "Source status is preserved."
+    ],
+    "retrieval": [
+      "Relevant classes can be retrieved.",
+      "Narrow retrieval works.",
+      "Related-class expansion works."
+    ],
+    "context": [
+      "Business state can be read.",
+      "New state can be recorded.",
+      "Stale assumptions do not override current facts."
+    ],
+    "diagnosis": [
+      "Diagnostic routing works.",
+      "Targeted questions work.",
+      "Confidence behavior works."
+    ],
+    "decision": [
+      "Decision rules are accessible.",
+      "Rules can produce actions.",
+      "Exceptions are handled."
+    ],
+    "execution": [
+      "Outputs can be created.",
+      "ThreadsWorks handoff contracts are defined.",
+      "Execution results return to the system."
+    ],
+    "measurement": [
+      "Relevant metrics can be recorded.",
+      "Results can update business state."
+    ],
+    "evaluation": [
+      "Automated or repeatable test harness exists.",
+      "Critical Phase 6 tests pass.",
+      "Regression testing is available."
+    ],
+    "operations": [
+      "Observability exists.",
+      "Errors have defined fallback behavior.",
+      "Versioning exists.",
+      "Access controls exist."
+    ]
+  },
+  "anti_patterns": [
+    "Generic chatbot behavior",
+    "Curriculum dumping",
+    "Keyword-only routing",
+    "Tactical reflex",
+    "False certainty",
+    "Source fabrication",
+    "Vanity metric optimization",
+    "ThreadsWorks duplication",
+    "Automation overreach",
+    "Untracked state changes",
+    "Unmeasured execution",
+    "Changing intelligence to fix UX problems",
+    "Changing intelligence from isolated anecdotes",
+    "Adding features without a validated user need",
+    "Bypassing validation for major changes"
+  ],
+  "phase_9_acceptance_tests": [
+    {
+      "id": "P9-AT-001",
+      "test": "Knowledge Runtime",
+      "pass_condition": "All 220 class records can be addressed through the production knowledge architecture."
+    },
+    {
+      "id": "P9-AT-002",
+      "test": "Retrieval",
+      "pass_condition": "A user problem retrieves the smallest relevant knowledge set before broader expansion."
+    },
+    {
+      "id": "P9-AT-003",
+      "test": "Business State",
+      "pass_condition": "Relevant user context persists and updates correctly."
+    },
+    {
+      "id": "P9-AT-004",
+      "test": "Diagnosis",
+      "pass_condition": "The runtime identifies the relevant diagnostic domain and likely bottleneck before prescribing."
+    },
+    {
+      "id": "P9-AT-005",
+      "test": "Decision Rules",
+      "pass_condition": "Validated decision rules can be applied against current evidence and context."
+    },
+    {
+      "id": "P9-AT-006",
+      "test": "Recommendation",
+      "pass_condition": "The runtime produces a reasoned next best action with appropriate confidence."
+    },
+    {
+      "id": "P9-AT-007",
+      "test": "Output",
+      "pass_condition": "A meaningful action produces a concrete output, decision, or measurable next step."
+    },
+    {
+      "id": "P9-AT-008",
+      "test": "ThreadsWorks",
+      "pass_condition": "Supported execution can be handed to ThreadsWorks with the necessary context."
+    },
+    {
+      "id": "P9-AT-009",
+      "test": "Measurement",
+      "pass_condition": "Execution results can be captured and connected to the next diagnosis."
+    },
+    {
+      "id": "P9-AT-010",
+      "test": "Observability",
+      "pass_condition": "Production failures can be localized to a system layer."
+    },
+    {
+      "id": "P9-AT-011",
+      "test": "Source Integrity",
+      "pass_condition": "Source-derived and newly created curriculum remain correctly distinguished."
+    },
+    {
+      "id": "P9-AT-012",
+      "test": "Access",
+      "pass_condition": "Product entitlements are enforced without contradictory AI behavior."
+    },
+    {
+      "id": "P9-AT-013",
+      "test": "Versioning",
+      "pass_condition": "Material runtime changes can be identified and traced."
+    },
+    {
+      "id": "P9-AT-014",
+      "test": "Regression",
+      "pass_condition": "Relevant Phase 6 tests remain passing after Phase 9 implementation changes."
+    },
+    {
+      "id": "P9-AT-015",
+      "test": "End-to-End Runtime",
+      "pass_condition": "A real business problem can move through input → diagnosis → decision → output → ThreadsWorks → result → state update."
+    }
+  ],
+  "phase_9_end_to_end_build_test": {
+    "scenario": "User reports: People like my content but nobody buys.",
+    "required_runtime": [
+      "Capture the desired outcome.",
+      "Inspect existing business state.",
+      "Identify attention as a symptom or stage rather than assuming it is the root problem.",
+      "Investigate conversations, buyer fit, offer clarity, trust, acquisition, and conversion.",
+      "Select the appropriate diagnostic domain.",
+      "Retrieve relevant Cash Machine classes.",
+      "Apply validated decision rules.",
+      "Produce a diagnosis with confidence.",
+      "Recommend the next best action.",
+      "Produce the relevant output.",
+      "Hand supported content or messaging execution into ThreadsWorks.",
+      "Capture the execution result.",
+      "Measure the relevant business signal.",
+      "Update the user's state.",
+      "Use the result for the next diagnosis."
+    ],
+    "pass_condition": "The user can move from business problem to diagnosis to decision to concrete execution to measurable evidence without manually rebuilding the strategy between systems."
+  },
+  "definition_of_done": [
+    "Production knowledge retrieval works.",
+    "All 220 classes are addressable.",
+    "Master index routing works.",
+    "User business state is operational.",
+    "Diagnostic runtime is operational.",
+    "Decision-rule runtime is operational.",
+    "Recommendation runtime is operational.",
+    "Concrete output generation is operational.",
+    "ThreadsWorks action contracts are operational for supported workflows.",
+    "Measurement and state feedback are operational.",
+    "Evaluation harness is operational.",
+    "Observability is operational.",
+    "Access and entitlement boundaries are operational.",
+    "Versioning and change tracking are operational.",
+    "Failure and fallback behavior is defined and implemented.",
+    "Phase 6 regression requirements can be executed against the built system.",
+    "The end-to-end production runtime passes the Phase 9 build test.",
+    "The system is ready to enter Phase 10 full-system validation."
+  ],
+  "what_phase_9_does_not_do": [
+    "It does not create another 220-class curriculum.",
+    "It does not replace the Phase 3 knowledge layer.",
+    "It does not redefine the Phase 4 intelligence architecture.",
+    "It does not replace the Phase 5 master implementation logic.",
+    "It does not bypass Phase 6 validation.",
+    "It does not duplicate ThreadsWorks.",
+    "It does not treat real-user feedback as automatic truth.",
+    "It does not become uncontrolled feature expansion."
+  ],
+  "final_architecture": {
+    "diagram": [
+      "THE CASH MACHINE",
+      "↓",
+      "KNOWLEDGE LAYER",
+      "↓",
+      "RETRIEVAL",
+      "↓",
+      "CASH MACHINE AI",
+      "↓",
+      "USER BUSINESS STATE",
+      "↓",
+      "DIAGNOSIS",
+      "↓",
+      "DECISION RULES",
+      "↓",
+      "NEXT BEST ACTION",
+      "↓",
+      "OUTPUT",
+      "↓",
+      "THREADSWORKS",
+      "↓",
+      "EXECUTION",
+      "↓",
+      "RESULT",
+      "↓",
+      "MEASUREMENT",
+      "↓",
+      "STATE UPDATE",
+      "↓",
+      "NEW DIAGNOSIS",
+      "↺"
+    ],
+    "operational_formula": "Knowledge + User Context + Evidence → Diagnosis → Decision → Action → Execution → Measurement → State Update → New Diagnosis",
+    "system_identity": "Cash Machine = Knowledge | Cash Machine AI = Intelligence | ThreadsWorks = Execution"
+  },
+  "next_phase": {
+    "phase": 10,
+    "title": "Full System Validation",
+    "purpose": "Prove that the actual implemented production runtime works across retrieval, diagnosis, decision quality, execution, measurement, state updates, edge cases, regressions, and complete end-to-end user journeys."
+  },
+  "implementation_note": "Phase 9 is the point where the project stops being primarily an architecture exercise and becomes an engineering and product implementation effort. The existing architecture already defines the desired behavior: understand the user's objective, inspect context, diagnose the most important constraint, retrieve relevant knowledge, apply decision rules, recommend a concrete action, execute through ThreadsWorks when appropriate, measure the result, and use that evidence for the next diagnosis. Phase 9 makes those components operational and traceable."
+}

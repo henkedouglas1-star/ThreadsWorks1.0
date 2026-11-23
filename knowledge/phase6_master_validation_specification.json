@@ -1,0 +1,340 @@
+{
+  "phase": 6,
+  "title": "Cash Machine AI Master Validation Specification",
+  "version": "1.0",
+  "status": "validation-ready",
+  "purpose": "Validate that the Cash Machine AI architecture from Phases 3–5 operates as intended before production deployment.",
+  "validation_principle": "Phase 6 does not add another intelligence layer. It tests whether the existing knowledge, intelligence, implementation, execution, measurement, and feedback architecture actually works.",
+  "system_under_test": {
+    "knowledge_layer": "Phase 3 structured Cash Machine knowledge.",
+    "intelligence_layer": "Phase 4 intelligence architecture and diagnostic decision engine.",
+    "implementation_layer": "Phase 5 Master Implementation System.",
+    "execution_layer": "ThreadsWorks when an existing execution workflow applies.",
+    "feedback_layer": "Results, metrics, interpretation, and new diagnosis."
+  },
+  "master_validation_loop": [
+    "Provide a realistic user situation.",
+    "Capture the user's desired outcome.",
+    "Observe the system's interpretation.",
+    "Evaluate the diagnosis.",
+    "Evaluate knowledge routing.",
+    "Evaluate decision quality.",
+    "Evaluate recommendation quality.",
+    "Evaluate concrete output.",
+    "Evaluate ThreadsWorks handoff when applicable.",
+    "Evaluate measurement definition.",
+    "Provide or simulate a result.",
+    "Evaluate feedback interpretation.",
+    "Evaluate the resulting new diagnosis."
+  ],
+  "core_validation_chain": "User Situation → Desired Outcome → Diagnosis → Bottleneck / Opportunity → Relevant Knowledge → Decision → Next Best Action → Output → ThreadsWorks Execution → Result → Measurement → Interpretation → New Diagnosis",
+  "test_categories": {
+    "1_system_integrity": {
+      "objective": "Confirm that the Phase 3, Phase 4, and Phase 5 components operate as one coherent system.",
+      "tests": [
+        "The system can identify a user's objective.",
+        "The system can access relevant knowledge.",
+        "The system can diagnose a constraint.",
+        "The system can recommend an action.",
+        "The system can define a measurable result.",
+        "The system can use the result to inform the next decision."
+      ]
+    },
+    "2_knowledge_retrieval": {
+      "objective": "Confirm that the system retrieves relevant Cash Machine knowledge rather than dumping or randomly selecting curriculum.",
+      "tests": [
+        {
+          "input": "I don't know what to sell.",
+          "expected": "Prioritize problem, demand, buyer, desired outcome, willingness to pay, solution type, value proposition, and offer validation knowledge."
+        },
+        {
+          "input": "People like my content but nobody buys.",
+          "expected": "Investigate the progression from attention to leads, prospects, conversations, offer, and conversion rather than automatically prescribing more content."
+        },
+        {
+          "input": "My sales suddenly dropped.",
+          "expected": "Investigate changes across demand, acquisition, lead quality, conversations, offer, conversion, and sales process before recommending increased activity."
+        },
+        {
+          "input": "I have sales but can't scale.",
+          "expected": "Investigate economics, conversion, fulfillment, support, capacity, pipeline, repeatability, and bottlenecks."
+        }
+      ],
+      "pass_condition": "Retrieved knowledge is relevant to the diagnosed problem and unnecessary curriculum is excluded."
+    },
+    "3_diagnostic_accuracy": {
+      "objective": "Confirm that the system distinguishes symptoms from underlying constraints.",
+      "required_behavior": [
+        "Do not accept the user's requested tactic as proof of the bottleneck.",
+        "Investigate evidence.",
+        "Identify the most likely constraint.",
+        "State uncertainty when evidence is insufficient.",
+        "Ask a focused question when missing information could materially change the diagnosis."
+      ],
+      "pass_condition": "The diagnosis is evidence-supported, appropriately qualified, and more useful than simply repeating the user's stated symptom."
+    },
+    "4_decision_quality": {
+      "objective": "Confirm that recommendations follow from diagnosis and relevant Cash Machine knowledge.",
+      "evaluation_questions": [
+        "Was the diagnosis reasonable?",
+        "Was the relevant knowledge selected?",
+        "Was the reasoning connected to the evidence?",
+        "Was the action prioritized correctly?",
+        "Would the action test or improve the diagnosed constraint?",
+        "Was unnecessary activity avoided?"
+      ],
+      "pass_condition": "The recommendation has a clear logical chain from evidence to diagnosis to action."
+    },
+    "5_recommendation_quality": {
+      "objective": "Confirm that recommendations produce useful forward movement.",
+      "required_fields": [
+        "Diagnosis",
+        "Why it matters",
+        "Relevant Cash Machine knowledge",
+        "Recommended next action",
+        "Concrete output",
+        "Execution path",
+        "Success signal",
+        "Next decision"
+      ],
+      "pass_condition": "The recommendation is actionable, prioritized, reasoned, and measurable."
+    },
+    "6_threadsworks_execution": {
+      "objective": "Confirm that Cash Machine AI correctly hands execution to ThreadsWorks when appropriate.",
+      "tests": [
+        "Content creation is handed to an existing ThreadsWorks workflow when applicable.",
+        "Messaging execution is handed to ThreadsWorks when applicable.",
+        "Campaign or creator execution uses existing ThreadsWorks capabilities when applicable.",
+        "The handoff includes the strategic context required for execution.",
+        "Cash Machine AI does not unnecessarily recreate ThreadsWorks functionality."
+      ],
+      "pass_condition": "Strategy remains with Cash Machine AI and execution is appropriately delegated to ThreadsWorks."
+    },
+    "7_measurement_and_feedback": {
+      "objective": "Confirm that results are treated as evidence for the next decision.",
+      "tests": [
+        "The intended outcome is defined.",
+        "A meaningful metric or signal is selected.",
+        "The result is compared with the expected outcome.",
+        "The result is interpreted rather than merely reported.",
+        "The diagnosis is updated when evidence changes.",
+        "Successful actions are evaluated for repeatability.",
+        "Unsuccessful actions trigger reassessment rather than automatic increases in activity."
+      ],
+      "pass_condition": "The system forms a genuine closed loop from action to evidence to new diagnosis."
+    },
+    "8_source_integrity": {
+      "objective": "Confirm that Cash Machine AI does not fabricate, misattribute, or blur source material.",
+      "required_behavior": [
+        "Treat the original Cash Machine PDF as the source of truth for source-derived material.",
+        "Do not present Class 125 as recovered source material.",
+        "Do not present Classes 171–197 as recovered source material.",
+        "Distinguish source-derived knowledge from inference.",
+        "Do not invent unsupported source claims.",
+        "State when the available source does not support a point."
+      ],
+      "pass_condition": "Source-derived claims remain distinguishable from inference and newly authored material."
+    },
+    "9_edge_cases": {
+      "objective": "Test behavior when normal diagnostic conditions are incomplete or ambiguous.",
+      "cases": [
+        "Insufficient information",
+        "Conflicting information",
+        "Multiple possible bottlenecks",
+        "User insists on a tactic that may not address the constraint",
+        "No sales data",
+        "Very early business",
+        "Existing successful business",
+        "Declining sales",
+        "Scaling pressure",
+        "Ethical or fit concern"
+      ],
+      "pass_condition": "The system remains useful without inventing certainty or forcing an inappropriate recommendation."
+    },
+    "10_regression_testing": {
+      "objective": "Ensure improvements do not break previously validated behavior.",
+      "process": [
+        "Retest all core scenarios after material system changes.",
+        "Compare new behavior against expected outcomes.",
+        "Record newly discovered failures.",
+        "Correct the system.",
+        "Rerun affected tests.",
+        "Retain previously passing tests as regression cases."
+      ]
+    }
+  },
+  "diagnostic_scenario_suite": [
+    {
+      "id": "VAL-001",
+      "user": "I need more followers.",
+      "expected_diagnosis_behavior": "Investigate discovery, lead quality, conversion, offer clarity, positioning, and the actual business objective before prescribing more traffic.",
+      "critical_failure": "Immediately prescribing follower-growth tactics without diagnosis."
+    },
+    {
+      "id": "VAL-002",
+      "user": "People like my content but nobody buys.",
+      "expected_diagnosis_behavior": "Investigate where the progression from attention to lead, prospect, conversation, offer, and conversion is breaking.",
+      "critical_failure": "Automatically recommending more content."
+    },
+    {
+      "id": "VAL-003",
+      "user": "I don't know what to sell.",
+      "expected_diagnosis_behavior": "Investigate valuable problems, demand, buyer, desired outcome, willingness to pay, solution type, value proposition, and offer validation.",
+      "critical_failure": "Inventing an offer without understanding the buyer or problem."
+    },
+    {
+      "id": "VAL-004",
+      "user": "People disappear when I tell them the price.",
+      "expected_diagnosis_behavior": "Investigate value, risk, proof, offer clarity, pricing, objections, and buying experience.",
+      "critical_failure": "Automatically recommending discounts."
+    },
+    {
+      "id": "VAL-005",
+      "user": "I get leads but nobody becomes a customer.",
+      "expected_diagnosis_behavior": "Locate the breakdown across lead, prospect, conversation, presentation, objection, and close.",
+      "critical_failure": "Assuming more leads are automatically required."
+    },
+    {
+      "id": "VAL-006",
+      "user": "My sales suddenly dropped.",
+      "expected_diagnosis_behavior": "Investigate what changed across the sales system before prescribing more activity.",
+      "critical_failure": "Automatically recommending increased traffic or posting."
+    },
+    {
+      "id": "VAL-007",
+      "user": "I have sales but I can't scale.",
+      "expected_diagnosis_behavior": "Investigate acquisition economics, conversion, fulfillment, support, capacity, pipeline, repeatability, and bottleneck.",
+      "critical_failure": "Recommending scale without validating system capacity."
+    },
+    {
+      "id": "VAL-008",
+      "user": "I want to automate my sales process.",
+      "expected_diagnosis_behavior": "Separate repetitive work from judgment and protect qualification, diagnosis, complex objections, negotiation, customer problems, and strategic decisions.",
+      "critical_failure": "Automating all judgment indiscriminately."
+    },
+    {
+      "id": "VAL-009",
+      "user": "I made my first sale.",
+      "expected_diagnosis_behavior": "Help analyze why the buyer bought, what convinced them, what nearly stopped them, what they expected, and what happened after purchase.",
+      "critical_failure": "Treating one sale as proof that the entire system is validated."
+    },
+    {
+      "id": "VAL-010",
+      "user": "I have 10 customers now.",
+      "expected_diagnosis_behavior": "Look for repeated buyer types, problems, objections, triggers, messages, acquisition sources, and reasons for purchase.",
+      "critical_failure": "Ignoring the evidence available from the first customer patterns."
+    }
+  ],
+  "edge_case_tests": [
+    {
+      "id": "EDGE-001",
+      "condition": "Insufficient information",
+      "expected_behavior": "State what is unknown and ask the smallest number of focused questions needed."
+    },
+    {
+      "id": "EDGE-002",
+      "condition": "Multiple plausible bottlenecks",
+      "expected_behavior": "Rank likely constraints, explain uncertainty, and choose the most useful diagnostic action."
+    },
+    {
+      "id": "EDGE-003",
+      "condition": "Conflicting evidence",
+      "expected_behavior": "Surface the conflict rather than forcing a false conclusion."
+    },
+    {
+      "id": "EDGE-004",
+      "condition": "User requests a tactic that conflicts with diagnosis",
+      "expected_behavior": "Explain the conflict and recommend the action most likely to address the actual constraint."
+    },
+    {
+      "id": "EDGE-005",
+      "condition": "No meaningful metrics available",
+      "expected_behavior": "Recommend establishing the minimum useful measurement before making major optimization decisions."
+    },
+    {
+      "id": "EDGE-006",
+      "condition": "Ethical or fit concern",
+      "expected_behavior": "Prioritize fit, ethical sales, reputation, and appropriate judgment over maximizing conversion."
+    }
+  ],
+  "scoring_framework": {
+    "scale": {
+      "0": "Failed",
+      "1": "Weak",
+      "2": "Partial",
+      "3": "Good",
+      "4": "Strong",
+      "5": "Excellent"
+    },
+    "dimensions": [
+      "Objective understanding",
+      "Context use",
+      "Diagnostic accuracy",
+      "Knowledge relevance",
+      "Reasoning quality",
+      "Decision quality",
+      "Action quality",
+      "Concrete output quality",
+      "ThreadsWorks handoff",
+      "Measurement quality",
+      "Feedback quality",
+      "Source integrity",
+      "Guardrail adherence"
+    ],
+    "minimum_standard": "No critical failure; every applicable dimension scores at least 3; core diagnosis, recommendation, source integrity, and feedback dimensions should average at least 4."
+  },
+  "critical_failures": [
+    "Fabricating Cash Machine source material.",
+    "Presenting newly authored curriculum as recovered source material.",
+    "Giving confident strategic advice when critical evidence is missing.",
+    "Prescribing tactics without diagnosing a stated business constraint.",
+    "Dumping large amounts of unrelated curriculum.",
+    "Treating analytics as diagnosis.",
+    "Optimizing vanity metrics disconnected from the business objective.",
+    "Recreating existing ThreadsWorks execution unnecessarily.",
+    "Ignoring measurement and feedback.",
+    "Recommending scale without considering system readiness."
+  ],
+  "production_readiness_checklist": [
+    "Knowledge retrieval is reliable.",
+    "Diagnosis is consistently useful.",
+    "Recommendations follow from diagnosis.",
+    "Actions create concrete outputs.",
+    "ThreadsWorks handoffs preserve strategic context.",
+    "Measurement is connected to outcomes.",
+    "Results influence future diagnosis.",
+    "Source integrity is maintained.",
+    "Edge cases are handled appropriately.",
+    "Regression tests pass.",
+    "No critical failures remain.",
+    "Core scenarios meet the minimum scoring standard."
+  ],
+  "validation_workflow": [
+    "Run the core diagnostic scenario suite.",
+    "Score each response.",
+    "Record failures and failure type.",
+    "Identify whether the failure originates in knowledge, routing, intelligence, implementation, execution, or feedback.",
+    "Correct the smallest responsible layer.",
+    "Rerun the affected test.",
+    "Run regression tests.",
+    "Run end-to-end tests.",
+    "Complete the production-readiness checklist."
+  ],
+  "failure_localization": {
+    "knowledge_failure": "Relevant information is missing, incorrect, incomplete, or improperly structured.",
+    "routing_failure": "Correct knowledge exists but the system retrieves the wrong material.",
+    "diagnostic_failure": "The system retrieves relevant knowledge but identifies the wrong constraint.",
+    "decision_failure": "Diagnosis is reasonable but the selected action does not follow logically.",
+    "execution_failure": "Strategy is correct but the output or ThreadsWorks handoff is incorrect.",
+    "measurement_failure": "The action is executed but success cannot be meaningfully evaluated.",
+    "feedback_failure": "Results are available but the system fails to update the diagnosis appropriately."
+  },
+  "end_to_end_pass_test": {
+    "scenario": "A user reports a real business problem with enough context to diagnose it.",
+    "required_result": "The system identifies the objective, diagnoses the likely constraint, retrieves relevant knowledge, explains the reasoning, recommends a prioritized action, creates or requests the appropriate output, hands execution to ThreadsWorks when applicable, defines a success signal, evaluates the result, and produces a logically updated next diagnosis.",
+    "pass_condition": "The entire chain completes without a critical failure."
+  },
+  "final_validation_standard": "Cash Machine AI is validated when it reliably behaves as the intended intelligence system: it diagnoses before prescribing, retrieves relevant knowledge selectively, reasons from evidence, converts knowledge into action, uses ThreadsWorks for execution when appropriate, measures meaningful outcomes, learns from results, preserves source integrity, and continuously identifies what should happen next.",
+  "phase_6_definition_of_done": "Phase 6 is complete when the core scenarios, edge cases, source-integrity checks, execution checks, measurement and feedback checks, regression tests, and end-to-end tests meet the defined scoring standard with no critical failures.",
+  "relationship_to_future_work": "After Phase 6 validation passes, the system can move from architecture and testing into actual product implementation, controlled deployment, user testing, and iterative optimization."
+}

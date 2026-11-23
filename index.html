@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>ThreadsWorks | AI Threads Writer &amp; Scheduler</title>
+    <meta name="description" content="AI Threads writer and post generator using structured persuasive writing techniques, stronger Threads hooks, and built-in Threads content scheduling for Meta Threads." />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://threadsworks.com/" />
+
+    <!-- Google Fonts Optimization -->
+    <script>
+      (function() {
+        // Safe WebSocket proxy for Vite HMR in cloud preview/sandboxed environments
+        try {
+          var NativeWebSocket = window.WebSocket;
+          if (NativeWebSocket) {
+            window.WebSocket = function(url, protocols) {
+              if (
+                protocols === 'vite-hmr' ||
+                (typeof url === 'string' && (url.indexOf('token=') !== -1 || url.indexOf('vite-hmr') !== -1))
+              ) {
+                var listeners = {};
+                var mockSocket = {
+                  readyState: 1, // OPEN
+                  OPEN: 1,
+                  CLOSED: 3,
+                  CLOSING: 2,
+                  CONNECTING: 0,
+                  url: url,
+                  protocol: 'vite-hmr',
+                  addEventListener: function(type, fn) {
+                    listeners[type] = listeners[type] || [];
+                    listeners[type].push(fn);
+                    if (type === 'open') {
+                      setTimeout(function() {
+                        try { fn({ type: 'open' }); } catch(_) {}
+                      }, 10);
+                    }
+                  },
+                  removeEventListener: function(type, fn) {
+                    if (!listeners[type]) return;
+                    listeners[type] = listeners[type].filter(function(f) { return f !== fn; });
+                  },
+                  send: function() {},
+                  close: function() {}
+                };
+                return mockSocket;
+              }
+              return new NativeWebSocket(url, protocols);
+            };
+            window.WebSocket.prototype = NativeWebSocket.prototype;
+            window.WebSocket.OPEN = NativeWebSocket.OPEN;
+            window.WebSocket.CLOSED = NativeWebSocket.CLOSED;
+            window.WebSocket.CLOSING = NativeWebSocket.CLOSING;
+            window.WebSocket.CONNECTING = NativeWebSocket.CONNECTING;
+          }
+        } catch(_) {}
+
+        var isBenignSystemNotice = function(args) {
+          try {
+            var msg = Array.prototype.slice.call(args).map(function(a) {
+              if (a === null || a === undefined) return '';
+              if (typeof a === 'object') {
+                return (a.name || '') + ' ' + (a.message || '') + ' ' + (a.stack || '') + ' ' + JSON.stringify(a);
+              }
+              return String(a);
+            }).join(' ');
+            return msg.indexOf('BloomFilter') !== -1 || 
+                   msg.indexOf('Invalid hash count') !== -1 || 
+                   msg.indexOf('Applying bloom filter failed') !== -1 ||
+                   msg.indexOf('WebSocket') !== -1 ||
+                   msg.indexOf('@vite/client') !== -1 ||
+                   msg.indexOf('failed to connect to websocket') !== -1 ||
+                   msg.indexOf('vite:ws') !== -1;
+          } catch(e) {
+            return false;
+          }
+        };
+
+        var origError = console.error;
+        console.error = function() {
+          if (isBenignSystemNotice(arguments)) return;
+          return origError.apply(console, arguments);
+        };
+
+        var origWarn = console.warn;
+        console.warn = function() {
+          if (isBenignSystemNotice(arguments)) return;
+          return origWarn.apply(console, arguments);
+        };
+
+        var origInfo = console.info;
+        console.info = function() {
+          if (isBenignSystemNotice(arguments)) return;
+          return origInfo.apply(console, arguments);
+        };
+
+        var origLog = console.log;
+        console.log = function() {
+          if (isBenignSystemNotice(arguments)) return;
+          return origLog.apply(console, arguments);
+        };
+
+        window.addEventListener('error', function(e) {
+          var msg = e && e.message ? String(e.message) : '';
+          var filename = e && e.filename ? String(e.filename) : '';
+          if (
+            msg.indexOf('BloomFilter') !== -1 || 
+            msg.indexOf('Invalid hash count') !== -1 ||
+            msg.indexOf('Applying bloom filter failed') !== -1 ||
+            msg.indexOf('WebSocket') !== -1 ||
+            msg.indexOf('@vite/client') !== -1 ||
+            filename.indexOf('@vite/client') !== -1 ||
+            msg.indexOf('is not a valid JavaScript MIME type') !== -1 ||
+            msg.indexOf('Expected a JavaScript-friendly MIME type') !== -1 ||
+            msg.indexOf('Failed to fetch dynamically imported module') !== -1
+          ) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            if (msg.indexOf('MIME type') !== -1 || msg.indexOf('dynamically imported') !== -1) {
+              var reloadKey = 'chunk_reload_' + window.location.pathname;
+              if (!sessionStorage.getItem(reloadKey)) {
+                sessionStorage.setItem(reloadKey, '1');
+                setTimeout(function() { window.location.reload(); }, 150);
+              }
+            }
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function(e) {
+          var reason = e && e.reason ? String(e.reason.message || e.reason) : '';
+          if (
+            reason.indexOf('BloomFilter') !== -1 || 
+            reason.indexOf('Invalid hash count') !== -1 ||
+            reason.indexOf('Applying bloom filter failed') !== -1 ||
+            reason.indexOf('WebSocket') !== -1 ||
+            reason.indexOf('@vite/client') !== -1 ||
+            reason.indexOf('failed to connect to websocket') !== -1 ||
+            reason.indexOf('vite:ws') !== -1 ||
+            reason.indexOf('is not a valid JavaScript MIME type') !== -1 ||
+            reason.indexOf('Expected a JavaScript-friendly MIME type') !== -1 ||
+            reason.indexOf('Failed to fetch dynamically imported module') !== -1
+          ) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            if (reason.indexOf('MIME type') !== -1 || reason.indexOf('dynamically imported') !== -1) {
+              var reloadKey = 'chunk_reload_' + window.location.pathname;
+              if (!sessionStorage.getItem(reloadKey)) {
+                sessionStorage.setItem(reloadKey, '1');
+                setTimeout(function() { window.location.reload(); }, 150);
+              }
+            }
+          }
+        }, true);
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300..900;1,300..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300..900;1,300..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" />
+    </noscript>
+
+    <!-- Open Graph / Facebook / LinkedIn / Discord -->
+    <meta property="og:site_name" content="ThreadsWorks" />
+    <meta property="og:title" content="ThreadsWorks | AI Threads Writer &amp; Scheduler" />
+    <meta property="og:description" content="AI Threads writer and post generator using structured persuasive writing techniques, stronger Threads hooks, and built-in Threads content scheduling for Meta Threads." />
+    <meta property="og:url" content="https://threadsworks.com/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://threadsworks.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ThreadsWorks | AI Threads Writer &amp; Scheduler" />
+    <meta name="twitter:description" content="AI Threads writer and post generator using structured persuasive writing techniques, stronger Threads hooks, and built-in Threads content scheduling for Meta Threads." />
+    <meta name="twitter:url" content="https://threadsworks.com/" />
+    <meta name="twitter:image" content="https://threadsworks.com/og-image.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

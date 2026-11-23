@@ -1,0 +1,754 @@
+{
+  "phase": 10,
+  "title": "Cash Machine AI — Full System Validation",
+  "version": "1.0",
+  "status": "Master Full-System Validation Specification",
+  "purpose": "Prove that the actual implemented Cash Machine AI runtime from Phase 9 works as one connected production system. Phase 10 validates the complete chain from user problem through knowledge retrieval, business-state context, diagnosis, decision, recommendation, output, ThreadsWorks execution, measurement, state update, and the next diagnosis. Phase 10 is the proof stage. It does not add new intelligence or features.",
+  "system_identity": {
+    "cash_machine": "The knowledge.",
+    "cash_machine_ai": "The intelligence.",
+    "threadsworks": "The execution environment.",
+    "results_and_metrics": "The evidence.",
+    "validation_role": "Phase 10 verifies that these components operate together correctly, reliably, traceably, and consistently under realistic conditions."
+  },
+  "phase_progression": [
+    "Phase 3 — Knowledge",
+    "Phase 4 — Intelligence",
+    "Phase 5 — Implementation",
+    "Phase 6 — Architecture Validation",
+    "Phase 7 — Product Integration & Deployment",
+    "Phase 8 — Live User Testing & Intelligence Optimization",
+    "Phase 9 — Production Runtime & System Build",
+    "Phase 10 — Full System Validation",
+    "Phase 11 — Launch & Continuous Intelligence"
+  ],
+  "validation_principle": "The implemented system must be tested as a connected operating system, not merely as individual components. A component can pass independently while the complete user journey still fails.",
+  "master_validation_loop": [
+    "User Problem",
+    "Desired Outcome",
+    "Business Context",
+    "Evidence",
+    "Diagnostic Domain",
+    "Knowledge Retrieval",
+    "Diagnosis",
+    "Decision Rule",
+    "Next Best Action",
+    "Concrete Output",
+    "ThreadsWorks Execution",
+    "Result",
+    "Measurement",
+    "State Update",
+    "New Diagnosis"
+  ],
+  "validation_chain": {
+    "required_chain": [
+      "Input",
+      "Context",
+      "Retrieval",
+      "Diagnosis",
+      "Decision",
+      "Recommendation",
+      "Output",
+      "Execution",
+      "Measurement",
+      "State Update",
+      "Feedback"
+    ],
+    "pass_condition": "Each stage receives the correct information from the preceding stage, performs its intended function, and returns usable information to the next stage without requiring the user to manually reconstruct missing context."
+  },
+  "validation_scope": {
+    "in_scope": [
+      "Knowledge retrieval",
+      "Diagnostic routing",
+      "Business-state handling",
+      "Diagnostic accuracy",
+      "Decision-rule application",
+      "Recommendation quality",
+      "Output generation",
+      "ThreadsWorks execution",
+      "Measurement",
+      "State updates",
+      "Feedback loop",
+      "Source integrity",
+      "Access and entitlements",
+      "Versioning",
+      "Observability",
+      "Error handling",
+      "Edge cases",
+      "Regression behavior",
+      "End-to-end journeys"
+    ],
+    "out_of_scope": [
+      "Creating new curriculum",
+      "Creating new intelligence architecture",
+      "Uncontrolled feature expansion",
+      "Changing validated decision rules without testing",
+      "Treating isolated user preference as system truth",
+      "Replacing ThreadsWorks capabilities"
+    ]
+  },
+  "validation_layers": [
+    {
+      "layer": 1,
+      "name": "Knowledge",
+      "question": "Can the system retrieve accurate and relevant Cash Machine knowledge?"
+    },
+    {
+      "layer": 2,
+      "name": "Context",
+      "question": "Does the system correctly understand the user's current business state?"
+    },
+    {
+      "layer": 3,
+      "name": "Diagnosis",
+      "question": "Does the system identify the most likely bottleneck or opportunity?"
+    },
+    {
+      "layer": 4,
+      "name": "Decision",
+      "question": "Does the system choose an action that logically follows from the diagnosis?"
+    },
+    {
+      "layer": 5,
+      "name": "Recommendation",
+      "question": "Can the user understand and act on the recommendation?"
+    },
+    {
+      "layer": 6,
+      "name": "Output",
+      "question": "Does the system produce the intended concrete output?"
+    },
+    {
+      "layer": 7,
+      "name": "Execution",
+      "question": "Can the output be executed through ThreadsWorks when appropriate?"
+    },
+    {
+      "layer": 8,
+      "name": "Measurement",
+      "question": "Can the resulting evidence be captured and interpreted?"
+    },
+    {
+      "layer": 9,
+      "name": "State",
+      "question": "Does the result update the user's business state correctly?"
+    },
+    {
+      "layer": 10,
+      "name": "Feedback",
+      "question": "Does the updated state inform the next diagnosis?"
+    }
+  ],
+  "test_categories": {
+    "1_system_integrity": {
+      "objective": "Verify that all production components are connected correctly.",
+      "tests": [
+        "Knowledge source availability",
+        "Master index availability",
+        "Runtime configuration",
+        "Diagnostic engine connection",
+        "Decision-rule connection",
+        "ThreadsWorks connection",
+        "Measurement connection",
+        "State connection",
+        "Observability connection"
+      ],
+      "pass_condition": "No required production dependency is missing or disconnected."
+    },
+    "2_knowledge_retrieval": {
+      "objective": "Verify that relevant knowledge is retrieved accurately.",
+      "tests": [
+        "Direct class retrieval",
+        "Diagnostic-domain retrieval",
+        "Multi-class retrieval",
+        "Related-class expansion",
+        "Source-status preservation",
+        "Retrieval failure behavior",
+        "Narrow-before-broad behavior"
+      ],
+      "pass_condition": "Relevant knowledge is retrieved without unnecessary curriculum dumping or source fabrication."
+    },
+    "3_context_and_state": {
+      "objective": "Verify that user business context is correctly maintained.",
+      "tests": [
+        "Initial context capture",
+        "Context reuse",
+        "New fact override",
+        "State update after action",
+        "State update after result",
+        "Inference versus fact distinction",
+        "Stale-state protection"
+      ],
+      "pass_condition": "Diagnosis uses the correct current business state."
+    },
+    "4_diagnostic_accuracy": {
+      "objective": "Verify that the system diagnoses the actual business constraint rather than the user's surface symptom.",
+      "tests": [
+        "Diagnostic domain selection",
+        "Question relevance",
+        "Evidence quality",
+        "Alternative hypotheses",
+        "Bottleneck prioritization",
+        "Confidence calibration",
+        "User correction handling"
+      ],
+      "pass_condition": "The diagnosis is supported by available evidence and appropriately calibrated."
+    },
+    "5_decision_quality": {
+      "objective": "Verify that decision rules produce logically appropriate actions.",
+      "tests": [
+        "Rule selection",
+        "Evidence requirements",
+        "Context compatibility",
+        "Exceptions",
+        "Priority ordering",
+        "Action selection",
+        "Expected outcome definition"
+      ],
+      "pass_condition": "The selected action addresses the diagnosed constraint."
+    },
+    "6_recommendation_quality": {
+      "objective": "Verify that recommendations are clear, reasoned, and actionable.",
+      "tests": [
+        "Reason explanation",
+        "Action clarity",
+        "Output definition",
+        "Effort appropriateness",
+        "Success signal",
+        "Confidence behavior"
+      ],
+      "pass_condition": "A user can understand why the action is recommended and what to do next."
+    },
+    "7_output_generation": {
+      "objective": "Verify that recommendations can become useful outputs.",
+      "tests": [
+        "Correct output type",
+        "Business-context alignment",
+        "Completeness",
+        "Execution readiness",
+        "Constraint preservation"
+      ],
+      "pass_condition": "The intended output is produced or the next required input is clearly identified."
+    },
+    "8_threadsworks_execution": {
+      "objective": "Verify that strategy and outputs can move into ThreadsWorks.",
+      "tests": [
+        "Action contract creation",
+        "Context handoff",
+        "Input completeness",
+        "Workflow selection",
+        "Execution completion",
+        "Execution result return"
+      ],
+      "pass_condition": "Supported work executes without unnecessary reconstruction."
+    },
+    "9_measurement_and_feedback": {
+      "objective": "Verify that results become evidence for subsequent decisions.",
+      "tests": [
+        "Metric selection",
+        "Result capture",
+        "Result interpretation",
+        "State update",
+        "New diagnosis"
+      ],
+      "pass_condition": "Execution evidence can inform the next improvement."
+    },
+    "10_source_integrity": {
+      "objective": "Verify that source-derived and newly created curriculum remain correctly distinguished.",
+      "tests": [
+        "Source status preservation",
+        "Class identity preservation",
+        "No fabricated source claims",
+        "New curriculum labeling",
+        "Source traceability"
+      ],
+      "pass_condition": "The system never represents newly authored material as recovered source content."
+    },
+    "11_access_and_entitlements": {
+      "objective": "Verify that product access boundaries work correctly.",
+      "tests": [
+        "Free access",
+        "Preview access",
+        "$9 access",
+        "Cash Machine AI access",
+        "ThreadsWorks execution access",
+        "Upgrade behavior",
+        "Unauthorized action prevention"
+      ],
+      "pass_condition": "Users receive exactly the capabilities allowed by their entitlement state."
+    },
+    "12_observability": {
+      "objective": "Verify that important runtime behavior can be inspected and failures localized.",
+      "tests": [
+        "Retrieval logging",
+        "Diagnostic logging",
+        "Decision logging",
+        "Execution logging",
+        "Measurement logging",
+        "State-update logging",
+        "Failure classification",
+        "Version identification"
+      ],
+      "pass_condition": "A material failure can be traced to the relevant system layer."
+    },
+    "13_error_and_fallback": {
+      "objective": "Verify safe behavior when components fail or evidence is insufficient.",
+      "tests": [
+        "Retrieval failure",
+        "Insufficient context",
+        "Low diagnostic confidence",
+        "Conflicting evidence",
+        "ThreadsWorks failure",
+        "Measurement failure",
+        "State failure",
+        "Access failure"
+      ],
+      "pass_condition": "The system fails safely without inventing success, evidence, or source material."
+    },
+    "14_regression": {
+      "objective": "Verify that new runtime changes do not break previously validated behavior.",
+      "tests": [
+        "Phase 6 regression suite",
+        "Phase 9 acceptance tests",
+        "Core diagnostic scenarios",
+        "ThreadsWorks handoffs",
+        "Source integrity tests"
+      ],
+      "pass_condition": "Previously passing critical behavior remains passing."
+    },
+    "15_end_to_end": {
+      "objective": "Verify the complete system as one operating loop.",
+      "tests": [
+        "Problem to diagnosis",
+        "Diagnosis to decision",
+        "Decision to output",
+        "Output to ThreadsWorks",
+        "Execution to result",
+        "Result to measurement",
+        "Measurement to state",
+        "State to new diagnosis"
+      ],
+      "pass_condition": "The complete loop operates without a critical break."
+    }
+  },
+  "core_diagnostic_scenarios": [
+    {
+      "id": "VAL10-001",
+      "user_input": "I need more followers.",
+      "expected_behavior": [
+        "Do not automatically prescribe follower growth.",
+        "Investigate the user's actual business objective.",
+        "Determine whether discovery, audience quality, positioning, lead generation, conversations, or conversion is the constraint.",
+        "Recommend the next action based on evidence."
+      ]
+    },
+    {
+      "id": "VAL10-002",
+      "user_input": "People like my content but nobody buys.",
+      "expected_behavior": [
+        "Separate attention from conversations and sales.",
+        "Investigate buyer fit, offer clarity, trust, conversations, intent, and conversion.",
+        "Identify the most likely bottleneck.",
+        "Recommend a focused action."
+      ]
+    },
+    {
+      "id": "VAL10-003",
+      "user_input": "I don't know what to sell.",
+      "expected_behavior": [
+        "Investigate problem, buyer, demand, desired outcome, willingness to pay, solution type, and opportunity validation.",
+        "Avoid inventing an offer without validating the underlying opportunity."
+      ]
+    },
+    {
+      "id": "VAL10-004",
+      "user_input": "People disappear when I tell them the price.",
+      "expected_behavior": [
+        "Investigate value, risk, offer clarity, proof, positioning, and buyer readiness.",
+        "Do not automatically recommend discounting."
+      ]
+    },
+    {
+      "id": "VAL10-005",
+      "user_input": "I get leads but nobody becomes a customer.",
+      "expected_behavior": [
+        "Investigate lead quality, qualification, conversations, presentation, objections, offer, trust, and close.",
+        "Identify the most consequential constraint."
+      ]
+    },
+    {
+      "id": "VAL10-006",
+      "user_input": "My sales suddenly dropped.",
+      "expected_behavior": [
+        "Compare relevant acquisition, lead, prospect, conversation, conversion, offer, and economic signals.",
+        "Identify what changed before prescribing a new tactic."
+      ]
+    },
+    {
+      "id": "VAL10-007",
+      "user_input": "I have sales but I can't scale.",
+      "expected_behavior": [
+        "Investigate acquisition economics, offer conversion, fulfillment, support, sales capacity, process repeatability, and bottlenecks.",
+        "Do not prescribe scale before system readiness."
+      ]
+    },
+    {
+      "id": "VAL10-008",
+      "user_input": "I want to automate my sales process.",
+      "expected_behavior": [
+        "Determine whether the process is standardized and repeatable.",
+        "Separate repetitive work from judgment-heavy work.",
+        "Preserve human judgment where appropriate."
+      ]
+    },
+    {
+      "id": "VAL10-009",
+      "user_input": "I made my first sale.",
+      "expected_behavior": [
+        "Capture buyer evidence.",
+        "Review what worked and failed.",
+        "Identify the next learning or repeatability opportunity."
+      ]
+    },
+    {
+      "id": "VAL10-010",
+      "user_input": "I have 10 customers now.",
+      "expected_behavior": [
+        "Shift toward repeatability, retention, economics, capacity, and controlled growth.",
+        "Identify the next constraint rather than automatically increasing activity."
+      ]
+    }
+  ],
+  "edge_case_tests": [
+    {
+      "id": "EDGE10-001",
+      "case": "Insufficient information",
+      "expected_behavior": "Ask the smallest set of questions needed to improve the decision."
+    },
+    {
+      "id": "EDGE10-002",
+      "case": "Multiple plausible bottlenecks",
+      "expected_behavior": "Prioritize the highest-impact hypothesis and explain the uncertainty."
+    },
+    {
+      "id": "EDGE10-003",
+      "case": "Conflicting evidence",
+      "expected_behavior": "Acknowledge the conflict and identify what evidence would resolve it."
+    },
+    {
+      "id": "EDGE10-004",
+      "case": "User insists on a tactic that conflicts with diagnosis",
+      "expected_behavior": "Explain the mismatch and redirect toward the diagnosed constraint while respecting user choice."
+    },
+    {
+      "id": "EDGE10-005",
+      "case": "No meaningful metrics",
+      "expected_behavior": "Do not fabricate measurement; recommend a focused measurement or diagnostic step."
+    },
+    {
+      "id": "EDGE10-006",
+      "case": "User disputes the diagnosis",
+      "expected_behavior": "Re-examine evidence and assumptions rather than forcing the original diagnosis."
+    },
+    {
+      "id": "EDGE10-007",
+      "case": "Source does not support requested claim",
+      "expected_behavior": "State the source limitation and avoid presenting unsupported material as source truth."
+    },
+    {
+      "id": "EDGE10-008",
+      "case": "ThreadsWorks execution unavailable",
+      "expected_behavior": "Preserve the strategic output and clearly identify the remaining execution step."
+    },
+    {
+      "id": "EDGE10-009",
+      "case": "Stale business state conflicts with current user statement",
+      "expected_behavior": "Use the newer explicit information and update state."
+    },
+    {
+      "id": "EDGE10-010",
+      "case": "Entitlement does not permit requested capability",
+      "expected_behavior": "Respect access boundaries and explain the available path without breaking core reasoning."
+    }
+  ],
+  "scoring_framework": {
+    "scale": {
+      "0": "Critical failure or unusable.",
+      "1": "Major failure; behavior is substantially incorrect.",
+      "2": "Weak; partially correct but requires significant correction.",
+      "3": "Acceptable; functional with meaningful limitations.",
+      "4": "Strong; correct, useful, and reliable.",
+      "5": "Excellent; highly accurate, efficient, actionable, and robust."
+    },
+    "dimensions": [
+      "Knowledge relevance",
+      "Context accuracy",
+      "Diagnostic accuracy",
+      "Decision quality",
+      "Recommendation quality",
+      "Output quality",
+      "ThreadsWorks execution",
+      "Measurement quality",
+      "State update quality",
+      "Source integrity",
+      "Error handling",
+      "Observability",
+      "User experience"
+    ],
+    "minimum_standard": [
+      "No critical failure.",
+      "Every applicable dimension scores at least 3.",
+      "Diagnostic accuracy average is at least 4.",
+      "Decision quality average is at least 4.",
+      "Recommendation quality average is at least 4.",
+      "Source integrity must pass completely.",
+      "End-to-end core scenarios must pass."
+    ]
+  },
+  "critical_failures": [
+    "Fabricating source material.",
+    "Representing newly created curriculum as original source content.",
+    "Giving a materially incorrect diagnosis with unjustified high confidence.",
+    "Recommending an action that contradicts the diagnosed constraint without explanation.",
+    "Losing or exposing another user's business context.",
+    "Claiming ThreadsWorks execution succeeded when it did not.",
+    "Fabricating metrics or business results.",
+    "Breaking the core Knowledge → Intelligence → Execution → Measurement loop.",
+    "Bypassing entitlement restrictions.",
+    "Introducing a regression that breaks a previously validated critical scenario."
+  ],
+  "test_execution_protocol": {
+    "sequence": [
+      "Freeze the candidate build version.",
+      "Record all active knowledge, prompt, rule, retrieval, and runtime versions.",
+      "Run system-integrity tests.",
+      "Run knowledge and retrieval tests.",
+      "Run context and state tests.",
+      "Run diagnostic tests.",
+      "Run decision and recommendation tests.",
+      "Run output tests.",
+      "Run ThreadsWorks execution tests.",
+      "Run measurement and feedback tests.",
+      "Run source-integrity tests.",
+      "Run access tests.",
+      "Run error and edge-case tests.",
+      "Run regression tests.",
+      "Run complete end-to-end tests.",
+      "Score results.",
+      "Localize failures.",
+      "Fix failures.",
+      "Repeat affected tests.",
+      "Approve or reject the build."
+    ]
+  },
+  "failure_localization": {
+    "rule": "Fix the layer that failed instead of changing unrelated parts of the system.",
+    "mapping": [
+      {
+        "symptom": "Wrong class retrieved",
+        "layer": "Retrieval"
+      },
+      {
+        "symptom": "Right knowledge but wrong problem interpretation",
+        "layer": "Diagnosis"
+      },
+      {
+        "symptom": "Correct diagnosis but wrong action",
+        "layer": "Decision"
+      },
+      {
+        "symptom": "Correct action but user cannot understand it",
+        "layer": "Recommendation / UX"
+      },
+      {
+        "symptom": "Correct output but execution fails",
+        "layer": "ThreadsWorks Integration"
+      },
+      {
+        "symptom": "Execution succeeds but result cannot be evaluated",
+        "layer": "Measurement"
+      },
+      {
+        "symptom": "Result is correct but next diagnosis uses old information",
+        "layer": "State"
+      },
+      {
+        "symptom": "Source claim is inaccurate",
+        "layer": "Knowledge / Source Integrity"
+      },
+      {
+        "symptom": "Correct behavior blocked incorrectly",
+        "layer": "Access / Entitlements"
+      }
+    ]
+  },
+  "regression_policy": {
+    "trigger_conditions": [
+      "Knowledge changes",
+      "Decision-rule changes",
+      "Prompt changes",
+      "Retrieval changes",
+      "State-schema changes",
+      "ThreadsWorks contract changes",
+      "Measurement changes",
+      "Access changes",
+      "Runtime changes"
+    ],
+    "required_action": "Run the affected targeted tests and the complete critical regression suite before approving the updated build.",
+    "rollback_rule": "If a change creates a critical failure or materially degrades validated behavior, rollback or correct the change before production approval."
+  },
+  "production_readiness_checklist": {
+    "knowledge": [
+      "All required knowledge files available.",
+      "All 220 class records addressable.",
+      "Master index routes correctly.",
+      "Source status preserved."
+    ],
+    "intelligence": [
+      "Diagnostic domains route correctly.",
+      "Decision rules execute correctly.",
+      "Confidence behavior works.",
+      "Recommendations follow diagnosis."
+    ],
+    "execution": [
+      "Outputs are produced correctly.",
+      "ThreadsWorks handoffs work.",
+      "Execution results return correctly."
+    ],
+    "measurement": [
+      "Relevant metrics are captured.",
+      "Results update state.",
+      "Next diagnosis can use the new evidence."
+    ],
+    "operations": [
+      "Observability works.",
+      "Errors have safe fallbacks.",
+      "Access controls work.",
+      "Versioning works.",
+      "Regression testing works."
+    ]
+  },
+  "end_to_end_pass_test": {
+    "scenario": "A user reports that their content receives attention but does not generate sales.",
+    "required_sequence": [
+      "Capture desired outcome.",
+      "Inspect current business state.",
+      "Interpret the stated symptom.",
+      "Identify candidate diagnostic domains.",
+      "Ask only necessary questions.",
+      "Retrieve relevant Cash Machine knowledge.",
+      "Evaluate evidence.",
+      "Produce a diagnosis.",
+      "Assign appropriate confidence.",
+      "Apply decision rules.",
+      "Select next best action.",
+      "Produce concrete output.",
+      "Hand execution into ThreadsWorks where appropriate.",
+      "Capture execution result.",
+      "Measure the relevant outcome.",
+      "Update user business state.",
+      "Determine the next diagnosis or improvement."
+    ],
+    "pass_condition": "The entire journey works as one connected system and the user does not have to manually reconstruct strategy, context, or execution between stages."
+  },
+  "validation_decision": {
+    "approve": "All critical requirements pass and no unresolved critical failure remains.",
+    "conditional_approve": "Only non-critical issues remain and they have documented impact and remediation plans.",
+    "reject": "Any critical failure remains or the system fails a core end-to-end journey."
+  },
+  "post_validation_actions": {
+    "if_pass": [
+      "Freeze validated build.",
+      "Record versions.",
+      "Prepare launch configuration.",
+      "Move into Phase 11."
+    ],
+    "if_conditional": [
+      "Document remaining issues.",
+      "Assess user and business impact.",
+      "Create remediation plan.",
+      "Do not classify as fully production-ready until acceptance criteria are met."
+    ],
+    "if_fail": [
+      "Localize failure.",
+      "Correct the appropriate layer.",
+      "Run targeted tests.",
+      "Run regression tests.",
+      "Repeat end-to-end validation."
+    ]
+  },
+  "phase_10_definition_of_done": [
+    "The actual Phase 9 runtime has been tested as an integrated system.",
+    "Knowledge retrieval passes.",
+    "Business-state handling passes.",
+    "Diagnostic routing and accuracy pass.",
+    "Decision rules pass.",
+    "Recommendations pass.",
+    "Outputs pass.",
+    "ThreadsWorks execution passes.",
+    "Measurement and feedback pass.",
+    "Source integrity passes.",
+    "Access and entitlement behavior passes.",
+    "Observability passes.",
+    "Error and edge-case handling passes.",
+    "Regression suite passes.",
+    "Core end-to-end scenarios pass.",
+    "No unresolved critical failure remains.",
+    "The validated build and active versions are documented.",
+    "The system is ready for Phase 11 launch and continuous operation."
+  ],
+  "what_phase_10_does_not_do": [
+    "It does not add new curriculum.",
+    "It does not create new intelligence architecture.",
+    "It does not replace Phase 9 implementation.",
+    "It does not bypass validation because a component works independently.",
+    "It does not treat a passing demo as proof of production readiness.",
+    "It does not optimize vanity metrics.",
+    "It does not silently change source material.",
+    "It does not add features during validation unless a critical defect requires the change."
+  ],
+  "final_architecture": {
+    "diagram": [
+      "USER",
+      "↓",
+      "PROBLEM / DESIRED OUTCOME",
+      "↓",
+      "BUSINESS STATE",
+      "↓",
+      "RETRIEVAL",
+      "↓",
+      "CASH MACHINE KNOWLEDGE",
+      "↓",
+      "DIAGNOSIS",
+      "↓",
+      "DECISION",
+      "↓",
+      "RECOMMENDATION",
+      "↓",
+      "OUTPUT",
+      "↓",
+      "THREADSWORKS",
+      "↓",
+      "EXECUTION",
+      "↓",
+      "RESULT",
+      "↓",
+      "MEASUREMENT",
+      "↓",
+      "STATE UPDATE",
+      "↓",
+      "NEW DIAGNOSIS",
+      "↓",
+      "VALIDATED CONTINUOUS LOOP",
+      "↺"
+    ],
+    "operational_formula": "User Problem + Context + Evidence → Retrieval → Diagnosis → Decision → Action → Output → ThreadsWorks → Result → Measurement → State Update → New Diagnosis",
+    "success_formula": "Correct Knowledge + Correct Diagnosis + Correct Decision + Successful Execution + Meaningful Measurement = Validated Cash Machine AI"
+  },
+  "next_phase": {
+    "phase": 11,
+    "title": "Launch & Continuous Intelligence",
+    "purpose": "Move the validated system into controlled production operation, monitor real-world performance, manage releases, capture meaningful feedback, and continuously improve the system without uncontrolled changes."
+  },
+  "implementation_note": "Phase 10 is the final proof layer before launch. Phase 9 builds the runtime; Phase 10 proves that runtime works as a complete system. A passing individual component is not sufficient. The system must demonstrate that knowledge, intelligence, user context, diagnosis, decision, execution, measurement, and state updates form one reliable loop. Once the acceptance criteria are met, further work should move into controlled production operation under Phase 11 rather than creating additional architecture phases."
+}

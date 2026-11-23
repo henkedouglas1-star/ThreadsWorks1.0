@@ -1,0 +1,493 @@
+{
+  "system": "Cash Machine AI",
+  "artifact": "Runtime Configuration & Implementation Specification",
+  "version": "1.0",
+  "purpose": "Translate the existing Cash Machine AI architecture into an implementation-ready runtime configuration for ThreadsWorks. This artifact connects the existing knowledge, intelligence, runtime, validation, and operations specifications without creating a new conceptual phase.",
+  "source_architecture": {
+    "knowledge": "Cash Machine Knowledge",
+    "intelligence": "Cash Machine AI",
+    "execution": "ThreadsWorks",
+    "evidence": "Results and Metrics",
+    "master_loop": "Learn → Diagnose → Apply → Create → Execute → Measure → Improve → Validate → Release → Repeat"
+  },
+  "implementation_principle": "Keep Cash Machine AI focused on knowledge retrieval, diagnosis, decision-making, strategic recommendation, context management, and measurement interpretation. Keep content creation, publishing, workflow execution, and other existing execution capabilities inside ThreadsWorks.",
+  "runtime_components": {
+    "knowledge_runtime": {
+      "purpose": "Provide authoritative, addressable Cash Machine knowledge.",
+      "sources": [
+        "Cash Machine AI Knowledge 01.json — Classes 1–37",
+        "Cash Machine AI Knowledge 02.json — Classes 38–74",
+        "Cash Machine AI Knowledge 03.json — Classes 75–111",
+        "Cash Machine AI Knowledge 04.json — Classes 112–148",
+        "Cash Machine AI Knowledge 05.json — Classes 149–184",
+        "Cash Machine AI Knowledge 06.json — Classes 185–220",
+        "Cash Machine AI Master Knowledge Index.json"
+      ],
+      "requirements": [
+        "Every class must be addressable by class ID.",
+        "Master index must resolve each class to its knowledge file.",
+        "Source status must remain attached to each record.",
+        "Knowledge retrieval must preserve source traceability.",
+        "Newly created curriculum must never be represented as original source material."
+      ]
+    },
+    "intelligence_runtime": {
+      "sources": [
+        "Cash Machine AI File 1 - Intelligence Architecture.json",
+        "Cash Machine AI File 2 - Diagnostic Decision Engine.json",
+        "Cash Machine AI File 3 - Execution Integration & Master Operating System.json",
+        "Cash Machine AI Phase 5 - Master Implementation System.json"
+      ],
+      "primary_behavior": [
+        "Diagnose before prescribing.",
+        "Retrieve narrowly before expanding.",
+        "Use user context before recommending action.",
+        "Separate analytics from intelligence.",
+        "Give every recommendation a reason.",
+        "Prefer the next best action over curriculum dumping.",
+        "Make outputs concrete.",
+        "Use results as evidence for the next decision."
+      ]
+    },
+    "production_runtime": {
+      "source": "Cash Machine AI Phase 9 - Production Runtime & System Build.json",
+      "components": [
+        "Knowledge Runtime",
+        "Retrieval Router",
+        "Context Manager",
+        "Diagnostic Engine",
+        "Decision Engine",
+        "Recommendation Engine",
+        "Output Engine",
+        "ThreadsWorks Bridge",
+        "Measurement Engine",
+        "State Update Engine",
+        "Evaluation Harness",
+        "Observability",
+        "Access Layer",
+        "Version Control"
+      ]
+    }
+  },
+  "request_pipeline": [
+    {
+      "step": 1,
+      "name": "Receive Input",
+      "operation": "Capture the user's request, stated objective, available facts, constraints, and requested action."
+    },
+    {
+      "step": 2,
+      "name": "Load Business State",
+      "operation": "Load the user's current business state and distinguish explicit facts from inference."
+    },
+    {
+      "step": 3,
+      "name": "Interpret Objective",
+      "operation": "Determine what business outcome the user is actually trying to achieve."
+    },
+    {
+      "step": 4,
+      "name": "Route Diagnostic Domain",
+      "operation": "Identify one or more plausible Cash Machine diagnostic domains."
+    },
+    {
+      "step": 5,
+      "name": "Retrieve Knowledge",
+      "operation": "Use the Master Knowledge Index to retrieve the smallest relevant set of classes and concepts."
+    },
+    {
+      "step": 6,
+      "name": "Diagnose",
+      "operation": "Evaluate evidence and identify the most likely bottleneck or opportunity."
+    },
+    {
+      "step": 7,
+      "name": "Apply Decision Rules",
+      "operation": "Select the decision rule or reasoning path that matches the diagnosis and evidence."
+    },
+    {
+      "step": 8,
+      "name": "Recommend",
+      "operation": "Select the next best action and explain why it is appropriate."
+    },
+    {
+      "step": 9,
+      "name": "Create Output",
+      "operation": "Produce the concrete asset, plan, decision, exercise, or input required for execution."
+    },
+    {
+      "step": 10,
+      "name": "Handoff",
+      "operation": "Send execution-ready work to ThreadsWorks when a ThreadsWorks workflow is appropriate."
+    },
+    {
+      "step": 11,
+      "name": "Measure",
+      "operation": "Capture relevant execution and business-result evidence."
+    },
+    {
+      "step": 12,
+      "name": "Update State",
+      "operation": "Update the user's business state using new evidence."
+    },
+    {
+      "step": 13,
+      "name": "Continue",
+      "operation": "Determine the next diagnosis or improvement opportunity."
+    }
+  ],
+  "retrieval_router": {
+    "diagnostic_domains": {
+      "Demand / Market": "Classes 15–30, 49–64",
+      "Buyer": "Classes 1–14, 31–36",
+      "Research": "Classes 37–48",
+      "Positioning": "Classes 65–78",
+      "Offer": "Classes 79–98",
+      "Acquisition": "Classes 99–132",
+      "Qualification": "Classes 102, 130, 178, 198, 207",
+      "Conversation / Sales": "Classes 99–120, 133–149",
+      "Conversion": "Classes 89–98, 118–119, 163, 168–169, 201–202, 209–210",
+      "Customer / Retention": "Classes 150–159",
+      "Economics": "Classes 160–167, 190–193, 212",
+      "Operations / Scale": "Classes 170–205, 213, 220",
+      "Ethics / Fit": "Classes 140–149, 219"
+    },
+    "routing_rules": [
+      "Route from the user's business problem, not merely keywords.",
+      "Use the user's stated objective to constrain retrieval.",
+      "Retrieve narrowly first.",
+      "Expand to related classes only when necessary.",
+      "Prefer directly relevant classes over broad curriculum retrieval.",
+      "Preserve source status and class identity.",
+      "If retrieval confidence is low, ask for clarification or retrieve a broader but still relevant set."
+    ]
+  },
+  "business_state": {
+    "fields": [
+      "Market",
+      "Buyer",
+      "Problem",
+      "Desired Outcome",
+      "Positioning",
+      "Offer",
+      "Price",
+      "Proof",
+      "Acquisition",
+      "Lead Mechanism",
+      "Prospecting",
+      "Sales Conversation",
+      "Presentation",
+      "Objections",
+      "Close",
+      "Follow-Up",
+      "Delivery",
+      "Retention",
+      "Metrics",
+      "Bottleneck",
+      "Next Improvement"
+    ],
+    "field_status": [
+      "KNOWN",
+      "INFERRED",
+      "UNKNOWN",
+      "OUTDATED",
+      "CONFLICTING"
+    ],
+    "state_update_rule": "New explicit user information should supersede stale state. Inference must not silently become fact. Results and measurements should update state only when supported by evidence."
+  },
+  "diagnostic_runtime": {
+    "sequence": [
+      "Identify stated symptom.",
+      "Identify desired business outcome.",
+      "Inspect relevant business state.",
+      "Generate plausible bottleneck hypotheses.",
+      "Retrieve supporting knowledge.",
+      "Evaluate available evidence.",
+      "Rank hypotheses.",
+      "Select highest-value diagnosis.",
+      "Assign confidence.",
+      "Identify missing evidence if confidence is insufficient."
+    ],
+    "required_output": {
+      "diagnosis": "The most likely current bottleneck or opportunity.",
+      "evidence": "Facts and observations supporting the diagnosis.",
+      "confidence": "High, medium, or low.",
+      "alternative": "Secondary hypothesis when materially relevant.",
+      "missing_information": "Information required to increase confidence."
+    }
+  },
+  "decision_runtime": {
+    "rules": [
+      "The action must address the diagnosed constraint.",
+      "Do not recommend more activity simply because activity is easy to increase.",
+      "Do not recommend discounting as the default response to price resistance.",
+      "Do not recommend automation before determining whether the process is standardized.",
+      "Do not recommend scaling before validating the system's ability to handle more volume.",
+      "Do not prescribe follower growth without understanding the business objective behind the request."
+    ],
+    "action_selection": [
+      "Prefer the highest-impact action supported by current evidence.",
+      "Prefer focused actions over broad lists.",
+      "Prefer actions that create a measurable output.",
+      "Prefer actions that reduce uncertainty when diagnosis confidence is low."
+    ]
+  },
+  "recommendation_contract": {
+    "required_fields": [
+      "diagnosis",
+      "why_it_matters",
+      "next_best_action",
+      "required_inputs",
+      "expected_output",
+      "success_signal",
+      "confidence"
+    ],
+    "standard": "A recommendation is incomplete if the user does not understand what to do, why they should do it, what it should produce, or how its result will be evaluated."
+  },
+  "output_contract": {
+    "output_types": [
+      "Lesson",
+      "Exercise",
+      "Framework application",
+      "Offer",
+      "Positioning",
+      "Customer profile",
+      "Research plan",
+      "Sales message",
+      "Sales conversation",
+      "Follow-up sequence",
+      "Lead magnet",
+      "Content strategy",
+      "Content asset",
+      "Sales page",
+      "CTA",
+      "Acquisition plan",
+      "Measurement plan",
+      "Sales improvement plan",
+      "Operating plan"
+    ],
+    "rule": "Use an existing ThreadsWorks capability whenever the requested output already exists as a core ThreadsWorks workflow."
+  },
+  "threadsworks_bridge": {
+    "role": "Execution environment",
+    "handoff_contract": {
+      "required_fields": [
+        "action_id",
+        "objective",
+        "diagnosis",
+        "why",
+        "user_business_context",
+        "inputs",
+        "constraints",
+        "requested_output",
+        "success_signal",
+        "source_context",
+        "runtime_version"
+      ]
+    },
+    "rules": [
+      "Cash Machine AI supplies strategy and execution-ready context.",
+      "ThreadsWorks performs the supported execution.",
+      "Execution result must return to Cash Machine AI when the workflow supports feedback.",
+      "Never claim execution succeeded unless ThreadsWorks confirms success.",
+      "Do not duplicate existing ThreadsWorks tools inside Cash Machine AI."
+    ]
+  },
+  "measurement_runtime": {
+    "sequence": [
+      "Define expected result.",
+      "Execute action.",
+      "Capture actual result.",
+      "Compare expected and actual.",
+      "Identify meaningful variance.",
+      "Determine likely cause.",
+      "Update business state.",
+      "Select next action."
+    ],
+    "metric_categories": [
+      "Activity",
+      "Attention",
+      "Leads",
+      "Prospects",
+      "Conversations",
+      "Conversions",
+      "Revenue",
+      "Retention",
+      "Economics"
+    ]
+  },
+  "feedback_runtime": {
+    "rule": "Feedback is evidence, not automatic truth. Individual feedback may update user-specific state; repeated evidence may create a system-level improvement hypothesis.",
+    "feedback_path": [
+      "Feedback",
+      "Classification",
+      "Evidence Review",
+      "Pattern Detection",
+      "Improvement Hypothesis",
+      "Controlled Test",
+      "Validation",
+      "Release"
+    ]
+  },
+  "observability": {
+    "events": [
+      "request_received",
+      "business_state_loaded",
+      "diagnostic_domain_selected",
+      "knowledge_retrieved",
+      "diagnosis_created",
+      "decision_rule_selected",
+      "recommendation_created",
+      "output_created",
+      "threadsworks_handoff_started",
+      "threadsworks_execution_completed",
+      "result_received",
+      "measurement_recorded",
+      "business_state_updated",
+      "new_diagnosis_created",
+      "error_occurred"
+    ],
+    "trace_fields": [
+      "trace_id",
+      "user/account boundary",
+      "runtime version",
+      "knowledge version",
+      "retrieval result",
+      "diagnostic result",
+      "decision result",
+      "action ID",
+      "execution result",
+      "measurement result",
+      "state update"
+    ]
+  },
+  "failure_behavior": {
+    "principles": [
+      "Fail safely.",
+      "Do not fabricate knowledge.",
+      "Do not fabricate execution.",
+      "Do not fabricate metrics.",
+      "Do not hide uncertainty.",
+      "Preserve usable partial outputs.",
+      "Tell the user what is missing when it materially blocks progress."
+    ],
+    "fallbacks": {
+      "knowledge_unavailable": "State that the relevant knowledge could not be retrieved and avoid unsupported source claims.",
+      "insufficient_context": "Ask the minimum questions needed to improve diagnosis.",
+      "low_confidence": "Present the leading hypothesis and identify the evidence needed to confirm it.",
+      "threadsworks_unavailable": "Return the execution-ready output and identify the remaining execution step.",
+      "measurement_unavailable": "Do not invent results; preserve the action and define what should be measured later.",
+      "state_update_failure": "Do not claim the business state was updated; preserve the result for retry or manual reconciliation."
+    }
+  },
+  "access_layer": {
+    "ladder": [
+      "Free Online Sales Guide",
+      "Free Cash Machine Preview",
+      "$9 Full Cash Machine",
+      "Cash Machine AI",
+      "ThreadsWorks Execution"
+    ],
+    "rules": [
+      "Check entitlement before restricted knowledge or execution.",
+      "Do not let AI reasoning bypass product access.",
+      "Keep free experiences useful while enforcing defined limits.",
+      "Upgrade prompts should appear only when the requested capability actually requires additional access."
+    ]
+  },
+  "version_control": {
+    "versioned_components": [
+      "Knowledge",
+      "Master Knowledge Index",
+      "Retrieval configuration",
+      "Diagnostic rules",
+      "Decision rules",
+      "Prompts/runtime behavior",
+      "Output contracts",
+      "ThreadsWorks contracts",
+      "Measurement schema",
+      "Access configuration"
+    ],
+    "rule": "Every production decision should be traceable to the versions of the knowledge, runtime, rules, and integrations that produced it."
+  },
+  "implementation_order": [
+    "Load and validate the six knowledge files.",
+    "Load and validate the Master Knowledge Index.",
+    "Implement retrieval routing.",
+    "Implement user business-state storage.",
+    "Implement diagnostic runtime.",
+    "Implement decision-rule runtime.",
+    "Implement recommendation contract.",
+    "Implement output contract.",
+    "Connect ThreadsWorks handoff.",
+    "Connect measurement and result return.",
+    "Connect state updates.",
+    "Connect observability.",
+    "Connect access and entitlements.",
+    "Connect version tracking.",
+    "Run Phase 10 validation suite.",
+    "Fix failures.",
+    "Repeat validation.",
+    "Prepare Phase 11 production operation."
+  ],
+  "developer_acceptance_tests": [
+    "A class can be retrieved directly by ID.",
+    "A user problem routes to the correct diagnostic domain.",
+    "Relevant knowledge is retrieved without dumping the entire curriculum.",
+    "Business state is loaded and updated correctly.",
+    "Explicit new information overrides stale state.",
+    "The AI diagnoses before prescribing.",
+    "Diagnosis includes evidence and confidence.",
+    "Decision rules produce actions aligned with diagnosis.",
+    "Recommendations contain reason, action, output, and success signal.",
+    "Outputs can be handed into ThreadsWorks.",
+    "ThreadsWorks execution status returns accurately.",
+    "Results can update measurement state.",
+    "Measurement can update business state.",
+    "A new diagnosis can use the updated state.",
+    "Source-derived and newly created curriculum remain distinguishable.",
+    "Unauthorized capabilities are blocked.",
+    "Runtime failures have safe fallbacks.",
+    "Important events are observable.",
+    "Versions are traceable.",
+    "Phase 10 critical regression tests pass."
+  ],
+  "first_live_test": {
+    "user_input": "People like my content but nobody buys.",
+    "expected_runtime_behavior": [
+      "Load the user's current business context.",
+      "Interpret the business objective rather than focusing only on engagement.",
+      "Route toward relevant domains such as Conversion, Offer, Acquisition, Conversation / Sales, and Positioning.",
+      "Retrieve only relevant knowledge.",
+      "Diagnose the likely constraint.",
+      "Explain why the diagnosis was selected.",
+      "Recommend the next best action.",
+      "Create a concrete output or execution-ready task.",
+      "Use ThreadsWorks for supported execution.",
+      "Capture the result.",
+      "Measure the relevant business signal.",
+      "Update the user's business state.",
+      "Determine the next improvement."
+    ],
+    "pass_condition": "The system moves from the user's stated symptom to a reasoned business diagnosis and then through execution and measurement without requiring manual reconstruction of the strategy."
+  },
+  "developer_master_instruction": "Implement Cash Machine AI as the strategic intelligence layer of ThreadsWorks. Treat the Cash Machine knowledge files as the knowledge source, the Phase 4/5 architecture as the reasoning and behavioral specification, Phase 9 as the production runtime specification, Phase 10 as the validation standard, and Phase 11 as the production operating model. Do not create a second system beside ThreadsWorks. Do not dump the entire curriculum into context. Diagnose before prescribing, retrieve narrowly before expanding, use evidence to make decisions, produce concrete outputs, hand execution to ThreadsWorks, measure results, update business state, and use validated evidence to improve the system.",
+  "definition_of_done": [
+    "Knowledge is loaded and addressable.",
+    "Retrieval routes correctly.",
+    "Business state persists correctly.",
+    "Diagnosis operates before prescription.",
+    "Decision rules are connected.",
+    "Recommendations follow diagnosis.",
+    "Outputs are executable.",
+    "ThreadsWorks handoffs work.",
+    "Measurement works.",
+    "State updates work.",
+    "Feedback is captured.",
+    "Observability works.",
+    "Access controls work.",
+    "Versioning works.",
+    "Phase 10 passes.",
+    "The system is ready for controlled Phase 11 operation."
+  ]
+}

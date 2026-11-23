@@ -1,0 +1,10 @@
+export { HumanModel } from "./HumanModel";
+export { RoboModel } from "./RoboModel";
+export { CatModel } from "./CatModel";
+export { PandaModel } from "./PandaModel";
+export { CapybaraModel } from "./CapybaraModel";
+export { FoxModel } from "./FoxModel";
+export { BunnyModel } from "./BunnyModel";
+export { OwlModel } from "./OwlModel";
+export { PixelModel } from "./PixelModel";
+export * from "./SharedAccessories3D";
