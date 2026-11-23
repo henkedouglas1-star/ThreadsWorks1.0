@@ -1,5 +1,7 @@
 name: ThreadsWorks validation
 on:
+  push:
+    branches: [feature/integrate-funnelworks]
   pull_request:
     branches: [main]
   workflow_dispatch:
