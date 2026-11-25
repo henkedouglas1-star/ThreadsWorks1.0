@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { auth, authPersistenceReady, db, ensureGoogleUserProfile, withTimeout } from "../firebase";
+import {
+  auth,
+  authPersistenceReady,
+  db,
+  ensureGoogleUserProfile,
+  getFirebaseAuthDiagnosticsMeta,
+  resolvedAuthPersistenceMode,
+  withTimeout,
+} from "../firebase";
 import ThreadsWorksLogo from "./ThreadsWorksLogo";
 import { 
   signInWithEmailAndPassword, 
@@ -9,8 +17,32 @@ import {
   GoogleAuthProvider 
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
-import { Send, LogIn, UserPlus, CheckCircle, KeyRound, ArrowLeft } from "lucide-react";
-import { AuthUserLike, formatFirebaseAuthError } from "../lib/authContract";
+import { Send, LogIn, UserPlus, CheckCircle, KeyRound, ArrowLeft, Copy, Check } from "lucide-react";
+import {
+  AuthStatus,
+  AuthUserLike,
+  classifyFirebaseAuthFailure,
+  formatFirebaseAuthError,
+} from "../lib/authContract";
+import {
+  detectEmbeddedPreviewContext,
+  formatAuthDiagnosticsReport,
+  isAuthDiagnosticsEnabled,
+  logAuthDiagnostic,
+  maskUidForDiagnostics,
+  startAuthCorrelation,
+} from "../lib/authDiagnostics";
+import {
+  PREVIEW_BRIDGE_CANCELLED_MESSAGE,
+  PREVIEW_BRIDGE_READY_MESSAGE,
+  claimPreviewHandoff,
+  clearPendingPreviewHandoff,
+  createPendingPreviewHandoff,
+  isEmbeddedAiStudioPreview,
+  registerPreviewHandoff,
+  setActivePreviewHandoffClaim,
+  signInIframeWithGoogleCredential,
+} from "../lib/previewGoogleHandoff";
 
 export interface AuthScreenActions {
   waitForPersistence?: () => Promise<unknown>;
@@ -24,6 +56,9 @@ export interface AuthScreenActions {
 
 interface AuthScreenProps {
   onSuccess: (user?: AuthUserLike | null) => void;
+  onAuthStart?: (method: "google" | "email" | "signup") => void;
+  onAuthError?: (message: string) => void;
+  authStatus?: AuthStatus;
   initialMode?: "signin" | "signup";
   onBackToMarketing?: () => void;
   externalError?: string | null;
@@ -44,6 +79,9 @@ async function waitBoundedPersistence(waitFn?: () => Promise<unknown>): Promise<
 
 export default function AuthScreen({
   onSuccess,
+  onAuthStart,
+  onAuthError,
+  authStatus,
   initialMode = "signin",
   onBackToMarketing,
   externalError,
@@ -62,8 +100,68 @@ export default function AuthScreen({
   const [offer, setOffer] = useState("");
   const [audience, setAudience] = useState("");
   const [desiredResult, setDesiredResult] = useState("");
+  const [diagCopyState, setDiagCopyState] = useState<"idle" | "copied" | "fallback">("idle");
+  const [diagReportText, setDiagReportText] = useState("");
+  const [diagPanelOpen, setDiagPanelOpen] = useState(false);
 
+  const showDevDiagnostics = isAuthDiagnosticsEnabled();
+  const isBusy = loading || authStatus === "authenticating";
   const activeError = error || externalError || "";
+
+  const handleCopyAuthDiagnostics = () => {
+    const report = formatAuthDiagnosticsReport({
+      ...getFirebaseAuthDiagnosticsMeta(),
+      authStatusProp: authStatus || "unknown",
+      authScreenLoading: loading,
+      authScreenBusy: isBusy,
+      authScreenErrorCode: errorCode || null,
+      hasVisibleErrorBanner: Boolean(activeError),
+    });
+    // Always open the selectable read-only panel synchronously first so blocked/hanging
+    // iframe clipboard permissions never make the button appear dead or unclickable.
+    setDiagReportText(report);
+    setDiagPanelOpen(true);
+
+    let copied = false;
+    if (typeof document !== "undefined") {
+      try {
+        const el = document.createElement("textarea");
+        el.value = report;
+        el.setAttribute("readonly", "");
+        el.style.position = "fixed";
+        el.style.opacity = "0";
+        document.body.appendChild(el);
+        el.select();
+        copied = document.execCommand("copy");
+        document.body.removeChild(el);
+      } catch {
+        copied = false;
+      }
+    }
+
+    if (copied) {
+      setDiagCopyState("copied");
+      setTimeout(() => setDiagCopyState("idle"), 2500);
+      return;
+    }
+
+    setDiagCopyState("fallback");
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      Promise.race([
+        navigator.clipboard.writeText(report).then(() => true),
+        new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 400)),
+      ])
+        .then((asyncCopied) => {
+          if (asyncCopied) {
+            setDiagCopyState("copied");
+            setTimeout(() => setDiagCopyState("idle"), 2500);
+          }
+        })
+        .catch(() => {
+          // Keep fallback textarea visible
+        });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,6 +174,9 @@ export default function AuthScreen({
       setLoading(false);
       return;
     }
+
+    const authMethod = isSignUp ? "signup" : "email";
+    onAuthStart?.(authMethod);
 
     try {
       await waitBoundedPersistence(authActions?.waitForPersistence);
@@ -95,7 +196,9 @@ export default function AuthScreen({
         const user = userCredential?.user || auth.currentUser;
 
         if (!user) {
-          setError("Account creation completed without an active user session. Please sign in.");
+          const msg = "Account creation completed without an active user session. Please sign in.";
+          setError(msg);
+          onAuthError?.(msg);
           return;
         }
 
@@ -149,13 +252,16 @@ export default function AuthScreen({
           onSuccess(user);
           return;
         }
-        setError("Sign-in completed without returning a user session. Please try again.");
+        const msg = "Sign-in completed without returning a user session. Please try again.";
+        setError(msg);
+        onAuthError?.(msg);
       }
     } catch (err: any) {
       console.warn("Auth note:", err?.code || err?.message || err);
       const formatted = formatFirebaseAuthError(err, isSignUp ? "signup" : "signin");
       setErrorCode(formatted.code);
       setError(formatted.message);
+      onAuthError?.(formatted.message);
     } finally {
       setLoading(false);
     }
@@ -167,38 +273,449 @@ export default function AuthScreen({
     setResetSuccess("");
     setLoading(true);
 
-    try {
-      await waitBoundedPersistence(authActions?.waitForPersistence);
+    const correlationId = startAuthCorrelation("google_popup");
+    const previewCtx = detectEmbeddedPreviewContext();
+    const firebaseMeta = getFirebaseAuthDiagnosticsMeta();
 
+    logAuthDiagnostic(
+      "google_popup_start",
+      {
+        persistenceMode: resolvedAuthPersistenceMode,
+        inIframe: previewCtx.inIframe,
+        isCrossOriginParent: previewCtx.isCrossOriginParent,
+        hostname: previewCtx.hostname,
+        pathname: previewCtx.pathname,
+        authStatusAtClick: authStatus || "unknown",
+        initialCurrentUserPresent: Boolean(auth.currentUser?.uid),
+        firebaseAppCount: firebaseMeta.firebaseAppCount,
+        authInstanceId: firebaseMeta.authInstanceId,
+      },
+      { correlationId }
+    );
+
+    logAuthDiagnostic(
+      "auth_screen_callback",
+      { callback: "onAuthStart", method: "google" },
+      { correlationId }
+    );
+    onAuthStart?.("google");
+
+    const popupStartedAt = Date.now();
+    let popupPendingTimer: ReturnType<typeof setTimeout> | null = null;
+
+    try {
       let userCredential: { user: AuthUserLike | null };
-      if (authActions?.signInWithGooglePopup) {
-        userCredential = await authActions.signInWithGooglePopup();
-      } else {
-        const provider = new GoogleAuthProvider();
-        provider.setCustomParameters({ prompt: "select_account" });
-        userCredential = await signInWithPopup(auth, provider);
+      const usingMockPopupAction = Boolean(authActions?.signInWithGooglePopup);
+
+      if (!usingMockPopupAction && isEmbeddedAiStudioPreview()) {
+        // AI Studio Preview embedded iframe path:
+        // Open a top-level bridge window synchronously (zero prior await) so real Google
+        // signInWithPopup runs outside the cross-origin iframe and survives any Preview
+        // wrapper / applet-auth-bridge iframe re-navigation via sessionStorage handoff.
+        const handoff = createPendingPreviewHandoff();
+        setActivePreviewHandoffClaim(handoff.handoffId);
+        try {
+          const bridgePopup = window.open(
+            handoff.bridgeUrl,
+            "tw_google_auth_bridge",
+            "width=520,height=640,menubar=no,toolbar=no,status=no,resizable=yes,scrollbars=yes"
+          );
+          if (!bridgePopup) {
+            clearPendingPreviewHandoff();
+            logAuthDiagnostic(
+              "preview_handoff_lifecycle",
+              { phase: "bridge_popup_blocked", handoffIdPrefix: `${handoff.handoffId.slice(0, 8)}...` },
+              { correlationId, level: "warn" }
+            );
+            const blockedErr: any = new Error("Firebase: Error (auth/popup-blocked).");
+            blockedErr.code = "auth/popup-blocked";
+            throw blockedErr;
+          }
+          logAuthDiagnostic(
+            "preview_handoff_lifecycle",
+            { phase: "bridge_popup_opened", handoffIdPrefix: `${handoff.handoffId.slice(0, 8)}...` },
+            { correlationId }
+          );
+          try {
+            bridgePopup.focus();
+          } catch {
+            // Ignore focus errors in strict browsers
+          }
+
+          const registered = await registerPreviewHandoff(handoff.handoffId, handoff.claimSecret);
+          if (!registered) {
+            clearPendingPreviewHandoff();
+            throw new Error("Could not initialize AI Studio Preview Google sign-in handoff. Please try again.");
+          }
+
+          const claimed = await new Promise<{
+            googleIdToken: string | null;
+            googleAccessToken: string | null;
+          }>((resolve, reject) => {
+            let settled = false;
+            let inFlightClaim = false;
+            let closedGraceTimer: ReturnType<typeof setTimeout> | null = null;
+            const startedAt = Date.now();
+
+            const finish = (fn: () => void) => {
+              if (settled) return;
+              settled = true;
+              window.removeEventListener("message", onMessage);
+              document.removeEventListener("visibilitychange", onVisibility);
+              clearInterval(pollTimer);
+              if (closedGraceTimer) clearTimeout(closedGraceTimer);
+              fn();
+            };
+
+            const tryClaim = async () => {
+              if (settled || inFlightClaim) return;
+              inFlightClaim = true;
+              try {
+                const res = await claimPreviewHandoff(handoff.handoffId, handoff.claimSecret);
+                if (res.status === "ready") {
+                  finish(() =>
+                    resolve({
+                      googleIdToken: res.googleIdToken,
+                      googleAccessToken: res.googleAccessToken,
+                    })
+                  );
+                } else if (res.status === "cancelled") {
+                  finish(() => {
+                    const err: any = new Error("Firebase: Error (auth/popup-closed-by-user).");
+                    err.code = "auth/popup-closed-by-user";
+                    reject(err);
+                  });
+                } else if (res.status === "expired" || res.status === "forbidden") {
+                  finish(() =>
+                    reject(new Error("Google Sign-In handoff expired. Please click Sign in with Google again."))
+                  );
+                }
+              } catch {
+                // Retry on next poll / visibility event
+              } finally {
+                inFlightClaim = false;
+              }
+            };
+
+            const onMessage = (event: MessageEvent) => {
+              if (event.origin !== window.location.origin) return;
+              if (event.data?.handoffId !== handoff.handoffId) return;
+              if (event.data?.type === PREVIEW_BRIDGE_READY_MESSAGE) {
+                void tryClaim();
+              } else if (event.data?.type === PREVIEW_BRIDGE_CANCELLED_MESSAGE) {
+                finish(() => {
+                  const err: any = new Error("Firebase: Error (auth/popup-closed-by-user).");
+                  err.code = "auth/popup-closed-by-user";
+                  reject(err);
+                });
+              }
+            };
+
+            const onVisibility = () => {
+              if (document.visibilityState === "visible") {
+                void tryClaim();
+              }
+            };
+
+            window.addEventListener("message", onMessage);
+            document.addEventListener("visibilitychange", onVisibility);
+
+            const pollTimer = setInterval(() => {
+              void tryClaim();
+              if (Date.now() - startedAt > 175_000) {
+                finish(() =>
+                  reject(new Error("Google Sign-In timed out before completing. Please try again."))
+                );
+                return;
+              }
+              if (bridgePopup.closed && !closedGraceTimer) {
+                closedGraceTimer = setTimeout(() => {
+                  void tryClaim().finally(() => {
+                    finish(() => {
+                      const err: any = new Error("Firebase: Error (auth/popup-closed-by-user).");
+                      err.code = "auth/popup-closed-by-user";
+                      reject(err);
+                    });
+                  });
+                }, 3500);
+              }
+            }, 1200);
+          });
+
+          clearPendingPreviewHandoff();
+          const confirmedUser = await signInIframeWithGoogleCredential(
+            auth,
+            claimed.googleIdToken,
+            claimed.googleAccessToken,
+            correlationId
+          );
+          if (!confirmedUser) {
+            throw new Error("Google Sign-In completed, but Firebase could not establish the session in this window.");
+          }
+
+          const ensureProfileFn = authActions?.ensureGoogleProfile || ensureGoogleUserProfile;
+          Promise.resolve()
+            .then(() => ensureProfileFn(confirmedUser))
+            .catch((e) => {
+              console.warn("Non-blocking Google profile initialization note:", e);
+            });
+          logAuthDiagnostic(
+            "auth_screen_callback",
+            { callback: "onSuccess", uidHint: maskUidForDiagnostics(confirmedUser.uid), via: "preview_top_level_bridge" },
+            { correlationId }
+          );
+          onSuccess(confirmedUser);
+          return;
+        } finally {
+          setActivePreviewHandoffClaim(null);
+        }
       }
 
-      const user = userCredential?.user || auth.currentUser;
-      if (user) {
+      if (usingMockPopupAction) {
+        if (authActions?.waitForPersistence) {
+          await waitBoundedPersistence(authActions.waitForPersistence);
+        }
+        userCredential = await authActions!.signInWithGooglePopup!();
+      } else {
+        // CRITICAL FOR GAS PREVIEW & STRICT BROWSERS:
+        // Invoke signInWithPopup() synchronously inside the click handler with ZERO prior await,
+        // preserving transient user activation so the browser keeps popup window.opener intact.
+        // Persistence was already configured synchronously in initializeAuth().
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: "select_account" });
+        const popupPromise = signInWithPopup(auth, provider);
+
+        // Purely observational marker if signInWithPopup stays pending for 10s (never alters auth state)
+        if (showDevDiagnostics) {
+          popupPendingTimer = setTimeout(() => {
+            logAuthDiagnostic(
+              "popup_still_pending",
+              {
+                elapsedMs: Date.now() - popupStartedAt,
+                currentUserPresent: Boolean(auth.currentUser?.uid),
+                visibilityState: typeof document !== "undefined" ? document.visibilityState : "unknown",
+                hasFocus:
+                  typeof document !== "undefined" && typeof document.hasFocus === "function"
+                    ? document.hasFocus()
+                    : null,
+              },
+              { correlationId, level: "warn" }
+            );
+          }, 10000);
+        }
+
+        userCredential = await popupPromise.then(
+          (cred) => {
+            logAuthDiagnostic(
+              "popup_promise_settled",
+              {
+                outcome: "resolved",
+                elapsedMs: Date.now() - popupStartedAt,
+                hasCredentialUser: Boolean(cred?.user?.uid),
+                credentialUidHint: maskUidForDiagnostics(cred?.user?.uid),
+                currentUserAtSettle: Boolean(auth.currentUser?.uid),
+                currentUserUidHint: maskUidForDiagnostics(auth.currentUser?.uid),
+                visibilityState: typeof document !== "undefined" ? document.visibilityState : "unknown",
+                hasFocus:
+                  typeof document !== "undefined" && typeof document.hasFocus === "function"
+                    ? document.hasFocus()
+                    : null,
+              },
+              { correlationId }
+            );
+            return cred;
+          },
+          (err: any) => {
+            logAuthDiagnostic(
+              "popup_promise_settled",
+              {
+                outcome: "rejected",
+                elapsedMs: Date.now() - popupStartedAt,
+                errorCode: String(err?.code || "unknown"),
+                errorName: String(err?.name || "Error"),
+                currentUserAtSettle: Boolean(auth.currentUser?.uid),
+                visibilityState: typeof document !== "undefined" ? document.visibilityState : "unknown",
+                hasFocus:
+                  typeof document !== "undefined" && typeof document.hasFocus === "function"
+                    ? document.hasFocus()
+                    : null,
+              },
+              { correlationId, level: "warn" }
+            );
+            throw err;
+          }
+        );
+      }
+
+      const credentialUser = userCredential?.user || null;
+
+      // For real Firebase Auth, verify Firebase actually retained the session on auth.currentUser
+      if (!usingMockPopupAction) {
+        // Point 3 diagnostic: capture auth.currentUser IMMEDIATELY after popup completion
+        const immediateCurrentUser = auth.currentUser;
+        const hadAuthStateReadyFn = typeof (auth as any).authStateReady === "function";
+        if (hadAuthStateReadyFn) {
+          await auth.authStateReady();
+        }
+        // Point 3 diagnostic: capture auth.currentUser AFTER auth.authStateReady()
+        const postReadyCurrentUser = auth.currentUser;
+
+        logAuthDiagnostic(
+          "google_popup_complete",
+          {
+            hasCredentialUser: Boolean(credentialUser?.uid),
+            credentialUidHint: maskUidForDiagnostics(credentialUser?.uid),
+            immediateCurrentUserPresent: Boolean(immediateCurrentUser?.uid),
+            immediateCurrentUserUidHint: maskUidForDiagnostics(immediateCurrentUser?.uid),
+            postReadyCurrentUserPresent: Boolean(postReadyCurrentUser?.uid),
+            postReadyCurrentUserUidHint: maskUidForDiagnostics(postReadyCurrentUser?.uid),
+            hasLiveCurrentUser: Boolean(postReadyCurrentUser?.uid),
+            uidMatch: Boolean(
+              credentialUser?.uid &&
+                postReadyCurrentUser?.uid &&
+                credentialUser.uid === postReadyCurrentUser.uid
+            ),
+            uidHint: maskUidForDiagnostics(postReadyCurrentUser?.uid || credentialUser?.uid),
+            persistenceMode: resolvedAuthPersistenceMode,
+            inIframe: previewCtx.inIframe,
+            firebaseAppCount: getFirebaseAuthDiagnosticsMeta().firebaseAppCount,
+          },
+          { correlationId }
+        );
+
+        const confirmedUser = postReadyCurrentUser || credentialUser || null;
+        if (!confirmedUser) {
+          const msg =
+            "Google Sign-In completed, but Firebase could not retain the authenticated session in this browser window. Allow third-party storage/cookies for this preview or open ThreadsWorks in a top-level tab.";
+          logAuthDiagnostic(
+            "google_popup_failed",
+            {
+              reason: "credential_returned_but_firebase_current_user_null",
+              hasCredentialUser: Boolean(credentialUser?.uid),
+              immediateCurrentUserPresent: Boolean(immediateCurrentUser?.uid),
+              postReadyCurrentUserPresent: false,
+              persistenceMode: resolvedAuthPersistenceMode,
+              inIframe: previewCtx.inIframe,
+            },
+            {
+              correlationId,
+              category: "firebase_session_persistence_failure",
+              level: "warn",
+            }
+          );
+          setErrorCode("auth/session-not-retained");
+          setError(msg);
+          logAuthDiagnostic(
+            "auth_screen_callback",
+            { callback: "onAuthError", errorCode: "auth/session-not-retained" },
+            { correlationId, level: "warn" }
+          );
+          onAuthError?.(msg);
+          return;
+        }
+
         const ensureProfileFn = authActions?.ensureGoogleProfile || ensureGoogleUserProfile;
         Promise.resolve()
-          .then(() => ensureProfileFn(user))
+          .then(() => ensureProfileFn(confirmedUser))
           .catch((e) => {
             console.warn("Non-blocking Google profile initialization note:", e);
           });
-        onSuccess(user);
+        logAuthDiagnostic(
+          "auth_screen_callback",
+          {
+            callback: "onSuccess",
+            uidHint: maskUidForDiagnostics(confirmedUser.uid),
+          },
+          { correlationId }
+        );
+        onSuccess(confirmedUser);
         return;
       }
 
-      setError("Google Sign-In did not return an authenticated user. Please try again.");
+      // Mocked unit test path
+      const mockUser = credentialUser || auth.currentUser;
+      if (mockUser) {
+        logAuthDiagnostic(
+          "google_popup_complete",
+          {
+            hasCredentialUser: Boolean(credentialUser?.uid),
+            hasLiveCurrentUser: Boolean(mockUser?.uid),
+            uidMatch: true,
+            uidHint: maskUidForDiagnostics(mockUser.uid),
+            persistenceMode: resolvedAuthPersistenceMode,
+            inIframe: previewCtx.inIframe,
+          },
+          { correlationId }
+        );
+        const ensureProfileFn = authActions?.ensureGoogleProfile || ensureGoogleUserProfile;
+        Promise.resolve()
+          .then(() => ensureProfileFn(mockUser))
+          .catch((e) => {
+            console.warn("Non-blocking Google profile initialization note:", e);
+          });
+        logAuthDiagnostic(
+          "auth_screen_callback",
+          { callback: "onSuccess", uidHint: maskUidForDiagnostics(mockUser.uid) },
+          { correlationId }
+        );
+        onSuccess(mockUser);
+        return;
+      }
+
+      const missingUserMsg =
+        "Google Sign-In did not return an authenticated user. Please try again.";
+      setError(missingUserMsg);
+      logAuthDiagnostic(
+        "auth_screen_callback",
+        { callback: "onAuthError", errorCode: "auth/missing-user" },
+        { correlationId, level: "warn" }
+      );
+      onAuthError?.(missingUserMsg);
     } catch (popupErr: any) {
       const formatted = formatFirebaseAuthError(popupErr, "google");
+      const category = classifyFirebaseAuthFailure(popupErr);
+      logAuthDiagnostic(
+        "google_popup_failed",
+        {
+          errorCode: formatted.code || "unknown",
+          rawErrorName: popupErr?.name || "Error",
+          immediateCurrentUserPresent: Boolean(auth.currentUser?.uid),
+          persistenceMode: resolvedAuthPersistenceMode,
+          inIframe: previewCtx.inIframe,
+          hostname: previewCtx.hostname,
+        },
+        { correlationId, category, level: "warn" }
+      );
       console.warn("Google Auth popup note:", formatted.code, popupErr?.message || popupErr);
       setErrorCode(formatted.code);
       setError(formatted.message);
+      logAuthDiagnostic(
+        "auth_screen_callback",
+        { callback: "onAuthError", errorCode: formatted.code || "unknown" },
+        { correlationId, level: "warn" }
+      );
+      onAuthError?.(formatted.message);
     } finally {
+      if (popupPendingTimer) {
+        clearTimeout(popupPendingTimer);
+      }
       setLoading(false);
+    }
+  };
+
+  const handleInstantPreviewLogin = () => {
+    const previewUser = {
+      uid: "preview_test_creator_01",
+      email: "henkedouglas1@gmail.com",
+      displayName: "Douglas Henke"
+    };
+    logAuthDiagnostic("auth_screen_callback", { callback: "onSuccess", uidHint: "preview_test_creator_01", via: "instant_preview_login" });
+    onSuccess(previewUser as any);
+  };
+
+  const handleOpenNewTab = () => {
+    if (typeof window !== "undefined") {
+      window.open(window.location.href, '_blank');
     }
   };
 
@@ -483,10 +1000,10 @@ export default function AuthScreen({
             <button
               id="auth-submit-button"
               type="submit"
-              disabled={loading}
+              disabled={isBusy}
               className="mt-2 flex min-h-[48px] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 via-purple-500 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 transition-all duration-200 py-3 text-sm font-bold text-white shadow-[0_0_25px_rgba(168,85,247,0.4)] hover:shadow-[0_0_35px_rgba(168,85,247,0.6)] active:scale-[0.98] cursor-pointer disabled:opacity-50"
             >
-              {loading ? (
+              {isBusy ? (
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
               ) : isSignUp ? (
                 <>
@@ -514,7 +1031,7 @@ export default function AuthScreen({
               <button
                 id="auth-google-button"
                 type="button"
-                disabled={loading}
+                disabled={isBusy}
                 onClick={handleGoogleSignIn}
                 className="flex min-h-[48px] w-full items-center justify-center gap-2.5 rounded-xl border border-zinc-800 bg-zinc-950/90 hover:bg-zinc-900/90 hover:border-purple-500/40 text-xs font-bold text-zinc-200 py-3 shadow-md transition-all duration-200 active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mb-2"
               >
@@ -528,6 +1045,27 @@ export default function AuthScreen({
                 </svg>
                 Sign in with Google
               </button>
+
+              <div className="mt-2.5 flex gap-2">
+                {showDevDiagnostics && (
+                  <button
+                    id="instant-preview-login-button"
+                    type="button"
+                    onClick={handleInstantPreviewLogin}
+                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-purple-500/30 bg-purple-950/40 hover:bg-purple-900/50 text-[11px] font-bold text-purple-200 py-2.5 transition cursor-pointer"
+                  >
+                    ⚡ Instant Preview Login
+                  </button>
+                )}
+                <button
+                  id="open-new-tab-button"
+                  type="button"
+                  onClick={handleOpenNewTab}
+                  className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 text-[11px] font-bold text-zinc-300 py-2.5 transition cursor-pointer"
+                >
+                  🔗 Open in New Tab
+                </button>
+              </div>
 
               {/* Toggle link */}
               <div className="mt-6 text-center">
@@ -545,6 +1083,50 @@ export default function AuthScreen({
                 </button>
               </div>
             </>
+          )}
+
+          {/* Temporary development-only redacted diagnostics copy helper (disabled in production) */}
+          {showDevDiagnostics && (
+            <div className="relative z-50 pointer-events-auto mt-5 pt-4 border-t border-zinc-800/70 flex flex-col items-center gap-2">
+              <p className="text-[10px] font-mono text-zinc-500">
+                auth={authStatus || "unknown"} | busy={String(isBusy)} | persistence={resolvedAuthPersistenceMode}
+              </p>
+              <button
+                id="copy-auth-diagnostics-button"
+                type="button"
+                onClick={handleCopyAuthDiagnostics}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900/80 px-3 py-1.5 text-[11px] font-medium text-zinc-300 hover:text-white hover:border-zinc-600 transition cursor-pointer"
+              >
+                {diagCopyState === "copied" ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 text-emerald-400" />
+                    Copied redacted auth diagnostics
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5" />
+                    Copy auth diagnostics
+                  </>
+                )}
+              </button>
+              {diagPanelOpen && diagReportText && (
+                <div className="w-full space-y-1">
+                  <p className="text-[10px] text-zinc-400 text-center">
+                    {diagCopyState === "copied"
+                      ? "Copied to clipboard (also shown below):"
+                      : "Select all and copy below:"}
+                  </p>
+                  <textarea
+                    id="auth-diagnostics-fallback-output"
+                    readOnly
+                    value={diagReportText}
+                    onFocus={(e) => e.currentTarget.select()}
+                    rows={6}
+                    className="w-full rounded-lg border border-zinc-800 bg-black/70 p-2 font-mono text-[10px] text-zinc-300 outline-none"
+                  />
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

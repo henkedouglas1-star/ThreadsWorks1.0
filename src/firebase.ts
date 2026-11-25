@@ -13,8 +13,15 @@ import { initializeFirestore, memoryLocalCache, doc, getDoc, setDoc, setLogLevel
 import firebaseConfig from "../firebase-applet-config.json";
 import {
   configureAuthPersistenceWithFallback,
+  type AuthPersistenceMode,
   type AuthPersistenceResult,
 } from "./lib/authContract";
+import {
+  detectEmbeddedPreviewContext,
+  logAuthDiagnostic,
+  maskUidForDiagnostics,
+} from "./lib/authDiagnostics";
+import { isBrowserStorageAvailable } from "./lib/safeStorage";
 
 // Silence internal Firestore SDK diagnostic logs
 setLogLevel("silent");
@@ -80,11 +87,91 @@ if (typeof window !== "undefined") {
   }, true);
 }
 
+const previewContext = detectEmbeddedPreviewContext();
+logAuthDiagnostic("firebase_init_start", {
+  projectId: firebaseConfig.projectId,
+  authDomain: firebaseConfig.authDomain,
+  inIframe: previewContext.inIframe,
+  isCrossOriginParent: previewContext.isCrossOriginParent,
+  hostname: previewContext.hostname,
+});
+
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
+interface ResolvedPersistenceHierarchy {
+  persistences: Array<
+    typeof browserLocalPersistence | typeof browserSessionPersistence | typeof inMemoryPersistence
+  >;
+  selectedMode: AuthPersistenceMode;
+  fallbackUsed: boolean;
+  localAvailable: boolean;
+  sessionAvailable: boolean;
+  errors: string[];
+}
+
 /**
- * Initialize Firebase Auth without IndexedDB persistence (which frequently stalls or closes
- * in cross-origin preview iframes like Google AI Studio) and with ordered fallback:
+ * Synchronously probes browser storage BEFORE initializing Firebase Auth so
+ * initializeAuth() receives only verified working storage layers in priority order
+ * (local -> session -> in-memory) and NEVER needs a redundant async setPersistence()
+ * mutation at startup that can race onAuthStateChanged or signInWithPopup.
+ */
+function resolveVerifiedPersistenceHierarchy(): ResolvedPersistenceHierarchy {
+  if (typeof window === "undefined") {
+    return {
+      persistences: [inMemoryPersistence],
+      selectedMode: "memory",
+      fallbackUsed: false,
+      localAvailable: false,
+      sessionAvailable: false,
+      errors: [],
+    };
+  }
+
+  const localAvailable = isBrowserStorageAvailable("local");
+  const sessionAvailable = isBrowserStorageAvailable("session");
+  const errors: string[] = [];
+  const persistences: ResolvedPersistenceHierarchy["persistences"] = [];
+
+  if (localAvailable && browserLocalPersistence) {
+    persistences.push(browserLocalPersistence);
+  } else {
+    errors.push("local: browser localStorage unavailable or blocked in this window");
+  }
+
+  if (sessionAvailable && browserSessionPersistence) {
+    persistences.push(browserSessionPersistence);
+  } else {
+    errors.push("session: browser sessionStorage unavailable or blocked in this window");
+  }
+
+  // Always retain in-memory persistence as the final guaranteed fallback
+  if (inMemoryPersistence) {
+    persistences.push(inMemoryPersistence);
+  }
+
+  const selectedMode: AuthPersistenceMode =
+    localAvailable && browserLocalPersistence
+      ? "local"
+      : sessionAvailable && browserSessionPersistence
+      ? "session"
+      : "memory";
+
+  return {
+    persistences,
+    selectedMode,
+    fallbackUsed: selectedMode !== "local",
+    localAvailable,
+    sessionAvailable,
+    errors,
+  };
+}
+
+const initialPersistenceResolution = resolveVerifiedPersistenceHierarchy();
+
+/**
+ * Initialize a single authoritative Firebase Auth instance without IndexedDB persistence
+ * (which frequently stalls or closes in cross-origin preview iframes like Google AI Studio)
+ * and with verified ordered persistence fallback:
  * browserLocalPersistence -> browserSessionPersistence -> inMemoryPersistence.
  */
 function createAuthoritativeAuth(): Auth {
@@ -93,12 +180,10 @@ function createAuthoritativeAuth(): Auth {
   }
   try {
     return initializeAuth(app, {
-      persistence: [
-        browserLocalPersistence,
-        browserSessionPersistence,
-        inMemoryPersistence,
-      ],
-      popupRedirectResolver: browserPopupRedirectResolver,
+      persistence: initialPersistenceResolution.persistences,
+      ...(browserPopupRedirectResolver
+        ? { popupRedirectResolver: browserPopupRedirectResolver }
+        : {}),
     });
   } catch {
     // Auth was already initialized for this Firebase app instance (e.g. module reload)
@@ -106,11 +191,41 @@ function createAuthoritativeAuth(): Auth {
   }
 }
 
+const authInstanceId = `auth_inst_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
 export const auth: Auth = createAuthoritativeAuth();
+export const resolvedAuthPersistenceMode: AuthPersistenceMode =
+  initialPersistenceResolution.selectedMode;
+
+export function getFirebaseAuthDiagnosticsMeta() {
+  return {
+    projectId: firebaseConfig.projectId,
+    authDomain: firebaseConfig.authDomain,
+    firebaseAppCount: getApps().length,
+    authInstanceId,
+    persistenceMode: initialPersistenceResolution.selectedMode,
+    fallbackUsed: initialPersistenceResolution.fallbackUsed,
+    localStorageAvailable: initialPersistenceResolution.localAvailable,
+    sessionStorageAvailable: initialPersistenceResolution.sessionAvailable,
+    hasLiveCurrentUser: Boolean(auth.currentUser?.uid),
+    liveCurrentUserUidHint: maskUidForDiagnostics(auth.currentUser?.uid),
+  };
+}
+
+logAuthDiagnostic("persistence_resolved", {
+  mode: initialPersistenceResolution.selectedMode,
+  fallbackUsed: initialPersistenceResolution.fallbackUsed,
+  localAvailable: initialPersistenceResolution.localAvailable,
+  sessionAvailable: initialPersistenceResolution.sessionAvailable,
+  firebaseAppCount: getApps().length,
+  authInstanceId,
+  inIframe: previewContext.inIframe,
+  errorCount: initialPersistenceResolution.errors.length,
+});
 
 /**
- * Ensures Auth persistence is resolved to the strongest storage supported in the current
- * browser context, degrading gracefully to session or in-memory persistence when blocked.
+ * Explicit helper for changing Auth persistence with ordered fallback.
+ * Not invoked automatically at module startup (initializeAuth already sets the
+ * verified hierarchy once) so startup never races signInWithPopup or wipes a session.
  */
 export function configureAuthPersistence(authInstance: Auth = auth): Promise<AuthPersistenceResult> {
   return configureAuthPersistenceWithFallback(authInstance, setPersistence, {
@@ -120,18 +235,47 @@ export function configureAuthPersistence(authInstance: Auth = auth): Promise<Aut
   });
 }
 
-// Resolve once at startup without ever racing sign-in or throwing when browser storage is blocked
+// Resolves once Firebase Auth completes its own initial persistence hydration via authStateReady()
+// without mutating persistence mid-session or throwing when browser storage is blocked.
 export const authPersistenceReady: Promise<AuthPersistenceResult> =
   typeof window !== "undefined"
-    ? configureAuthPersistence(auth).then((result) => {
-        if (result.fallbackUsed) {
-          console.warn(
-            `[FIREBASE_AUTH] Using ${result.mode} persistence fallback in this browser context.`,
-            result.errors
+    ? (typeof (auth as any).authStateReady === "function"
+        ? auth.authStateReady()
+        : Promise.resolve()
+      )
+        .then(() => {
+          const result: AuthPersistenceResult = {
+            mode: initialPersistenceResolution.selectedMode,
+            fallbackUsed: initialPersistenceResolution.fallbackUsed,
+            errors: initialPersistenceResolution.errors,
+          };
+          logAuthDiagnostic("firebase_init_complete", {
+            persistenceMode: result.mode,
+            fallbackUsed: result.fallbackUsed,
+            hasInitialUser: Boolean(auth.currentUser?.uid),
+            uidHint: maskUidForDiagnostics(auth.currentUser?.uid),
+          });
+          return result;
+        })
+        .catch((err) => {
+          const msg = err?.code || err?.message || String(err);
+          const result: AuthPersistenceResult = {
+            mode: "memory",
+            fallbackUsed: true,
+            errors: [...initialPersistenceResolution.errors, `authStateReady: ${msg}`],
+          };
+          logAuthDiagnostic(
+            "firebase_init_complete",
+            {
+              persistenceMode: result.mode,
+              fallbackUsed: true,
+              authStateReadyError: msg,
+              hasInitialUser: Boolean(auth.currentUser?.uid),
+            },
+            { category: "firebase_session_persistence_failure", level: "warn" }
           );
-        }
-        return result;
-      })
+          return result;
+        })
     : Promise.resolve({ mode: "memory", fallbackUsed: false, errors: [] });
 
 export const db = initializeFirestore(app, {

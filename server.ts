@@ -18,6 +18,10 @@ import { CONTENT_GENERATOR_RULEBOOK, MULTI_POST_HOOK_OPTIMIZATION_SYSTEM, CONTEN
 import { buildRobotsTxt, buildSitemapXml, getPublicMarketingRoute } from "./src/marketing/marketingRoutes";
 import { renderNoIndexAppShellHtml, renderPublicRouteHtml } from "./server/seoPrerender";
 import { createFunnelworksRouter } from "./server/funnelworksRoutes";
+import {
+  createPreviewAuthHandoffRouter,
+  isPreviewAuthHandoffEnvironment,
+} from "./server/previewAuthHandoff";
 import express from "express";
 import path from "path";
 import { GoogleGenAI, Type } from "@google/genai";
@@ -319,6 +323,9 @@ const adminApp = getApps().length === 0
 const serverDb = getFirestore(adminApp, databaseId);
 const serverAuth = getAuth(adminApp);
 app.use("/api/funnelworks", createFunnelworksRouter(serverDb, serverAuth));
+if (isPreviewAuthHandoffEnvironment()) {
+  app.use("/api/auth/preview-handoff", createPreviewAuthHandoffRouter(serverAuth));
+}
 
 // Registry & Cache In-Memory and Local Disk Persistence Layer
 const inMemoryScheduledPosts = new Map<string, any>();
@@ -12164,7 +12171,13 @@ async function main() {
           const html = publicRoute
             ? renderPublicRouteHtml(template, publicRoute)
             : renderNoIndexAppShellHtml(template);
-          res.status(200).set({ "Content-Type": "text/html; charset=utf-8" }).end(html);
+          res
+            .status(200)
+            .set({
+              "Content-Type": "text/html; charset=utf-8",
+              "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+            })
+            .end(html);
           return;
         }
         next();
@@ -12213,6 +12226,7 @@ async function main() {
         const prerenderedPath = path.join(distPath, publicRoute.outputFile);
         if (fs.existsSync(prerenderedPath)) {
           res.setHeader("Content-Type", "text/html; charset=utf-8");
+          res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
           res.setHeader("Cache-Control", "public, max-age=300, must-revalidate");
           return res.sendFile(prerenderedPath);
         }
@@ -12224,6 +12238,7 @@ async function main() {
         : path.join(distPath, "index.html");
 
       res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
       res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
       res.setHeader("Pragma", "no-cache");
       res.setHeader("Expires", "0");

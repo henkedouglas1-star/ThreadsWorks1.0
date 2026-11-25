@@ -11,8 +11,20 @@ import {
   AUTH_SIGNOUT_EVENT,
   AuthUserLike,
   configureAuthPersistenceWithFallback,
+  createInitialAuthSessionState,
+  reduceAuthSession,
   resolveAppScreen,
 } from "../src/lib/authContract";
+import {
+  clearAuthDiagnosticsForTests,
+  getAuthDiagnosticsSnapshot,
+  logAuthDiagnostic,
+} from "../src/lib/authDiagnostics";
+import {
+  createPreviewAuthHandoffStore,
+  isPreviewAuthHandoffEnvironment,
+  sha256Hex,
+} from "../server/previewAuthHandoff";
 import { useAuthSession, type AuthSessionAdapter } from "../src/hooks/useAuthSession";
 import AuthScreen, { type AuthScreenActions } from "../src/components/AuthScreen";
 import { getPublicMarketingRoute, normalizeMarketingPath } from "../src/marketing/marketingRoutes";
@@ -890,3 +902,433 @@ test("12. Protected Authentication Contract lock: production files enforce autho
   assert.match(pkgSrc, /"test:auth"\s*:\s*"tsx --test tests\/authRegression\.test\.ts"/);
   assert.match(ciSrc, /npm run test:auth/, "CI validation workflow must execute npm run test:auth");
 });
+
+test("13. Delayed Firebase authStateReady initialization never triggers premature redirect to login", async () => {
+  const firebase = createMockFirebaseAuthHarness(null);
+  const restoredUser: AuthUserLike = { uid: "delayed-uid-13", email: "delayed@threadsworks.com" };
+  let resolveReady!: () => void;
+  const readyPromise = new Promise<void>((resolve) => {
+    resolveReady = resolve;
+  });
+
+  const app = await mountTestApp({
+    initialUrl: "https://preview.local/apps",
+    adapter: firebase.createAdapter({
+      waitForAuthStateReady: () => readyPromise,
+    }),
+    authActions: {},
+    onSignOut: firebase.signOut,
+  });
+
+  try {
+    // Still initializing before authStateReady settles
+    assert.ok(app.container.querySelector("#auth-loading-screen"), "Must hold loading screen during delayed init");
+    assert.equal(app.container.querySelector("#auth-card"), null, "Must never flash login before authStateReady");
+
+    // Premature transient null emitted before authStateReady settles must NOT route to login
+    await act(async () => {
+      firebase.emitRawObserverEvent(null);
+    });
+    await flushMicrotasks();
+    assert.ok(app.container.querySelector("#auth-loading-screen"), "Transient startup null must not redirect to login");
+    assert.equal(app.container.querySelector("#auth-card"), null);
+
+    // Firebase finishes restoring user and settles authStateReady
+    await act(async () => {
+      firebase.currentUser = restoredUser;
+      resolveReady();
+      await readyPromise;
+    });
+    await flushMicrotasks();
+
+    const dashboard = app.container.querySelector("#workspace-dashboard");
+    assert.ok(dashboard, "Restored session after delayed authStateReady must open workspace");
+    assert.equal(dashboard.getAttribute("data-uid"), "delayed-uid-13");
+    assert.equal(app.window.location.pathname, "/apps", "Intended destination /apps must be preserved");
+  } finally {
+    await app.unmount();
+  }
+});
+
+test("14. Popup cancellation and popup blocking produce recoverable errors and allow immediate retry", async () => {
+  const firebase = createMockFirebaseAuthHarness(null);
+  const recoveredUser: AuthUserLike = { uid: "retry-uid-14", email: "retry@threadsworks.com" };
+  let attempt = 0;
+
+  const app = await mountTestApp({
+    initialUrl: "https://preview.local/create",
+    adapter: firebase.createAdapter(),
+    authActions: {
+      signInWithGooglePopup: async () => {
+        attempt += 1;
+        if (attempt === 1) {
+          const err: any = new Error("Firebase: Error (auth/popup-closed-by-user).");
+          err.code = "auth/popup-closed-by-user";
+          throw err;
+        }
+        if (attempt === 2) {
+          const err: any = new Error("Firebase: Error (auth/popup-blocked).");
+          err.code = "auth/popup-blocked";
+          throw err;
+        }
+        firebase.currentUser = recoveredUser;
+        return { user: recoveredUser };
+      },
+      ensureGoogleProfile: async () => {},
+    },
+    onSignOut: firebase.signOut,
+  });
+
+  try {
+    await act(async () => {
+      firebase.emitUser(null);
+    });
+
+    // Attempt 1: Popup canceled by user
+    let googleBtn = app.container.querySelector("#auth-google-button") as HTMLButtonElement;
+    await act(async () => {
+      googleBtn.click();
+    });
+    await flushMicrotasks();
+    assert.match(app.container.querySelector("#auth-error-banner")?.textContent || "", /canceled/i);
+    assert.equal(app.container.querySelector("#workspace-dashboard"), null);
+
+    // Attempt 2: Popup blocked by browser
+    googleBtn = app.container.querySelector("#auth-google-button") as HTMLButtonElement;
+    await act(async () => {
+      googleBtn.click();
+    });
+    await flushMicrotasks();
+    assert.match(app.container.querySelector("#auth-error-banner")?.textContent || "", /popup was blocked/i);
+    assert.equal(app.container.querySelector("#workspace-dashboard"), null);
+
+    // Attempt 3: User retries and succeeds cleanly
+    googleBtn = app.container.querySelector("#auth-google-button") as HTMLButtonElement;
+    await act(async () => {
+      googleBtn.click();
+    });
+    await flushMicrotasks();
+    const dashboard = app.container.querySelector("#workspace-dashboard");
+    assert.ok(dashboard, "Retry after popup cancel/block must succeed and enter workspace");
+    assert.equal(dashboard.getAttribute("data-uid"), "retry-uid-14");
+  } finally {
+    await app.unmount();
+  }
+});
+
+test("15. Authoritative reducer protects authenticating state and preserves authenticated session on backend API errors", () => {
+  // Starts in initializing state
+  let state = createInitialAuthSessionState(null);
+  assert.equal(state.status, "initializing");
+  assert.equal(
+    resolveAppScreen({
+      authStatus: state.status,
+      user: state.user,
+      handshakeStatus: null,
+      isPublicMarketingRoute: false,
+      authPortalMode: null,
+    }),
+    "loading"
+  );
+
+  // Interactive Google sign-in enters authenticating state
+  state = reduceAuthSession(state, { type: "AUTH_START", method: "google" });
+  assert.equal(state.status, "authenticating");
+
+  // Stale observer null during active popup MUST NOT clear authenticating state
+  state = reduceAuthSession(state, {
+    type: "OBSERVER_NULL",
+    liveCurrentUser: null,
+    recentSignInActive: false,
+    authStateReady: true,
+  });
+  assert.equal(state.status, "authenticating", "In-flight authenticating popup must ignore stale observer null");
+
+  // Firebase confirms authenticated user
+  const realUser: AuthUserLike = { uid: "auth-uid-15", email: "creator@threadsworks.com" };
+  state = reduceAuthSession(state, { type: "OBSERVER_USER", user: realUser });
+  assert.equal(state.status, "authenticated");
+  assert.equal(state.user?.uid, "auth-uid-15");
+
+  // Rule B & F: Backend 401/403 authorization error MUST NOT log out the user or bounce to login
+  state = reduceAuthSession(state, {
+    type: "BACKEND_AUTH_ERROR",
+    message: "Backend rejected request (403).",
+  });
+  assert.equal(state.status, "authenticated", "Backend API error must preserve authenticated status");
+  assert.equal(state.user?.uid, "auth-uid-15", "Backend API error must keep active Firebase user");
+  assert.equal(state.backendAuthError, "Backend rejected request (403).");
+  assert.equal(
+    resolveAppScreen({
+      authStatus: state.status,
+      user: state.user,
+      handshakeStatus: null,
+      isPublicMarketingRoute: false,
+      authPortalMode: null,
+    }),
+    "workspace",
+    "Backend API error must keep user inside workspace rather than looping to login"
+  );
+});
+
+test("16. Stale asynchronous profile fetches from a prior session epoch cannot overwrite a newer authenticated user", async () => {
+  const firebase = createMockFirebaseAuthHarness(null);
+  const userA: AuthUserLike = { uid: "user-A", email: "a@threadsworks.com" };
+  const userB: AuthUserLike = { uid: "user-B", email: "b@threadsworks.com" };
+
+  let resolveUserAProfile!: (value: any) => void;
+  const userAProfilePromise = new Promise<any>((resolve) => {
+    resolveUserAProfile = resolve;
+  });
+
+  const app = await mountTestApp({
+    initialUrl: "https://preview.local/create",
+    adapter: firebase.createAdapter({
+      fetchProfile: async (uid, email) => {
+        if (uid === "user-A") {
+          return userAProfilePromise;
+        }
+        return {
+          uid,
+          email,
+          offer: "User B Offer",
+          audience: "Creators",
+          desiredResult: "Growth",
+          writingStyle: "Direct",
+        };
+      },
+    }),
+    authActions: {},
+    onSignOut: firebase.signOut,
+  });
+
+  try {
+    // Sign in as user A (slow profile fetch still pending)
+    await act(async () => {
+      firebase.emitUser(userA);
+    });
+    await flushMicrotasks();
+    assert.equal(app.container.querySelector("#workspace-dashboard")?.getAttribute("data-uid"), "user-A");
+
+    // Sign out and immediately sign in as user B
+    await act(async () => {
+      await firebase.signOut();
+    });
+    await act(async () => {
+      firebase.emitUser(userB);
+    });
+    await flushMicrotasks();
+    assert.equal(app.container.querySelector("#workspace-dashboard")?.getAttribute("data-uid"), "user-B");
+    assert.equal(app.container.querySelector("#workspace-profile-uid")?.textContent, "user-B");
+
+    // Now resolve the stale profile request from user A
+    await act(async () => {
+      resolveUserAProfile({
+        uid: "user-A",
+        email: "a@threadsworks.com",
+        offer: "STALE OFFER",
+        audience: "Stale",
+        desiredResult: "Stale",
+        writingStyle: "Stale",
+      });
+      await userAProfilePromise;
+    });
+    await flushMicrotasks();
+
+    // User B's session and profile must remain completely intact
+    assert.equal(app.container.querySelector("#workspace-dashboard")?.getAttribute("data-uid"), "user-B");
+    assert.equal(app.container.querySelector("#workspace-profile-uid")?.textContent, "user-B");
+  } finally {
+    await app.unmount();
+  }
+});
+
+test("17. Security & GAS Preview invariants: no startup setPersistence race, no iframe signInWithRedirect, and diagnostics redact secrets/emails", () => {
+  const rootDir = process.cwd();
+  const firebaseSrc = fs.readFileSync(path.join(rootDir, "src", "firebase.ts"), "utf8");
+  const authScreenSrc = fs.readFileSync(path.join(rootDir, "src", "components", "AuthScreen.tsx"), "utf8");
+  const appSrc = fs.readFileSync(path.join(rootDir, "src", "App.tsx"), "utf8");
+
+  // firebase.ts must NOT run configureAuthPersistence(auth) automatically at module load (races signInWithPopup)
+  assert.doesNotMatch(
+    firebaseSrc,
+    /export const authPersistenceReady[\s\S]*configureAuthPersistence\(auth\)/,
+    "firebase.ts must resolve persistence via initializeAuth + authStateReady without a redundant startup setPersistence race"
+  );
+
+  // AuthScreen must NEVER silently fall back to signInWithRedirect inside iframes
+  assert.doesNotMatch(authScreenSrc, /signInWithRedirect/, "AuthScreen must not call signInWithRedirect inside embedded iframes");
+
+  // App.tsx must sequence authStateReady() into useAuthSession
+  assert.match(appSrc, /waitForAuthStateReady/, "App.tsx must wire auth.authStateReady() into useAuthSession");
+
+  // Diagnostics MUST redact JWTs, access tokens, credentials, and full email addresses
+  clearAuthDiagnosticsForTests();
+  const entry = logAuthDiagnostic("google_popup_complete", {
+    idToken: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.signature1234567890",
+    accessToken: "ya29.secret-oauth-token",
+    email: "douglas@threadsworks.com",
+    note: "User douglas@threadsworks.com with token eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.signature1234567890",
+    persistenceMode: "local",
+  });
+  assert.ok(entry, "Diagnostics should record structured entries in dev/test environments");
+  const serialized = JSON.stringify(getAuthDiagnosticsSnapshot());
+  assert.doesNotMatch(serialized, /douglas@threadsworks\.com/, "Diagnostics must never leak full email addresses");
+  assert.doesNotMatch(serialized, /ya29\.secret-oauth-token/, "Diagnostics must never leak OAuth access tokens");
+  assert.doesNotMatch(serialized, /signature1234567890/, "Diagnostics must never leak JWT/ID tokens");
+  assert.match(serialized, /"persistenceMode":"local"/, "Safe non-sensitive diagnostic fields must be preserved");
+});
+
+test("18. AI Studio Preview Google handoff store enforces proof-of-possession, single-use claim, expiry, and production gating", () => {
+  let fakeNow = 1_700_000_000_000;
+  const store = createPreviewAuthHandoffStore({
+    ttlMs: 180_000,
+    readyTtlMs: 90_000,
+    now: () => fakeNow,
+  });
+
+  const handoffId = "a".repeat(48);
+  const claimSecret = "b".repeat(48);
+  const wrongSecret = "c".repeat(48);
+  const claimHash = sha256Hex(claimSecret);
+
+  // Disabled in standalone production without AI Studio preview environment variables
+  assert.equal(
+    isPreviewAuthHandoffEnvironment({ NODE_ENV: "production" }),
+    false,
+    "Preview handoff must be disabled in standalone production"
+  );
+  assert.equal(
+    isPreviewAuthHandoffEnvironment({ NODE_ENV: "development" }),
+    true,
+    "Preview handoff should be enabled in dev/preview environments"
+  );
+
+  // Init & pending state
+  assert.deepEqual(store.init(handoffId, claimHash), { ok: true });
+  assert.deepEqual(store.claim(handoffId, wrongSecret), { status: "forbidden" });
+  assert.deepEqual(store.claim(handoffId, claimSecret), { status: "pending" });
+
+  // Complete with verified real OAuth credential
+  assert.deepEqual(
+    store.complete(handoffId, {
+      uid: "real-google-uid-18",
+      googleIdToken: "google-id-token-value",
+      googleAccessToken: "google-access-token-value",
+    }),
+    { ok: true }
+  );
+
+  // Wrong secret still rejected even when ready
+  assert.deepEqual(store.claim(handoffId, wrongSecret), { status: "forbidden" });
+
+  // Valid claim succeeds exactly once and immediately deletes the record
+  assert.deepEqual(store.claim(handoffId, claimSecret), {
+    status: "ready",
+    googleIdToken: "google-id-token-value",
+    googleAccessToken: "google-access-token-value",
+  });
+  assert.deepEqual(
+    store.claim(handoffId, claimSecret),
+    { status: "expired" },
+    "Single-use handoff must not allow replay after claim"
+  );
+
+  // Expiry check
+  const expiringId = "d".repeat(48);
+  const expiringSecret = "e".repeat(48);
+  assert.deepEqual(store.init(expiringId, sha256Hex(expiringSecret)), { ok: true });
+  fakeNow += 181_000;
+  assert.deepEqual(store.claim(expiringId, expiringSecret), { status: "expired" });
+});
+
+test("19. Preview handoff resume runner survives React StrictMode mount -> unmount -> remount without double-claiming or dropping the single-use credential", async () => {
+  const { attachPreviewHandoffResume } = await import("../src/lib/previewGoogleHandoff");
+  const handoffId = "f".repeat(48);
+  const claimSecret = "1".repeat(48);
+  let pending: { handoffId: string; claimSecret: string; createdAt: number } | null = {
+    handoffId,
+    claimSecret,
+    createdAt: Date.now(),
+  };
+
+  let claimCalls = 0;
+  let resolveClaim!: (val: any) => void;
+  const claimPromise = new Promise<any>((resolve) => {
+    resolveClaim = resolve;
+  });
+
+  let signInCalls = 0;
+  const confirmedUser: AuthUserLike = { uid: "strictmode-uid-19", email: "creator@threadsworks.com" };
+  let mount1SuccessUser: AuthUserLike | null = null;
+  let mount2SuccessUser: AuthUserLike | null = null;
+  const mount2Errors: string[] = [];
+
+  const deps = {
+    getPending: () => pending,
+    clearPending: () => {
+      pending = null;
+    },
+    claim: async () => {
+      claimCalls += 1;
+      return claimPromise;
+    },
+    signInWithGoogleCredential: async (idTok: string | null, accTok: string | null) => {
+      signInCalls += 1;
+      assert.equal(idTok, "google-id-token-19");
+      assert.equal(accTok, "google-access-token-19");
+      return confirmedUser;
+    },
+    pollIntervalMs: 60_000,
+  };
+
+  // Mount 1 starts the single-use /claim request
+  const detachMount1 = attachPreviewHandoffResume(
+    {} as any,
+    {
+      onSuccess: (u) => {
+        mount1SuccessUser = u;
+      },
+    },
+    deps
+  );
+
+  // React StrictMode unmounts Mount 1 immediately (while /claim is still in flight)
+  detachMount1();
+
+  // React StrictMode mounts Mount 2 immediately afterward
+  const detachMount2 = attachPreviewHandoffResume(
+    {} as any,
+    {
+      onSuccess: (u) => {
+        mount2SuccessUser = u;
+      },
+      onError: (msg) => {
+        mount2Errors.push(msg);
+      },
+    },
+    deps
+  );
+
+  assert.equal(claimCalls, 1, "StrictMode remount must NOT fire a second single-use /claim request");
+
+  // Server resolves the single in-flight /claim with ready credentials
+  resolveClaim({
+    status: "ready",
+    googleIdToken: "google-id-token-19",
+    googleAccessToken: "google-access-token-19",
+  });
+
+  await flushMicrotasks();
+  await new Promise((r) => setTimeout(r, 20));
+  detachMount2();
+
+  assert.equal(claimCalls, 1, "Single-use /claim must have been called exactly once");
+  assert.equal(signInCalls, 1, "signInWithCredential must complete exactly once despite Mount 1 unmount");
+  assert.equal(mount1SuccessUser, null, "Detached Mount 1 callback must not be invoked");
+  assert.equal(mount2SuccessUser?.uid, "strictmode-uid-19", "Active Mount 2 callback must receive confirmed user");
+  assert.equal(mount2Errors.length, 0, "No errors should be emitted during StrictMode handoff recovery");
+  assert.equal(pending, null, "Pending handoff must be cleared once sign-in completes");
+});
+
+

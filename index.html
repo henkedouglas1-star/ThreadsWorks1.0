@@ -119,11 +119,19 @@
             e.preventDefault();
             e.stopImmediatePropagation();
             if (msg.indexOf('MIME type') !== -1 || msg.indexOf('dynamically imported') !== -1) {
-              var reloadKey = 'chunk_reload_' + window.location.pathname;
-              if (!sessionStorage.getItem(reloadKey)) {
-                sessionStorage.setItem(reloadKey, '1');
-                setTimeout(function() { window.location.reload(); }, 150);
-              }
+              try {
+                var reloadKey = 'chunk_reload_' + window.location.pathname;
+                if (!sessionStorage.getItem(reloadKey)) {
+                  sessionStorage.setItem(reloadKey, '1');
+                  sessionStorage.setItem('__tw_chunk_reload_trigger__', JSON.stringify({
+                    source: 'index_error',
+                    timestamp: new Date().toISOString(),
+                    pathname: window.location.pathname,
+                    reasonSnippet: msg.slice(0, 120)
+                  }));
+                  setTimeout(function() { window.location.reload(); }, 150);
+                }
+              } catch(_) {}
             }
           }
         }, true);
@@ -145,11 +153,19 @@
             e.preventDefault();
             e.stopImmediatePropagation();
             if (reason.indexOf('MIME type') !== -1 || reason.indexOf('dynamically imported') !== -1) {
-              var reloadKey = 'chunk_reload_' + window.location.pathname;
-              if (!sessionStorage.getItem(reloadKey)) {
-                sessionStorage.setItem(reloadKey, '1');
-                setTimeout(function() { window.location.reload(); }, 150);
-              }
+              try {
+                var reloadKey = 'chunk_reload_' + window.location.pathname;
+                if (!sessionStorage.getItem(reloadKey)) {
+                  sessionStorage.setItem(reloadKey, '1');
+                  sessionStorage.setItem('__tw_chunk_reload_trigger__', JSON.stringify({
+                    source: 'index_unhandledrejection',
+                    timestamp: new Date().toISOString(),
+                    pathname: window.location.pathname,
+                    reasonSnippet: reason.slice(0, 120)
+                  }));
+                  setTimeout(function() { window.location.reload(); }, 150);
+                }
+              } catch(_) {}
             }
           }
         }, true);

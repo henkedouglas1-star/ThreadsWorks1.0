@@ -38,6 +38,28 @@ export interface AnalyticsServiceDependencies {
 }
 
 /**
+ * Recursively strips undefined fields from an object or array before persisting to Firestore.
+ */
+function sanitizeForFirestore(data: any): any {
+  if (data === undefined || data === null || typeof data !== "object") {
+    return data === undefined ? null : data;
+  }
+  if (data instanceof Date || typeof data.toMillis === "function" || typeof data.toDate === "function") {
+    return data;
+  }
+  if (Array.isArray(data)) {
+    return data.filter(item => item !== undefined).map(item => sanitizeForFirestore(item));
+  }
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined) {
+      result[key] = sanitizeForFirestore(value);
+    }
+  }
+  return result;
+}
+
+/**
  * Helper to identify Firestore quota exhaustion errors.
  */
 export function isFirestoreQuotaError(err: any): boolean {
@@ -724,7 +746,7 @@ export function createAnalyticsService(deps: AnalyticsServiceDependencies) {
     // 2. Write to server Firestore if not in quota cooldown
     if (serverDb && Date.now() >= quotaCooldownUntil) {
       try {
-        await serverDb.collection(collectionName).doc(docId).set(data, { merge: true });
+        await serverDb.collection(collectionName).doc(docId).set(sanitizeForFirestore(data), { merge: true });
       } catch (adminErr: any) {
         if (isFirestoreQuotaError(adminErr)) {
           markQuotaExhausted(`writeDocument(${collectionName}/${docId})`, adminErr);
@@ -762,7 +784,7 @@ export function createAnalyticsService(deps: AnalyticsServiceDependencies) {
           const batch = serverDb.batch();
           for (const c of chunk) {
             const docRef = serverDb.collection(c.collection).doc(c.id);
-            batch.set(docRef, c.data, { merge: true });
+            batch.set(docRef, sanitizeForFirestore(c.data), { merge: true });
           }
           await batch.commit();
         }

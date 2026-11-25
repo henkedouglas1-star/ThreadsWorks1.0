@@ -14,7 +14,14 @@ import ContentEngineView from "./components/ContentEngineView";
 import { isEntitledAccount } from "./utils/contentLimit";
 import { clearThreadsLocalConnection, invalidateThreadsConnectionCache, checkThreadsConnection } from "./utils/threadsApi";
 import { useAuthSession } from "./hooks/useAuthSession";
-import { resolveAppScreen } from "./lib/authContract";
+import { resolveAppScreen, type AppScreen } from "./lib/authContract";
+import { logAuthDiagnostic, maskUidForDiagnostics } from "./lib/authDiagnostics";
+import {
+  attachPreviewHandoffResume,
+  getPreviewGoogleBridgeHandoffId,
+  isEmbeddedAiStudioPreview,
+} from "./lib/previewGoogleHandoff";
+import PreviewGoogleBridgeView from "./components/PreviewGoogleBridgeView";
 import {
   safeGetLocalStorage,
   safeSetLocalStorage,
@@ -84,6 +91,7 @@ import {
 const urlToTab: Record<string, string> = {
   "/": "engine",
   "/create": "engine",
+  "/apps": "apps",
   "/dashboard": "apps",
   "/content-ideas": "engine",
   "/ai-threads-post-generator": "engine",
@@ -338,6 +346,10 @@ function MainApp() {
     getCurrentUser: () => auth.currentUser,
     subscribeAuthState: (onNext: (u: any) => void, onError: (e: unknown) => void) =>
       onAuthStateChanged(auth, onNext, onError),
+    waitForAuthStateReady: () =>
+      typeof (auth as any).authStateReady === "function"
+        ? auth.authStateReady()
+        : Promise.resolve(),
     ensureProfile: ensureGoogleUserProfile,
     fetchProfile: fetchProfileRecord,
     attributeReferral: async (refCode: string) => {
@@ -349,9 +361,14 @@ function MainApp() {
     status: authStatus,
     user,
     authError,
+    backendAuthError,
+    lastTransitionReason,
     profile,
     setProfile,
+    beginAuthenticating,
+    failAuthenticating,
     notifyLoginSuccess,
+    clearBackendAuthError,
     refreshProfile: handleRefreshProfile,
   } = useAuthSession(authAdapter);
   
@@ -421,6 +438,10 @@ function MainApp() {
   useEffect(() => {
     const handlePopState = () => {
       const path = normalizeMarketingPath(window.location.pathname);
+      logAuthDiagnostic("popstate_navigation", {
+        windowPathname: window.location.pathname,
+        normalizedPath: path,
+      });
       setCurrentPath(path);
       setAuthPortalMode(null);
       const tab = urlToTab[path];
@@ -496,9 +517,10 @@ function MainApp() {
     }
   };
 
-  // Once authenticated on '/', transition cleanly to '/create' keeping currentPath and history synchronized
+  // Once authenticated on '/', transition cleanly to '/create' while preserving any intended protected destination
   useEffect(() => {
     if (authStatus !== "authenticated" || !user) return;
+    setAuthPortalMode(null);
     if (currentPath === "/" || currentPath === "") {
       setCurrentPath("/create");
       setActiveTabState("engine");
@@ -507,6 +529,31 @@ function MainApp() {
       }
     }
   }, [authStatus, user, currentPath]);
+
+  // Recover an in-flight AI Studio Preview Google Sign-In handoff if the Preview wrapper
+  // navigated/reloaded the iframe via applet-auth-bridge while the user was authenticating.
+  // Uses a module-level singleton runner so React <StrictMode> mount/unmount/remount cycles
+  // never double-claim or discard the single-use credential.
+  useEffect(() => {
+    if (user || !isEmbeddedAiStudioPreview()) return;
+    return attachPreviewHandoffResume(auth, {
+      onAuthenticating: () => {
+        beginAuthenticating("google");
+      },
+      onSuccess: (confirmedUser) => {
+        Promise.resolve()
+          .then(() => ensureGoogleUserProfile(confirmedUser))
+          .catch((e) => {
+            console.warn("Non-blocking Google profile initialization note:", e);
+          });
+        notifyLoginSuccess(confirmedUser);
+        setAuthPortalMode(null);
+      },
+      onError: (message) => {
+        failAuthenticating(message);
+      },
+    });
+  }, [user, beginAuthenticating, failAuthenticating, notifyLoginSuccess]);
 
   // Listen to subscription status in real-time
   useEffect(() => {
@@ -870,6 +917,57 @@ function MainApp() {
     authPortalMode,
   });
 
+  const prevScreenRef = useRef<AppScreen | null>(null);
+  useEffect(() => {
+    const prevScreen = prevScreenRef.current;
+    if (prevScreen !== activeScreen) {
+      logAuthDiagnostic("route_guard_decision", {
+        fromScreen: prevScreen,
+        toScreen: activeScreen,
+        authStatus,
+        path: currentPath,
+        windowPathname: typeof window !== "undefined" ? window.location.pathname : currentPath,
+        activeTab,
+        authPortalMode,
+        isPublicMarketingRoute: Boolean(publicMarketingRoute),
+        hasUser: Boolean(user?.uid),
+        uidHint: maskUidForDiagnostics(user?.uid),
+        hasAuthError: Boolean(authError),
+        reason: lastTransitionReason,
+      });
+      if (
+        prevScreen === "workspace" &&
+        activeScreen === "auth" &&
+        lastTransitionReason !== "explicit_sign_out"
+      ) {
+        logAuthDiagnostic(
+          "unexpected_login_navigation",
+          {
+            fromScreen: prevScreen,
+            toScreen: activeScreen,
+            authStatus,
+            path: currentPath,
+            windowPathname: typeof window !== "undefined" ? window.location.pathname : currentPath,
+            authPortalMode,
+            reason: lastTransitionReason,
+          },
+          { category: "protected_route_redirect_failure", level: "warn" }
+        );
+      }
+      prevScreenRef.current = activeScreen;
+    }
+  }, [
+    activeScreen,
+    activeTab,
+    authError,
+    authPortalMode,
+    authStatus,
+    currentPath,
+    lastTransitionReason,
+    publicMarketingRoute,
+    user?.uid,
+  ]);
+
   // Handshake and OAuth Code Verification Loader Screen
   if (activeScreen === "handshake") {
     return (
@@ -920,6 +1018,9 @@ function MainApp() {
         <AuthScreen
           initialMode={authPortalMode || "signin"}
           externalError={authError}
+          authStatus={authStatus}
+          onAuthStart={beginAuthenticating}
+          onAuthError={failAuthenticating}
           onBackToMarketing={publicMarketingRoute ? () => setAuthPortalMode(null) : undefined}
           onSuccess={(authenticatedUser) => {
             notifyLoginSuccess(authenticatedUser);
@@ -944,6 +1045,26 @@ function MainApp() {
         onOpenPrivacy={() => setPrivacyOpen(true)}
         onOpenTerms={() => setTermsOpen(true)}
       />
+
+      {/* Non-destructive authorization error banner (preserves Firebase session without redirecting to login) */}
+      {backendAuthError && (
+        <div
+          id="backend-auth-error-banner"
+          role="alert"
+          className="mx-auto mt-3 w-full max-w-7xl px-4 md:px-8 lg:px-10"
+        >
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
+            <span>{backendAuthError}</span>
+            <button
+              type="button"
+              onClick={clearBackendAuthError}
+              className="shrink-0 font-semibold text-amber-300 hover:text-amber-100 cursor-pointer"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Primary Workspace Panel */}
       <main className="flex-1 overflow-y-auto px-4 pt-6 pb-[calc(2rem+env(safe-area-inset-bottom))] md:px-8 lg:px-10">
@@ -1074,6 +1195,11 @@ function MainApp() {
 }
 
 export default function App() {
+  const bridgeHandoffId = getPreviewGoogleBridgeHandoffId();
+  if (bridgeHandoffId) {
+    return <PreviewGoogleBridgeView handoffId={bridgeHandoffId} />;
+  }
+
   return (
     <ThemeProvider>
       <ThreadsConnectionProvider>
