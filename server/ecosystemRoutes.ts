@@ -40,6 +40,7 @@ import {
 import { getToolDefinition } from "../src/data/ecosystemToolRegistry";
 import { readMembershipAccess } from "./membershipAccessService";
 import { createMembershipCheckoutIntent } from "./membershipCheckoutIntent";
+import { createMembershipPortal } from "./membershipPortalService";
 
 interface AuthedCaller {
   uid: string;
@@ -127,6 +128,21 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
       return res.json(await createMembershipCheckoutIntent(db, caller.uid, planId));
     } catch {
       return res.status(503).json({ error: "Membership checkout could not be initialized." });
+    }
+  });
+
+  router.post("/memberships/portal", async (req, res) => {
+    const caller = (req as any).caller as AuthedCaller;
+    const planId = req.body?.planId;
+    res.set("Cache-Control", "no-store");
+    if (planId !== "contentpaysclub" && planId !== "contentpaysbundle") {
+      return res.status(400).json({ error: "Choose a valid membership." });
+    }
+    if (!checkAiRateLimit(caller.uid)) return res.status(429).json({ error: "Too many requests." });
+    try {
+      return res.json(await createMembershipPortal(db, caller.uid, planId));
+    } catch {
+      return res.status(503).json({ error: "Billing management is unavailable. Please contact support for help with your subscription." });
     }
   });
 
