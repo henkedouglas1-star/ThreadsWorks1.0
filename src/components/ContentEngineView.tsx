@@ -1816,7 +1816,7 @@ export default function ContentEngineView({ profile, onNavigateToTab, onRefreshP
       }
       controller = new AbortController();
       abortControllerRef.current = controller;
-      const timeoutMs = count >= 32 ? 310000 : (count >= 16 ? 220000 : 150000);
+      const timeoutMs = count >= 32 ? 360000 : (count >= 16 ? 270000 : 200000);
       timeoutId = setTimeout(() => {
         isTimeoutTriggered = true;
         try {
@@ -1962,7 +1962,7 @@ export default function ContentEngineView({ profile, onNavigateToTab, onRefreshP
           });
           console.groupEnd();
           if (isTimeoutTriggered) {
-            const timeoutErr = new Error("Generation request timed out after 120 seconds without response from server.");
+            const timeoutErr = new Error(typeof controller.signal.reason === "string" ? controller.signal.reason + " without response from server." : "Generation request timed out without response from server.");
             timeoutErr.name = "TimeoutError";
             throw timeoutErr;
           }
