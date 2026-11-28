@@ -33,7 +33,7 @@ export function createPostArtRouter(db: Firestore, auth: Auth, bucketName?: stri
       if (!/^[a-f0-9]{64}$/.test(req.params.id)) throw new Error("INVALID");
       const asset = await assets(uid).doc(req.params.id).get();
       if (asset.get("status") !== "ready") throw new Error("NOT_FOUND");
-      const [bytes] = await bucket().file(`users/${uid}/art/${asset.id}.png`).download();
+      const [bytes] = await bucket().file(asset.get("objectPath") || `users/${uid}/art/${asset.id}.png`).download();
       res.set("Cache-Control", "private, no-store");
       res.type("png").send(bytes);
     } catch (e) { fail(res, e); }
@@ -55,10 +55,10 @@ export function createPostArtRouter(db: Firestore, auth: Auth, bucketName?: stri
       const existing = await db.runTransaction(async tx => {
         const [a, q] = await Promise.all([tx.get(asset), tx.get(quota)]);
         if (a.get("status") === "ready") return true;
-        if (q.get("pending")) throw new Error("BUSY");
+        if (q.get("pending") && Number(q.get("pendingUntil") || 0) > Date.now()) throw new Error("BUSY");
         const last = q.get("lastSuccess");
         if (typeof last === "string" && last >= allowance.start) throw new Error("LIMIT");
-        tx.set(quota, { pending: attempt }, { merge: true });
+        tx.set(quota, { pending: attempt, pendingUntil: Date.now() + 10 * 60_000 }, { merge: true });
         tx.set(asset, { postId, status: "pending", attempt });
         return false;
       });
@@ -67,7 +67,7 @@ export function createPostArtRouter(db: Firestore, auth: Auth, bucketName?: stri
         await db.runTransaction(async tx => {
           const q = await tx.get(quota);
           if (q.get("pending") === attempt) {
-            tx.set(quota, { pending: null }, { merge: true });
+            tx.set(quota, { pending: null, pendingUntil: null }, { merge: true });
             tx.set(asset, { status: "failed" }, { merge: true });
           }
         });
@@ -78,13 +78,14 @@ export function createPostArtRouter(db: Firestore, auth: Auth, bucketName?: stri
       if (!encoded) throw new Error("EMPTY_IMAGE");
       const bytes = Buffer.from(encoded, "base64");
       if (bytes.length > 15 * 1024 * 1024 || !bytes.subarray(0, 8).equals(Buffer.from([137,80,78,71,13,10,26,10]))) throw new Error("INVALID_IMAGE");
-      await bucket().file(`users/${uid}/art/${id}.png`).save(bytes, { resumable: false, metadata: { contentType: "image/png", cacheControl: "private, no-store" } });
+      const objectPath = `users/${uid}/art/${id}/${attempt}.png`;
+      await bucket().file(objectPath).save(bytes, { resumable: false, metadata: { contentType: "image/png", cacheControl: "private, no-store" } });
       await db.runTransaction(async tx => {
         const q = await tx.get(quota);
         if (q.get("pending") !== attempt) throw new Error("BUSY");
         const createdAt = new Date().toISOString();
-        tx.set(asset, { postId, status: "ready", createdAt });
-        tx.set(quota, { pending: null, lastSuccess: createdAt }, { merge: true });
+        tx.set(asset, { postId, status: "ready", createdAt, objectPath });
+        tx.set(quota, { pending: null, pendingUntil: null, lastSuccess: createdAt }, { merge: true });
       });
       release = undefined;
       res.json({ id, postId });
