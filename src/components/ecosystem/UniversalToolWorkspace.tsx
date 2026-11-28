@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { FormattedResponse } from "./FormattedResponse";
 import {
   AlertCircle,
   ArrowRight,
@@ -104,6 +105,8 @@ export function UniversalToolWorkspace({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
+  const [editingOutput, setEditingOutput] = useState(false);
+  useEffect(() => { setEditingOutput(false); }, [appId, selectedToolId, editingAssetId]);
 
   const activeTool: EcosystemToolDefinition | undefined = useMemo(
     () => tools.find((t) => t.toolId === selectedToolId) || tools[0],
@@ -205,6 +208,7 @@ export function UniversalToolWorkspace({
       });
 
       const nextTitle = assetTitle.trim() || `${activeTool.name} (${new Date().toLocaleDateString()})`;
+      setEditingOutput(false);
       setSections(result.sections || {});
       setAssetTitle(nextTitle);
       setProvenance(result.provenance || activeTool.provenanceDefault);
@@ -584,18 +588,28 @@ export function UniversalToolWorkspace({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {compiledSectionList.map((sec) => (
-                    <div key={sec.key} className="space-y-1.5">
-                      <label className="block font-mono text-[11px] font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-400">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="text-base font-bold text-slate-950 dark:text-white">Your results</h3>
+                    <button type="button" aria-pressed={editingOutput} onClick={() => setEditingOutput(v => !v)}
+                      className="rounded-lg border border-slate-300 dark:border-zinc-700 px-3 py-2 text-sm font-semibold text-slate-800 dark:text-zinc-200">
+                      {editingOutput ? "Done editing" : "Edit report"}
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-zinc-400">AI-generated material can contain errors. Check claims against real evidence before making business decisions.</p>
+                  {compiledSectionList.map((sec, index) => (
+                    <section key={sec.key} className="min-w-0 rounded-xl border border-slate-200 dark:border-zinc-800 p-3 sm:p-4 space-y-3">
+                      <h3 className="text-base font-bold text-indigo-700 dark:text-indigo-300">
+                        <span className="mr-2 text-xs text-slate-500 dark:text-zinc-400">{String(index + 1).padStart(2, "0")}</span>
                         {sec.label}
-                      </label>
-                      <textarea
-                        rows={Math.min(10, Math.max(3, sec.value.split("\n").length + 1))}
+                      </h3>
+                      {editingOutput ? <textarea
+                        aria-label={sec.label}
+                        rows={Math.min(14, Math.max(5, sec.value.split("\n").length + 1))}
                         value={sec.value}
                         onChange={(e) => updateSection(sec.key, e.target.value)}
-                        className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-[#fafaf9] dark:bg-[#09090b] p-3 text-xs leading-relaxed text-slate-900 dark:text-zinc-100 focus:outline-none focus:border-indigo-500"
-                      />
-                    </div>
+                        className="w-full rounded-lg border border-slate-200 dark:border-zinc-800 bg-[#fafaf9] dark:bg-[#09090b] p-3 text-sm leading-relaxed text-slate-900 dark:text-zinc-100 focus:outline-none focus:border-indigo-500"
+                      /> : <FormattedResponse value={sec.value} />}
+                    </section>
                   ))}
 
                   {appId === "creatorworks" && (
@@ -646,7 +660,7 @@ export function UniversalToolWorkspace({
                       </button>
                     )}
 
-                    <div className="flex items-center gap-1 ml-auto">
+                    <div className="flex flex-wrap items-center gap-1">
                       {(["md", "txt", "html", "json"] as const).map((fmt) => (
                         <button
                           key={fmt}

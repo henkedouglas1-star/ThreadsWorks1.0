@@ -1,4 +1,5 @@
 import { auth } from "../firebase";
+import { reportToHtml } from "../utils/responsePresentation";
 
 async function getBearerHeaders(): Promise<Record<string, string>> {
   const user = auth?.currentUser;
@@ -113,7 +114,8 @@ export function exportStructuredAsset(
     .meta { font-size: 12px; color: #475569; margin-bottom: 28px; }
     section { margin-bottom: 24px; padding: 18px; border: 1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; }
     h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 0.05em; color: #4338ca; margin: 0 0 10px; }
-    pre { white-space: pre-wrap; font-family: inherit; margin: 0; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; }
+    h3 { margin: 16px 0 6px; } p { margin: 8px 0; white-space: pre-wrap; overflow-wrap: anywhere; } li { margin: 6px 0; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; overflow-wrap: anywhere; } @media print { body { margin: 0; } section { break-inside: auto; } h2,h3 { break-after: avoid; } }
   </style>
 </head>
 <body>
@@ -122,7 +124,7 @@ export function exportStructuredAsset(
   ${sections
     .map(
       (s) =>
-        `<section><h2>${escapeHtml(s.label)}</h2><pre>${escapeHtml(s.value)}</pre></section>`
+        `<section><h2>${escapeHtml(s.label)}</h2>${reportToHtml(s.value)}</section>`
     )
     .join("\n")}
 </body>

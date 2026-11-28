@@ -269,6 +269,7 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
         `You are executing the ContentPaysUs tool "${tool.name}" inside application "${appId}".`,
         `Tool Intent: ${tool.intent}`,
         `Instructions: ${tool.aiInstructions}`,
+        "PRESENTATION STANDARD: Write in clear everyday language for a first-time creator. Lead each section with its main takeaway, then use short paragraphs, concise bullets or numbered steps where useful. Use simple Markdown headings, bold emphasis, and tables only when they improve comprehension. Avoid repeated information, business jargon, invented facts, and excessive formatting. Preserve exact quotes and any requested technical or creative artifact. Distinguish user-supplied evidence from AI hypotheses; when evidence is missing, say so and suggest a practical way to check it. Keep the requested JSON keys and string values unchanged.",
         "OFFERING INTEGRITY RULE: Explicitly distinguish AVAILABLE offerings from PLANNED offerings. NEVER describe planned or in-development offerings as live, launched, or currently available for purchase. NEVER invent revenue, sales, customer counts, testimonials, or unverified metrics.",
         refinementInstruction,
         appId === "projectz"
