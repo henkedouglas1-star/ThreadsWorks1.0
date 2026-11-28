@@ -39,6 +39,9 @@ import {
   type VerifiedSaleCandidate
 } from "./ecosystemDomainLogic";
 import { getToolDefinition } from "../src/data/ecosystemToolRegistry";
+import { readMembershipAccess } from "./membershipAccessService";
+import { createMembershipCheckoutIntent } from "./membershipCheckoutIntent";
+import { createMembershipPortal } from "./membershipPortalService";
 
 interface AuthedCaller {
   uid: string;
@@ -96,6 +99,54 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
   // =========================================================================
   // 0. BUSINESS PROFILE & SHARED INTELLIGENCE HUB ROUTES (Commercial Foundation 1)
   // =========================================================================
+  // Scoped billing is read from server-owned subscription records only.
+  router.get("/memberships/access", async (req, res) => {
+    const caller = (req as any).caller as AuthedCaller;
+    res.set("Cache-Control", "no-store");
+    try {
+      return res.json({ ...await readMembershipAccess(db, caller.uid), checkoutEnabled: process.env.MEMBERSHIP_CHECKOUT_ENABLED === "true" });
+    } catch {
+      return res.status(503).json({ error: "Membership access could not be verified." });
+    }
+  });
+
+  router.post("/memberships/checkout", async (req, res) => {
+    const caller = (req as any).caller as AuthedCaller;
+    const planId = req.body?.planId;
+    if (planId !== "contentpaysclub" && planId !== "contentpaysbundle") {
+      return res.status(400).json({ error: "Choose a valid membership." });
+    }
+    if (process.env.MEMBERSHIP_CHECKOUT_ENABLED !== "true") {
+      return res.status(503).json({ error: "Membership checkout is not available yet." });
+    }
+    if (!checkAiRateLimit(caller.uid)) return res.status(429).json({ error: "Too many requests." });
+    res.set("Cache-Control", "no-store");
+    try {
+      const access = await readMembershipAccess(db, caller.uid);
+      if (access.planIds.includes(planId) || (planId === "contentpaysclub" && access.planIds.includes("contentpaysbundle"))) {
+        return res.status(409).json({ error: "Your membership already includes this access." });
+      }
+      return res.json(await createMembershipCheckoutIntent(db, caller.uid, planId));
+    } catch {
+      return res.status(503).json({ error: "Membership checkout could not be initialized." });
+    }
+  });
+
+  router.post("/memberships/portal", async (req, res) => {
+    const caller = (req as any).caller as AuthedCaller;
+    const planId = req.body?.planId;
+    res.set("Cache-Control", "no-store");
+    if (planId !== "contentpaysclub" && planId !== "contentpaysbundle") {
+      return res.status(400).json({ error: "Choose a valid membership." });
+    }
+    if (!checkAiRateLimit(caller.uid)) return res.status(429).json({ error: "Too many requests." });
+    try {
+      return res.json(await createMembershipPortal(db, caller.uid, planId));
+    } catch {
+      return res.status(503).json({ error: "Billing management is unavailable. Please contact support for help with your subscription." });
+    }
+  });
+
   router.get("/business-profile", async (req, res) => {
     const caller = (req as any).caller as AuthedCaller;
     const businessId = cleanString(req.query.businessId, 64) || DEFAULT_BUSINESS_ID;
@@ -304,7 +355,18 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
     }
 
     // Enforce monthly generation quota (Pro = unlimited, Free = 150/month)
-    const quota = await checkAndReserveGeneration(db, caller.uid, caller.email);
+    // A paid Bundle grants unlimited generations for included ecosystem tools.
+    // Club alone does not waive the application generation allowance.
+    // Preserve existing Free/ThreadsWorks Pro policy until the scoped rollout is complete.
+    let scopedAccess: Awaited<ReturnType<typeof readMembershipAccess>>;
+    try {
+      scopedAccess = await readMembershipAccess(db, caller.uid);
+    } catch {
+      return res.status(503).json({ error: "Membership access could not be verified." });
+    }
+    const quota = scopedAccess.appIds.includes(appId)
+      ? { allowed: true, isPro: true, reservationId: undefined, error: undefined, displayRemaining: "Unlimited — included in your membership" }
+      : await checkAndReserveGeneration(db, caller.uid, caller.email);
     if (!quota.allowed) {
       return res.status(403).json({
         error: quota.error || "Monthly AI generation allowance reached.",
