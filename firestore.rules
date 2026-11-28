@@ -388,6 +388,15 @@ service cloud.firestore {
       allow delete: if isOwnerResource();
     }
 
+    // Membership billing is exclusively server-owned. No client reads or writes;
+    // authenticated access is returned by the membership API.
+    match /membership_checkout_intents/{intentId} {
+      allow read, write: if false;
+    }
+    match /membership_subscriptions/{subscriptionId} {
+      allow read, write: if false;
+    }
+
     // ContentPaysUs Academy persistent progress (1 doc per user)
     match /academy_progress/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
