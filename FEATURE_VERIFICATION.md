@@ -152,3 +152,18 @@ Status: Pending = unverified; Partial = implementation or test coverage observed
 - [ ] Verify live workflows using authorized test accounts and Stripe test mode.
 - [ ] Verify named database rules and cross-account denial.
 - [ ] Review diffs and CI; obtain owner approval before merge or deployment.
+
+## Audit pass 2 — source findings
+
+Inspected main analytics blob `8708dd184c0e158b625425cbb2f96d3111740b91`.
+
+| Check | Status | Required evidence |
+|---|---|---|
+| GA4 consent | Failed source review | No initialization or event transmission before consent; revocation test |
+| Purchase verification | Failed source review | Server-verified Stripe payment and consent |
+| Durable deduplication | Failed source review | Replay and restart tests |
+| URL/referrer safety | Partial | Sensitive value and automatic collection tests |
+| Page views | Pending | SPA navigation and enhanced measurement deduplication |
+| Shared Projects | Blocked | Sync service, tests and named database configuration; deploy reviewed rules and test live |
+
+No tests executed in this pass. No feature checked off. Analytics implementation repairs remain on the separate release branch.
