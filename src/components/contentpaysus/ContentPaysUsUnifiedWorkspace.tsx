@@ -9,13 +9,16 @@ import {
   ExternalLink, 
   CheckCircle2, 
   Archive, 
+  RotateCcw,
   Edit3, 
   Trash2, 
   Shield, 
   User, 
   Zap, 
   ArrowRight,
-  Bookmark
+  Bookmark,
+  Loader2,
+  AlertCircle
 } from "lucide-react";
 import { db, withTimeout, handleFirestoreError, OperationType } from "../../firebase";
 import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
@@ -40,78 +43,143 @@ export function ContentPaysUsUnifiedWorkspace({
   const [activeSubTab, setActiveSubTab] = useState<"home" | "projects" | "applications" | "settings">("home");
   const [projects, setProjects] = useState<EcosystemProject[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
+  const [projectError, setProjectError] = useState<string | null>(null);
+  const [projectSuccessMessage, setProjectSuccessMessage] = useState<string | null>(null);
   
-  // New Project Modal state
-  const [showNewProjectModal, setShowNewProjectModal] = useState(false);
-  const [newProjectName, setNewProjectName] = useState("");
-  const [newProjectObjective, setNewProjectObjective] = useState("");
-  const [newProjectDescription, setNewProjectDescription] = useState("");
+  // Project Modal state (Create / Edit)
+  const [showProjectModal, setShowProjectModal] = useState(false);
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [projectName, setProjectName] = useState("");
+  const [projectObjective, setProjectObjective] = useState("");
+  const [projectDescription, setProjectDescription] = useState("");
+  const [projectStatus, setProjectStatus] = useState<"active" | "archived" | "completed">("active");
   const [selectedAppId, setSelectedAppId] = useState("threadsworks");
   const [submittingProject, setSubmittingProject] = useState(false);
 
-  // Load projects from Firestore
+  // Clear project state immediately when authenticated account changes (prevent stale async leakage)
   useEffect(() => {
-    if (!user) return;
+    if (!user || !user.uid) {
+      setProjects([]);
+      setLoadingProjects(false);
+      return;
+    }
+
+    let isMounted = true;
     const fetchProjects = async () => {
       setLoadingProjects(true);
+      setProjectError(null);
       try {
         const q = query(collection(db, "projects"), where("userId", "==", user.uid));
-        const snapshot = await withTimeout(getDocs(q), 4000, true);
+        const snapshot = await withTimeout(getDocs(q), 5000, true);
+        if (!isMounted) return; // Ignore stale asynchronous results if user changed
+        
         const list: EcosystemProject[] = [];
         snapshot.forEach((docSnap) => {
           list.push({ id: docSnap.id, ...docSnap.data() } as EcosystemProject);
         });
-        // Sort by updatedAt descending
         list.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
         setProjects(list);
-      } catch (err) {
+      } catch (err: any) {
+        if (!isMounted) return;
         console.warn("Failed to load ecosystem projects:", err);
+        setProjectError("Could not load projects. Please check your connection.");
       } finally {
-        setLoadingProjects(false);
+        if (isMounted) setLoadingProjects(false);
       }
     };
-    fetchProjects();
-  }, [user]);
 
-  const handleCreateProject = async (e: React.FormEvent) => {
+    fetchProjects();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.uid]);
+
+  const handleOpenCreateModal = () => {
+    setEditingProjectId(null);
+    setProjectName("");
+    setProjectObjective("");
+    setProjectDescription("");
+    setProjectStatus("active");
+    setSelectedAppId("threadsworks");
+    setProjectError(null);
+    setShowProjectModal(true);
+  };
+
+  const handleOpenEditModal = (proj: EcosystemProject) => {
+    setEditingProjectId(proj.id);
+    setProjectName(proj.name);
+    setProjectObjective(proj.objective);
+    setProjectDescription(proj.description || "");
+    setProjectStatus(proj.status);
+    setSelectedAppId(proj.associatedAppIds?.[0] || "threadsworks");
+    setProjectError(null);
+    setShowProjectModal(true);
+  };
+
+  const handleSaveProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !newProjectName.trim()) return;
+    if (!user || !projectName.trim()) return;
     setSubmittingProject(true);
+    setProjectError(null);
+    setProjectSuccessMessage(null);
+
     try {
       const now = new Date().toISOString();
-      const payload = {
-        userId: user.uid,
-        name: newProjectName.trim(),
-        objective: newProjectObjective.trim() || "Grow creator brand and monetize knowledge",
-        description: newProjectDescription.trim(),
-        status: "active" as const,
-        associatedAppIds: [selectedAppId],
-        createdAt: now,
-        updatedAt: now
-      };
-
-      const docRef = await withTimeout(addDoc(collection(db, "projects"), payload), 4000, true);
-      const newProj = { id: docRef.id, ...payload };
-      setProjects([newProj, ...projects]);
-      setNewProjectName("");
-      setNewProjectObjective("");
-      setNewProjectDescription("");
-      setShowNewProjectModal(false);
+      if (editingProjectId) {
+        // Edit existing project
+        const projRef = doc(db, "projects", editingProjectId);
+        const payload = {
+          name: projectName.trim(),
+          objective: projectObjective.trim() || "Grow creator brand and monetize knowledge",
+          description: projectDescription.trim(),
+          status: projectStatus,
+          associatedAppIds: [selectedAppId],
+          updatedAt: now
+        };
+        await withTimeout(updateDoc(projRef, payload), 4000, true);
+        setProjects(projects.map(p => p.id === editingProjectId ? { ...p, ...payload } : p));
+        setProjectSuccessMessage("Project updated successfully.");
+      } else {
+        // Create new project
+        const payload = {
+          userId: user.uid,
+          name: projectName.trim(),
+          objective: projectObjective.trim() || "Grow creator brand and monetize knowledge",
+          description: projectDescription.trim(),
+          status: "active" as const,
+          associatedAppIds: [selectedAppId],
+          createdAt: now,
+          updatedAt: now
+        };
+        const docRef = await withTimeout(addDoc(collection(db, "projects"), payload), 4000, true);
+        const newProj = { id: docRef.id, ...payload };
+        setProjects([newProj, ...projects]);
+        setProjectSuccessMessage("Project created successfully.");
+      }
+      setShowProjectModal(false);
+      setTimeout(() => setProjectSuccessMessage(null), 4000);
     } catch (err: any) {
-      console.error("Error creating project:", err);
-      handleFirestoreError(err, OperationType.CREATE, "projects");
+      console.error("Error saving project:", err);
+      setProjectError(err?.message || "Failed to save project due to security rules or network error.");
     } finally {
       setSubmittingProject(false);
     }
   };
 
-  const handleArchiveProject = async (projectId: string) => {
+  const handleToggleArchive = async (projectId: string, currentStatus: string) => {
+    const nextStatus = currentStatus === "archived" ? "active" : "archived";
+    setProjectError(null);
     try {
       const projRef = doc(db, "projects", projectId);
-      await updateDoc(projRef, { status: "archived", updatedAt: new Date().toISOString() });
-      setProjects(projects.map(p => p.id === projectId ? { ...p, status: "archived", updatedAt: new Date().toISOString() } : p));
-    } catch (err) {
-      console.warn("Failed to archive project:", err);
+      const now = new Date().toISOString();
+      await withTimeout(updateDoc(projRef, { status: nextStatus, updatedAt: now }), 4000, true);
+      setProjects(projects.map(p => p.id === projectId ? { ...p, status: nextStatus, updatedAt: now } : p));
+      setProjectSuccessMessage(nextStatus === "active" ? "Project restored to active." : "Project archived.");
+      setTimeout(() => setProjectSuccessMessage(null), 3000);
+    } catch (err: any) {
+      console.warn("Failed to update project status:", err);
+      setProjectError("Failed to update project status.");
     }
   };
 
@@ -162,6 +230,21 @@ export function ContentPaysUsUnifiedWorkspace({
           })}
         </div>
       </div>
+
+      {/* Success / Error Notification Banners */}
+      {projectSuccessMessage && (
+        <div className="flex items-center gap-2 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          <span>{projectSuccessMessage}</span>
+        </div>
+      )}
+
+      {projectError && (
+        <div className="flex items-center gap-2 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span>{projectError}</span>
+        </div>
+      )}
 
       {/* Tab 1: Home Dashboard */}
       {activeSubTab === "home" && (
@@ -253,7 +336,7 @@ export function ContentPaysUsUnifiedWorkspace({
             <button
               role="button"
               aria-label="Create New Ecosystem Project"
-              onClick={() => setShowNewProjectModal(true)}
+              onClick={handleOpenCreateModal}
               className="px-5 py-3 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 flex items-center gap-2 cursor-pointer"
             >
               <Plus className="h-4 w-4" /> New Project
@@ -262,7 +345,10 @@ export function ContentPaysUsUnifiedWorkspace({
 
           {/* Project List */}
           {loadingProjects ? (
-            <div className="text-center py-12 text-xs text-slate-400">Loading ecosystem projects...</div>
+            <div className="flex flex-col items-center justify-center py-16 gap-3">
+              <Loader2 className="h-6 w-6 text-indigo-400 animate-spin" />
+              <span className="text-xs text-slate-400 font-medium">Loading ecosystem projects...</span>
+            </div>
           ) : projects.length === 0 ? (
             <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-12 text-center space-y-4">
               <FolderKanban className="h-10 w-10 text-slate-600 mx-auto" />
@@ -271,7 +357,7 @@ export function ContentPaysUsUnifiedWorkspace({
               <button
                 role="button"
                 aria-label="Create Your First Project"
-                onClick={() => setShowNewProjectModal(true)}
+                onClick={handleOpenCreateModal}
                 className="px-4 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 text-white cursor-pointer inline-flex items-center gap-1.5"
               >
                 <Plus className="h-3.5 w-3.5" /> Create Project
@@ -302,51 +388,71 @@ export function ContentPaysUsUnifiedWorkspace({
 
                   <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
-                      {proj.associatedAppIds.map(appId => (
+                      {proj.associatedAppIds?.map(appId => (
                         <span key={appId} className="px-2 py-1 rounded bg-slate-800 text-slate-300 text-[10px] font-semibold uppercase">
                           {appId}
                         </span>
                       ))}
                     </div>
-                    {proj.status === "active" && (
+                    <div className="flex items-center gap-3">
                       <button
                         role="button"
-                        aria-label={`Archive project ${proj.name}`}
-                        onClick={() => handleArchiveProject(proj.id)}
-                        className="text-xs text-slate-400 hover:text-rose-400 flex items-center gap-1 cursor-pointer"
+                        aria-label={`Edit project ${proj.name}`}
+                        onClick={() => handleOpenEditModal(proj)}
+                        className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 cursor-pointer font-semibold"
                       >
-                        <Archive className="h-3.5 w-3.5" /> Archive
+                        <Edit3 className="h-3.5 w-3.5" /> Edit
                       </button>
-                    )}
+                      <button
+                        role="button"
+                        aria-label={`${proj.status === "archived" ? "Restore" : "Archive"} project ${proj.name}`}
+                        onClick={() => handleToggleArchive(proj.id, proj.status)}
+                        className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1 cursor-pointer font-semibold"
+                      >
+                        {proj.status === "archived" ? (
+                          <>
+                            <RotateCcw className="h-3.5 w-3.5 text-emerald-400" /> Restore
+                          </>
+                        ) : (
+                          <>
+                            <Archive className="h-3.5 w-3.5 text-rose-400" /> Archive
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           )}
 
-          {/* New Project Modal */}
-          {showNewProjectModal && (
+          {/* Project Modal (Create & Edit) */}
+          {showProjectModal && (
             <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
               <div className="rounded-3xl border border-slate-800 bg-slate-900 p-8 max-w-lg w-full shadow-2xl space-y-6">
-                <h3 className="text-lg font-bold text-white">Create Ecosystem Project</h3>
-                <form onSubmit={handleCreateProject} className="space-y-4">
+                <h3 className="text-lg font-bold text-white">
+                  {editingProjectId ? "Edit Ecosystem Project" : "Create Ecosystem Project"}
+                </h3>
+                <form onSubmit={handleSaveProject} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">Project Name</label>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Project Name (max 100 chars)</label>
                     <input
                       type="text"
                       required
-                      value={newProjectName}
-                      onChange={(e) => setNewProjectName(e.target.value)}
+                      maxLength={100}
+                      value={projectName}
+                      onChange={(e) => setProjectName(e.target.value)}
                       placeholder="e.g. Q4 Creator Knowledge Monetization"
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">Primary Objective</label>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">Primary Objective (max 200 chars)</label>
                     <input
                       type="text"
-                      value={newProjectObjective}
-                      onChange={(e) => setNewProjectObjective(e.target.value)}
+                      maxLength={200}
+                      value={projectObjective}
+                      onChange={(e) => setProjectObjective(e.target.value)}
                       placeholder="e.g. Launch PDF playbook and grow Threads audience"
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
                     />
@@ -354,32 +460,46 @@ export function ContentPaysUsUnifiedWorkspace({
                   <div>
                     <label className="block text-xs font-bold text-slate-300 mb-1">Description (Optional)</label>
                     <textarea
-                      value={newProjectDescription}
-                      onChange={(e) => setNewProjectDescription(e.target.value)}
+                      value={projectDescription}
+                      onChange={(e) => setProjectDescription(e.target.value)}
                       placeholder="Brief notes or scope..."
                       rows={3}
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-indigo-500"
                     />
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">Primary Associated App</label>
-                    <select
-                      value={selectedAppId}
-                      onChange={(e) => setSelectedAppId(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
-                    >
-                      <option value="threadsworks">ThreadsWorks (Attention)</option>
-                      <option value="productworks">ProductWorks (Monetization)</option>
-                      <option value="creatorworks">CreatorWorks (Foundation)</option>
-                      <option value="offerworks">OfferWorks (Monetization)</option>
-                    </select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">Primary Associated App</label>
+                      <select
+                        value={selectedAppId}
+                        onChange={(e) => setSelectedAppId(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                      >
+                        <option value="threadsworks">ThreadsWorks (Attention)</option>
+                        <option value="productworks">ProductWorks (Monetization)</option>
+                        <option value="creatorworks">CreatorWorks (Foundation)</option>
+                        <option value="offerworks">OfferWorks (Monetization)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">Status</label>
+                      <select
+                        value={projectStatus}
+                        onChange={(e) => setProjectStatus(e.target.value as any)}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                      >
+                        <option value="active">Active</option>
+                        <option value="archived">Archived</option>
+                        <option value="completed">Completed</option>
+                      </select>
+                    </div>
                   </div>
                   <div className="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
                     <button
                       type="button"
                       role="button"
-                      aria-label="Cancel new project creation"
-                      onClick={() => setShowNewProjectModal(false)}
+                      aria-label="Cancel project operation"
+                      onClick={() => setShowProjectModal(false)}
                       className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer"
                     >
                       Cancel
@@ -389,9 +509,10 @@ export function ContentPaysUsUnifiedWorkspace({
                       role="button"
                       aria-label="Save ecosystem project"
                       disabled={submittingProject}
-                      className="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 cursor-pointer disabled:opacity-50"
+                      className="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
                     >
-                      {submittingProject ? "Creating..." : "Create Project"}
+                      {submittingProject && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                      {editingProjectId ? "Save Changes" : "Create Project"}
                     </button>
                   </div>
                 </form>

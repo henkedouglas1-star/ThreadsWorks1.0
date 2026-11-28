@@ -170,10 +170,28 @@ service cloud.firestore {
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
       allow read, update, delete: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid);
     }
-    // Shared Creator Projects - verified user ownership
+    // Shared Creator Projects - hardened validation & ownership immutability
     match /projects/{projectId} {
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow read, update, delete: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid);
+      allow read: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if request.auth != null 
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.name is string 
+                    && request.resource.data.name.size() > 0 
+                    && request.resource.data.name.size() <= 100
+                    && request.resource.data.objective is string
+                    && request.resource.data.objective.size() <= 200
+                    && request.resource.data.status in ['active', 'archived', 'completed'];
+      allow update: if request.auth != null 
+                    && resource != null 
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.userId == resource.data.userId
+                    && request.resource.data.name is string 
+                    && request.resource.data.name.size() > 0 
+                    && request.resource.data.name.size() <= 100
+                    && request.resource.data.status in ['active', 'archived', 'completed'];
+      allow delete: if request.auth != null 
+                    && resource != null 
+                    && resource.data.userId == request.auth.uid;
     }
   }
 }
