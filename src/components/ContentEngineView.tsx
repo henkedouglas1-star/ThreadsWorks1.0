@@ -1,3 +1,4 @@
+import { PostArt } from "./PostArt";
 import React, { useState, useRef, useEffect } from "react";
 import { UserProfile, ContentPillar, CreationMode, ContentActionType, CreationContext } from "../types";
 import { auth, db, withTimeout, handleFirestoreError, OperationType, sanitizeForFirestore } from "../firebase";
@@ -3078,6 +3079,7 @@ export default function ContentEngineView({ profile, onNavigateToTab, onRefreshP
                   id={`generated-post-card-${index}`}
                   className="rounded-2xl border border-border-primary bg-bg-card overflow-hidden shadow-sm transition hover:border-border-secondary space-y-0"
                 >
+                  <PostArt postId={post.id} text={(post.threadParts || [post.singlePost || ""]).join("\n\n")} />
                   {/* Card Header */}
                   <div className="flex items-center justify-between border-b border-border-primary bg-bg-card p-4 select-none">
                     <div className="flex items-center gap-2.5">
