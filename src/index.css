@@ -2,7 +2,7 @@
 @custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --color-brand-purple: #8b5cf6;
   --color-brand-purple-hover: #7c3aed;
@@ -261,35 +261,10 @@ textarea::placeholder {
   background: var(--text-muted);
 }
 
-/* Global design alignment: Center all text content */
-h1, h2, h3, h4, h5, h6, p, label, .text-center-global {
-  text-align: center !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-}
-
-/* Ensure list items are centered with bullets flowing inside nicely */
-li {
-  text-align: center !important;
-  list-style-position: inside !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-}
-
-/* Apply default text-center inheritance on body */
-body {
-  text-align: center;
-}
-
-/* Keep inputs, selects, textareas, and code blocks aligned as designed */
-input, textarea, select, pre, code {
-  text-align: left;
-}
-
-/* Buttons keep default centering alignment for their internal elements */
-button {
-  text-align: center;
-}
+/* Workspace reading and editing remain naturally aligned. */
+body { text-align: left; }
+button { text-align: center; }
+.text-center-global { text-align: center; }
 
 /* Hide scrollbar utility for clean mobile horizontal tab scrolling */
 .no-scrollbar::-webkit-scrollbar,
@@ -305,7 +280,7 @@ button {
 /* Scoped editorial alignment for the ContentPaysUs public website (preserves workspace defaults) */
 .cpu-public-site {
   text-align: left;
-  font-family: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
 }
 
 .cpu-public-site h1,
@@ -338,3 +313,7 @@ button {
   margin-right: auto !important;
 }
 
+
+.cpu-public-site .cpu-center h1,
+.cpu-public-site .cpu-center h2 { text-wrap: balance; }
+.cpu-public-site .cpu-center p { text-wrap: pretty; }

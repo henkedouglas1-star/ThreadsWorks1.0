@@ -251,12 +251,12 @@ export function ContentPaysUsHome({
           className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(ellipse_75%_60%_at_50%_-10%,rgba(79,70,229,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_75%_60%_at_50%_-10%,rgba(99,102,241,0.22),transparent_70%)]"
         />
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 sm:pt-24 sm:pb-28">
-          <div className="max-w-3xl">
+          <div className="cpu-center max-w-3xl mx-auto">
             <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700 dark:text-indigo-400">
               ContentPaysUs · Home of ThreadsWorks
             </p>
 
-            <h1 className="mt-5 text-[clamp(2.5rem,5.2vw,4.25rem)] font-extrabold tracking-tight text-slate-950 dark:text-white leading-[1.06]">
+            <h1 className="mt-5 text-[clamp(2.5rem,5.2vw,4.25rem)] font-bold tracking-tight text-slate-950 dark:text-white leading-[1.06]">
               Turn your ideas into Threads content.
             </h1>
 
@@ -312,7 +312,7 @@ export function ContentPaysUsHome({
             <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700 dark:text-indigo-400">
               Start with your goal
             </p>
-            <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+            <h2 className="mt-3 text-3xl sm:text-4xl font-bold tracking-tight text-slate-950 dark:text-white">
               What are you trying to accomplish?
             </h2>
             <p className="mt-3 text-base leading-relaxed text-slate-600 dark:text-zinc-400">
@@ -369,11 +369,11 @@ export function ContentPaysUsHome({
       {/* 3. CONNECTED CREATOR JOURNEY — 8 Stages */}
       <section id="journey" className="bg-[#fafaf9] dark:bg-[#09090b]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-18 sm:py-24">
-          <div className="max-w-3xl">
+          <div className="cpu-center max-w-3xl mx-auto">
             <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700 dark:text-indigo-400">
               The Connected Creator Journey
             </p>
-            <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+            <h2 className="mt-3 text-3xl sm:text-4xl font-bold tracking-tight text-slate-950 dark:text-white">
               Learn → Identify → Build → Attract → Connect → Sell → Deliver → Grow
             </h2>
             <p className="mt-3 text-base leading-relaxed text-slate-600 dark:text-zinc-400">
@@ -435,7 +435,7 @@ export function ContentPaysUsHome({
                   </span>
                 </div>
 
-                <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+                <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-950 dark:text-white">
                   {currentStage.name}
                 </h3>
 
@@ -482,11 +482,11 @@ export function ContentPaysUsHome({
       {/* 3B. PERMANENT 3-CATEGORY ECOSYSTEM DIRECTORY PREVIEW */}
       <section id="ecosystem-categories" className="bg-white dark:bg-[#0c0c0f]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-18 sm:pt-24 pb-8">
-          <div className="max-w-3xl">
+          <div className="cpu-center max-w-3xl mx-auto">
             <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700 dark:text-indigo-400">
               20 Specialized Applications · 3 Permanent Categories
             </p>
-            <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+            <h2 className="mt-3 text-3xl sm:text-4xl font-bold tracking-tight text-slate-950 dark:text-white">
               Switch seamlessly across Create &amp; Sell, Connect &amp; Grow, and Automate &amp; Scale.
             </h2>
             <p className="mt-3 text-base leading-relaxed text-slate-600 dark:text-zinc-400">
@@ -545,7 +545,7 @@ export function ContentPaysUsHome({
               <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700 dark:text-indigo-400">
                 Why ThreadsWorks &amp; ContentPaysUs belong together
               </p>
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-950 dark:text-white">
                 It started with a thread.
               </h2>
 
@@ -646,11 +646,11 @@ export function ContentPaysUsHome({
       <section id="mission" className="bg-[#fafaf9] dark:bg-[#09090b]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-18 sm:py-24">
           <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-8 sm:p-12 lg:p-14">
-            <div className="max-w-3xl">
+            <div className="cpu-center max-w-3xl mx-auto">
               <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700 dark:text-indigo-400">
                 Our Mission
               </p>
-              <h2 className="mt-3 text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-950 dark:text-white leading-[1.08]">
+              <h2 className="mt-3 text-3xl sm:text-5xl font-bold tracking-tight text-slate-950 dark:text-white leading-[1.08]">
                 1,000 creators. 1,000 first sales.
               </h2>
               <p className="mt-5 text-lg sm:text-xl leading-relaxed text-slate-700 dark:text-zinc-300">
@@ -682,7 +682,7 @@ export function ContentPaysUsHome({
                 </span>
               </div>
 
-              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-950 dark:text-white">
                 Learn for free. Build with AI. Grow together.
               </h2>
 
@@ -753,7 +753,7 @@ export function ContentPaysUsHome({
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-18 sm:py-24">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-8 sm:p-12">
             <div className="max-w-2xl">
-              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-950 dark:text-white">
                 Start creating today with ThreadsWorks. Grow into ContentPaysUs.
               </h2>
               <p className="mt-3 text-base leading-relaxed text-slate-600 dark:text-zinc-400">
