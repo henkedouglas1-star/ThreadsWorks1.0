@@ -1,6 +1,6 @@
 import type { Firestore } from "firebase-admin/firestore";
 import { configuredMembershipPrices, resolvePaidMembership, validateMembershipCheckout } from "./membershipPaymentService";
-import { MEMBERSHIP_INTENT_COLLECTION } from "./membershipCheckoutIntent";
+import { MEMBERSHIP_INTENT_COLLECTION, membershipLinkId } from "./membershipCheckoutIntent";
 
 export const MEMBERSHIP_SUBSCRIPTIONS = "membership_subscriptions";
 const validId = (value: unknown, prefix: string): value is string =>
@@ -16,7 +16,7 @@ export async function handleMembershipEvent(db: Firestore, stripe: any, event: a
   if (!checkout && !lifecycle) return false;
   const subscriptionId = type.startsWith("customer.subscription.") ? obj?.id : obj?.subscription;
   const scopedRef = checkout && typeof obj?.client_reference_id === "string" && obj.client_reference_id.startsWith("mbr_");
-  const linkIds = [process.env.STRIPE_CLUB_PAYMENT_LINK_ID, process.env.STRIPE_BUNDLE_PAYMENT_LINK_ID].filter(Boolean);
+  const linkIds = [membershipLinkId("contentpaysclub"), membershipLinkId("contentpaysbundle")].filter(Boolean);
   const knownLink = checkout && linkIds.includes(obj?.payment_link);
   if (!validId(subscriptionId, "sub_")) return Boolean(scopedRef || knownLink);
   const record = db.collection(MEMBERSHIP_SUBSCRIPTIONS).doc(subscriptionId);
