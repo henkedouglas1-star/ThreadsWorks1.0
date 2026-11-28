@@ -179,3 +179,14 @@ No tests executed in this pass. No feature checked off. Analytics implementation
 - Library component exists; CRUD and persistence pending deeper review.
 
 No application code changed or tests executed; no features marked working.
+
+## Audit pass 4 — backend security (priority release blockers)
+
+Source: `server.ts` blob `36638f5d357531d1e53e14fab8fe4879cee69837` and `server/generationLimitService.ts` on main.
+
+- P0: generation guard and usage endpoint catch authentication failures and fall back to request-supplied identity/email. Server entitlement service matches email prefixes and defaults to Pro on certain quota errors. Require authenticated identity, verified entitlement and safe failure; test spoofed identities, account mismatch and backend failure.
+- P0 investigation: Threads permissions and publishing handlers access stored credentials using supplied userId without an evident handler-entry ownership check. Review upstream middleware before concluding exploitability. Require authenticated ownership and negative integration tests before release. Do not test against real third-party accounts.
+- Cancellation handler verifies identity and invokes transactional cancellation; no-database fallback requires ownership review. Test cancellation/dispatch races and fallback isolation.
+- Server and client both define 150 monthly generations; reconcile intended product policy before changing.
+
+No tests executed; no live exploit attempted; no application code changed. Findings are source-level, not proof of production exploitability.
