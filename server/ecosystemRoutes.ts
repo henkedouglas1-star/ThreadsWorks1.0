@@ -38,6 +38,8 @@ import {
   type VerifiedSaleCandidate
 } from "./ecosystemDomainLogic";
 import { getToolDefinition } from "../src/data/ecosystemToolRegistry";
+import { readMembershipAccess } from "./membershipAccessService";
+import { createMembershipCheckoutIntent } from "./membershipCheckoutIntent";
 
 interface AuthedCaller {
   uid: string;
@@ -95,6 +97,39 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
   // =========================================================================
   // 0. BUSINESS PROFILE & SHARED INTELLIGENCE HUB ROUTES (Commercial Foundation 1)
   // =========================================================================
+  // Scoped billing is read from server-owned subscription records only.
+  router.get("/memberships/access", async (req, res) => {
+    const caller = (req as any).caller as AuthedCaller;
+    res.set("Cache-Control", "no-store");
+    try {
+      return res.json(await readMembershipAccess(db, caller.uid));
+    } catch {
+      return res.status(503).json({ error: "Membership access could not be verified." });
+    }
+  });
+
+  router.post("/memberships/checkout", async (req, res) => {
+    const caller = (req as any).caller as AuthedCaller;
+    const planId = req.body?.planId;
+    if (planId !== "contentpaysclub" && planId !== "contentpaysbundle") {
+      return res.status(400).json({ error: "Choose a valid membership." });
+    }
+    if (process.env.MEMBERSHIP_CHECKOUT_ENABLED !== "true") {
+      return res.status(503).json({ error: "Membership checkout is not available yet." });
+    }
+    if (!checkAiRateLimit(caller.uid)) return res.status(429).json({ error: "Too many requests." });
+    res.set("Cache-Control", "no-store");
+    try {
+      const access = await readMembershipAccess(db, caller.uid);
+      if (access.planIds.includes(planId) || (planId === "contentpaysclub" && access.planIds.includes("contentpaysbundle"))) {
+        return res.status(409).json({ error: "Your membership already includes this access." });
+      }
+      return res.json(await createMembershipCheckoutIntent(db, caller.uid, planId));
+    } catch {
+      return res.status(503).json({ error: "Membership checkout could not be initialized." });
+    }
+  });
+
   router.get("/business-profile", async (req, res) => {
     const caller = (req as any).caller as AuthedCaller;
     const businessId = cleanString(req.query.businessId, 64) || DEFAULT_BUSINESS_ID;
