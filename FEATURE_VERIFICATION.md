@@ -167,3 +167,15 @@ Inspected main analytics blob `8708dd184c0e158b625425cbb2f96d3111740b91`.
 | Shared Projects | Blocked | Sync service, tests and named database configuration; deploy reviewed rules and test live |
 
 No tests executed in this pass. No feature checked off. Analytics implementation repairs remain on the separate release branch.
+
+## Audit pass 3 — publishing and membership
+
+- `src/utils/threadsApi.ts` exposes connection verification, OAuth and publish APIs. Live authorization and publishing pending.
+- `src/components/CalendarView.tsx` calls dispatch-due, dedicated cancel and unschedule-all endpoints. Server atomicity and cancellation race tests pending.
+- `src/utils/contentLimit.ts` blob `c2b71b2dd2ef0daedb6a7dd3d07185241893b9e3` sets free monthly generation limit to 150 and daily scheduling limit to 5. Reconcile with intended 60 posts/month policy; clarify generation versus post units and verify backend enforcement before changing constants.
+- Generation usage cache uses a shared localStorage key and reads without matching stored userId. Account-switch isolation and server-authoritative quota tests required.
+- Client entitlement helper matches email local parts to privileged usernames. Verify server entitlement checks use authenticated identity and cannot grant access based on an unrelated email domain or mutable profile.
+- Pro unlimited scheduling and generation branches exist; billing and server enforcement pending.
+- Library component exists; CRUD and persistence pending deeper review.
+
+No application code changed or tests executed; no features marked working.
