@@ -544,6 +544,29 @@ export function planEightPostAiDecideParts(
   });
 }
 
+export function planSmallBatchAiDecideParts(
+  assignments: SlotDiversityAssignment[],
+  writingPlan: WritingLengthPlan
+): SlotDiversityAssignment[] {
+  if (![4, 7].includes(assignments.length) || writingPlan.partCountMode === "explicit" || writingPlan.maxParts < 2) return assignments;
+  let singles = 0;
+  const min = Math.max(1, writingPlan.minParts);
+  const max = Math.max(min, writingPlan.maxParts);
+  return assignments.map(slot => {
+    let target = Math.max(min, Math.min(max, slot.targetParts ?? writingPlan.recommendedParts));
+    if (target === 1 && ++singles > 1) target = Math.max(2, min);
+    return {
+      ...slot,
+      targetParts: target,
+      minParts: min,
+      maxParts: max,
+      structuralShape: shapeForPartCount(target),
+      editorialStructure: resolveEditorialStructure(slot.lensId, target),
+      shapeGuidance: describeSlotShape(target, writingPlan, slot.lensId)
+    };
+  });
+}
+
 export function planBatchSlots(params: {
   count: number;
   ledger: RollingDiversityLedger;
