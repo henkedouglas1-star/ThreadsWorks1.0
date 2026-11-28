@@ -5,6 +5,7 @@ import {
   PublicMarketingRoute,
   SITE_NAME
 } from "../marketing/marketingRoutes";
+import PageShareButton from "./PageShareButton";
 
 export interface PublicMarketingPageProps {
   route: PublicMarketingRoute;
@@ -101,31 +102,39 @@ export default function PublicMarketingPage({
             >
               Start Creating Free
             </a>
+            <div className="hidden md:inline-flex">
+              <PageShareButton />
+            </div>
           </div>
         </div>
 
         {/* Mobile Navigation */}
-        <nav
-          aria-label="Product pages"
-          className="flex md:hidden items-center gap-4 overflow-x-auto border-t border-zinc-900 px-4 py-2.5 text-xs"
-        >
-          {HEADER_NAV_ROUTES.map((item) => {
-            const isActive = item.path === route.path;
-            return (
-              <a
-                key={item.path}
-                href={item.path}
-                onClick={(e) => handleLinkClick(e, item.path)}
-                aria-current={isActive ? "page" : undefined}
-                className={`whitespace-nowrap font-medium ${
-                  isActive ? "text-purple-300" : "text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                {item.navLabel}
-              </a>
-            );
-          })}
-        </nav>
+        <div className="flex md:hidden items-center border-t border-zinc-900 px-4">
+          <nav
+            aria-label="Product pages"
+            className="flex min-w-0 flex-1 items-center gap-4 overflow-x-auto py-2.5 text-xs"
+          >
+            {HEADER_NAV_ROUTES.map((item) => {
+              const isActive = item.path === route.path;
+              return (
+                <a
+                  key={item.path}
+                  href={item.path}
+                  onClick={(e) => handleLinkClick(e, item.path)}
+                  aria-current={isActive ? "page" : undefined}
+                  className={`whitespace-nowrap font-medium ${
+                    isActive ? "text-purple-300" : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                >
+                  {item.navLabel}
+                </a>
+              );
+            })}
+          </nav>
+          <div className="ml-3 shrink-0 border-l border-zinc-800 pl-3">
+            <PageShareButton />
+          </div>
+        </div>
       </header>
 
       {/* Main Semantic Document Body */}

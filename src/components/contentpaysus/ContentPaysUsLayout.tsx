@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Menu, X, Sun, Moon, ArrowRight } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
+import PageShareButton from "../PageShareButton";
 
 interface ContentPaysUsLayoutProps {
   currentRoute: string;
@@ -102,6 +103,7 @@ export function ContentPaysUsLayout({
 
           {/* Right: Theme Toggle + Auth / Primary CTA */}
           <div className="hidden md:flex items-center gap-3 shrink-0">
+            <PageShareButton />
             <button
               type="button"
               onClick={toggleTheme}
@@ -145,6 +147,7 @@ export function ContentPaysUsLayout({
 
           {/* Mobile Controls */}
           <div className="flex md:hidden items-center gap-2">
+            <PageShareButton />
             <button
               type="button"
               onClick={toggleTheme}
