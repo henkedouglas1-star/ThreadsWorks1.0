@@ -47,6 +47,10 @@ import {
   formatIntelligentMemoryBrainPrompt
 } from "./server/contentMemoryService";
 import {
+  retrieveSharedIntelligenceContext,
+  contributeSharedIntelligence
+} from "./server/sharedIntelligenceService";
+import {
   getOrBuildGenerationIntelligenceSnapshot,
   updateGenerationIntelligenceSnapshot,
   recordGeneratedBatchInSnapshot,
@@ -12211,6 +12215,60 @@ async function main() {
         }
       }
     }));
+
+  app.post("/api/intelligence/context", async (req: express.Request, res: express.Response) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ error: "Missing or invalid authorization token" });
+      }
+      const token = authHeader.split("Bearer ")[1];
+      const decodedToken = await getAuth().verifyIdToken(token);
+      const userId = decodedToken.uid;
+
+      const { appId, projectId, taskType, domains } = req.body;
+      const context = await retrieveSharedIntelligenceContext({
+        userId,
+        appId: appId || "threadsworks",
+        projectId,
+        taskType: taskType || "content_generation",
+        domains
+      });
+      return res.json({ success: true, context });
+    } catch (err: any) {
+      console.error("[API_INTELLIGENCE_CONTEXT_ERROR]", err);
+      return res.status(500).json({ error: err?.message || "Failed to retrieve shared intelligence context" });
+    }
+  });
+
+  app.post("/api/intelligence/contribute", async (req: express.Request, res: express.Response) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ error: "Missing or invalid authorization token" });
+      }
+      const token = authHeader.split("Bearer ")[1];
+      const decodedToken = await getAuth().verifyIdToken(token);
+      const userId = decodedToken.uid;
+
+      const { sourceAppId, projectId, category, factType, data, evidence, confidence } = req.body;
+      const result = await contributeSharedIntelligence({
+        userId,
+        sourceAppId: sourceAppId || "threadsworks",
+        projectId,
+        category,
+        factType,
+        data,
+        evidence,
+        confidence
+      });
+      return res.json(result);
+    } catch (err: any) {
+      console.error("[API_INTELLIGENCE_CONTRIBUTE_ERROR]", err);
+      return res.status(500).json({ error: err?.message || "Failed to contribute shared intelligence" });
+    }
+  });
+
     app.get("*", (req, res) => {
       // Never return HTML for static assets or API paths that were not found
       if (
