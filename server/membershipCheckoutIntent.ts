@@ -3,11 +3,13 @@ import type { Firestore } from "firebase-admin/firestore";
 import { MEMBERSHIP_PLANS } from "../src/data/membershipCatalog";
 import { configuredMembershipPrices, type NewMembershipId } from "./membershipPaymentService";
 
+import { MEMBERSHIP_STRIPE_IDS } from "./membershipStripeConfig";
+
 export const MEMBERSHIP_INTENT_COLLECTION = "membership_checkout_intents";
 const INTENT_TTL_MS = 30 * 60 * 1000;
 
 export function membershipLinkId(planId: NewMembershipId): string | undefined {
-  return planId === "contentpaysclub" ? process.env.STRIPE_CLUB_PAYMENT_LINK_ID : process.env.STRIPE_BUNDLE_PAYMENT_LINK_ID;
+  return (planId === "contentpaysclub" ? process.env.STRIPE_CLUB_PAYMENT_LINK_ID : process.env.STRIPE_BUNDLE_PAYMENT_LINK_ID)?.trim() || MEMBERSHIP_STRIPE_IDS[planId].paymentLinkId;
 }
 
 // Call only after authenticating the user server-side. Never accept a UID,
