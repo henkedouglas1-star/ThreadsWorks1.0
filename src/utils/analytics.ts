@@ -4,40 +4,18 @@
  */
 
 const PRODUCTION_MEASUREMENT_ID = "G-YCBF49G2KY";
-const processedTransactions = new Set<string>();
 let isInitialized = false;
 
 export function getMeasurementId(): string {
   const envId = (import.meta as any).env?.VITE_GA_TRACKING_ID;
-  if (envId && typeof envId === "string" && envId.trim() !== "" && envId !== "G-XXXXXXXXXX" && envId !== "YOUR_GA_ID") {
-    let formatted = envId.trim();
-    if (!formatted.startsWith("G-") && !formatted.startsWith("GTM-") && !formatted.startsWith("UA-")) {
-      formatted = "G-" + formatted;
-    }
-    return formatted;
-  }
+  if (typeof envId === "string" && /^G-[A-Z0-9]{10}$/.test(envId.trim()) && envId.trim() !== "G-XXXXXXXXXX") return envId.trim();
   return PRODUCTION_MEASUREMENT_ID;
 }
 
 export function shouldInitializeAnalytics(): boolean {
   if (typeof window === "undefined") return false;
-  if ((import.meta as any).env?.MODE === "test" || (import.meta as any).env?.VITEST) {
-    return true;
-  }
-  const hostname = window.location.hostname || "";
-  if (
-    hostname === "localhost" ||
-    hostname === "127.0.0.1" ||
-    hostname.endsWith(".run.app") ||
-    hostname.includes("ais-dev") ||
-    hostname.includes("ais-pre")
-  ) {
-    return false;
-  }
-  const isThreadsworksDomain = hostname === "threadsworks.com" || hostname === "www.threadsworks.com" || hostname.endsWith("threadsworks.com");
-  const hasValidEnvOverride = Boolean((import.meta as any).env?.VITE_GA_TRACKING_ID && (import.meta as any).env?.VITE_GA_TRACKING_ID.trim() !== "" && (import.meta as any).env?.VITE_GA_TRACKING_ID !== "G-XXXXXXXXXX");
-
-  return isThreadsworksDomain || hasValidEnvOverride || (import.meta as any).env?.PROD;
+  const hostname = window.location.hostname;
+  return Boolean((import.meta as any).env?.PROD && (hostname === "threadsworks.com" || hostname === "www.threadsworks.com"));
 }
 
 export function initGoogleAnalytics(): void {
@@ -70,7 +48,8 @@ export function initGoogleAnalytics(): void {
     gtag("js", new Date());
     gtag("config", measurementId, {
       page_path: window.location.pathname,
-      send_page_view: true
+      send_page_view: false,
+      page_location: window.location.origin + window.location.pathname
     });
 
     isInitialized = true;
@@ -84,32 +63,13 @@ export function initGoogleAnalytics(): void {
  * Sanitizes event parameters to strictly prevent PII (emails, tokens, passwords, private content).
  */
 function sanitizeParams(params: Record<string, any>): Record<string, any> {
-  const sanitized: Record<string, any> = {};
-  for (const [key, val] of Object.entries(params)) {
-    if (val === undefined || val === null) continue;
-    const lowerKey = key.toLowerCase();
-    if (
-      lowerKey.includes("email") ||
-      lowerKey.includes("password") ||
-      lowerKey.includes("token") ||
-      lowerKey.includes("secret") ||
-      lowerKey.includes("key") ||
-      lowerKey.includes("auth") ||
-      lowerKey.includes("credential") ||
-      lowerKey.includes("content") ||
-      lowerKey.includes("text")
-    ) {
-      continue;
-    }
-    if (typeof val === "string") {
-      sanitized[key] = val.slice(0, 200);
-    } else if (typeof val === "number" || typeof val === "boolean") {
-      sanitized[key] = val;
-    } else {
-      sanitized[key] = String(val).slice(0, 100);
-    }
-  }
-  return sanitized;
+  const safe: Record<string, any> = {};
+  if (typeof params.page_path === "string" && /^\/[a-z0-9/-]*$/i.test(params.page_path)) safe.page_path = params.page_path;
+  if (["google", "password", "email"].includes(params.method)) safe.method = params.method;
+  if (typeof params.value === "number" && Number.isFinite(params.value) && params.value > 0) safe.value = params.value;
+  if (typeof params.currency === "string" && /^[A-Z]{3}$/.test(params.currency)) safe.currency = params.currency;
+  if (typeof params.transaction_id === "string" && /^(cs_|pi_|in_)[a-zA-Z0-9_]{8,}$/.test(params.transaction_id)) safe.transaction_id = params.transaction_id;
+  return safe;
 }
 
 export type AnalyticsEventName =
@@ -137,7 +97,7 @@ export interface AnalyticsEventParams {
 
 export function trackEvent(eventName: AnalyticsEventName, params: AnalyticsEventParams = {}): void {
   try {
-    if (typeof window === "undefined") return;
+    if (!shouldInitializeAnalytics()) return;
     let gtag = (window as any).gtag;
     if (typeof gtag !== "function") {
       initGoogleAnalytics();
@@ -145,22 +105,12 @@ export function trackEvent(eventName: AnalyticsEventName, params: AnalyticsEvent
       if (typeof gtag !== "function") return;
     }
 
-    if (eventName === "purchase") {
-      const txId = params.transaction_id;
-      if (txId && processedTransactions.has(txId)) {
-        console.warn(`Duplicate purchase event prevented for transaction_id: ${txId}`);
-        return;
-      }
-      if (txId) {
-        processedTransactions.add(txId);
-      }
-      if (params.value === undefined || params.value <= 0) {
-        console.warn("Purchase event missing valid transaction value.");
-        return;
-      }
-    }
-
     const cleanParams = sanitizeParams(params);
+    // Purchase tracking requires a server-verified payment integration; do not emit from unverified client calls.
+    if (eventName === "purchase") return;
+    if (eventName === "page_view") {
+      cleanParams.page_location = window.location.origin + window.location.pathname;
+    }
     gtag("event", eventName, cleanParams);
   } catch (err) {
     console.warn(`Analytics event tracking failed (${eventName}):`, err);
