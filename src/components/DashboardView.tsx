@@ -39,6 +39,7 @@ import type { FunnelConcept } from "../features/funnelworks/FunnelConceptView";
 import { downloadSlidePng } from "../features/funnelworks/carouselExport";
 import { downloadPlaybookPdf } from "../features/funnelworks/playbookExport";
 import { downloadCarouselZip, downloadCompanionPostsTxt, downloadStorefrontTxt, downloadCompleteProductWorksZip } from "../features/funnelworks/carouselZip";
+import { ContentPaysUsUnifiedWorkspace } from "./contentpaysus/ContentPaysUsUnifiedWorkspace";
 
 interface DashboardViewProps {
   profile: UserProfile | null;
@@ -494,6 +495,15 @@ export default function DashboardView({
 
   return (
     <div className="space-y-6 animate-fade-in pb-8 max-w-7xl mx-auto">
+
+      {/* ContentPaysUs Unified Ecosystem Workspace */}
+      <ContentPaysUsUnifiedWorkspace
+        user={auth.currentUser}
+        profile={profile}
+        subscriptionStatus={subscriptionStatus || "free"}
+        onNavigateToTab={handleNavigate}
+        onRefreshProfile={onRefreshProfile}
+      />
 
       {/* DASHBOARD CONCISE HEADER BAR */}
       <header className="rounded-2xl border border-border-primary dark:border-zinc-800/90 bg-bg-card dark:bg-zinc-950/80 backdrop-blur-2xl p-4 sm:p-5 shadow-sm dark:shadow-2xl dark:shadow-purple-950/10">
