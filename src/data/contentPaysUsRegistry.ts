@@ -211,7 +211,7 @@ export const CONTENT_PAYS_US_APPS: EcosystemApp[] = [
     headline: "Create downloadable digital products and auto-prepare promotions.",
     shortDescription:
       "Build downloadable 2-page PDF playbooks, 7-slide PNG/ZIP carousels, ebooks, workbooks, checklists, course outlines, storefront copy, and automatically prepared Threads promotional drafts.",
-    availability: "Available",
+    availability: "In Development",
     availabilityNote:
       "Create, Edit, Export (PDF/PNG/ZIP/MD/HTML), and Automatic Promotion to ThreadsWorks are live inside your workspace.",
     badgeColor: "text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30",
