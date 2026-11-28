@@ -79,6 +79,13 @@ import PartnerHubView from "./components/PartnerHub/PartnerHubView";
 import InfluencerIntelligenceView from "./components/Influencer/InfluencerIntelligenceView";
 import PreviewEditionView from "./components/PreviewEditionView";
 import PublicMarketingPage from "./components/PublicMarketingPage";
+import { ContentPaysUsLayout } from "./components/contentpaysus/ContentPaysUsLayout";
+import { ContentPaysUsHome } from "./components/contentpaysus/ContentPaysUsHome";
+import { ContentPaysUsLearn } from "./components/contentpaysus/ContentPaysUsLearn";
+import { ContentPaysUsApplications } from "./components/contentpaysus/ContentPaysUsApplications";
+import { ContentPaysUsAppDetail } from "./components/contentpaysus/ContentPaysUsAppDetail";
+import { ContentPaysUsAbout } from "./components/contentpaysus/ContentPaysUsAbout";
+import { ContentPaysUsWorkspace } from "./components/contentpaysus/ContentPaysUsWorkspace";
 import { trackReferralClick, attributeUserToReferral } from "./services/partnerService";
 import {
   DEFAULT_OG_IMAGE,
@@ -953,6 +960,38 @@ function MainApp() {
         <h3 className="text-base font-bold text-text-primary tracking-tight mb-2">Meta Threads Connection</h3>
         <p className="text-xs text-text-secondary max-w-xs leading-relaxed">{handshakeStatus}</p>
       </div>
+    );
+  }
+
+  // ContentPaysUs Public Website Routes (Home, Learn, Applications, About, Workspace)
+  const isContentPaysUsRoute =
+    currentPath === "/" ||
+    currentPath === "/home" ||
+    currentPath === "/learn" ||
+    currentPath === "/applications" ||
+    currentPath.startsWith("/applications/") ||
+    currentPath === "/about" ||
+    currentPath === "/workspace";
+
+  if (isContentPaysUsRoute) {
+    let content = <ContentPaysUsHome onNavigate={handlePublicNavigate} />;
+    if (currentPath === "/learn") {
+      content = <ContentPaysUsLearn onNavigate={handlePublicNavigate} />;
+    } else if (currentPath === "/applications") {
+      content = <ContentPaysUsApplications onNavigate={handlePublicNavigate} />;
+    } else if (currentPath.startsWith("/applications/")) {
+      const appId = currentPath.replace("/applications/", "").trim();
+      content = <ContentPaysUsAppDetail appId={appId} onNavigate={handlePublicNavigate} />;
+    } else if (currentPath === "/about") {
+      content = <ContentPaysUsAbout onNavigate={handlePublicNavigate} />;
+    } else if (currentPath === "/workspace") {
+      content = <ContentPaysUsWorkspace onNavigate={handlePublicNavigate} />;
+    }
+
+    return (
+      <ContentPaysUsLayout currentRoute={currentPath} onNavigate={handlePublicNavigate}>
+        {content}
+      </ContentPaysUsLayout>
     );
   }
 
