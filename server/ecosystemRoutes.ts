@@ -1,5 +1,5 @@
 import express from "express";
-import { searchDemandSources } from "./demandResearch";
+import { searchDemandSources, buildDemandKnowledgePrompt, parseDemandKnowledge, normalizeDemandSources } from "./demandResearch";
 import { randomUUID } from "node:crypto";
 import type { Firestore } from "firebase-admin/firestore";
 import type { Auth } from "firebase-admin/auth";
@@ -197,6 +197,57 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
     } catch {
       if (!quota.isPro) await releaseReservation(db, caller.uid, quota.reservationId);
       return res.status(502).json({ error: "Live research failed. Please try again later." });
+    }
+  });
+
+  // Analyze selected public snippets separately; never label model interpretation as verified data.
+  router.post("/demand/knowledge", async (req, res) => {
+    const caller = (req as any).caller as AuthedCaller;
+    const topic = cleanString(req.body?.topic, 200);
+    const sources = normalizeDemandSources({ web: { results: Array.isArray(req.body?.sources) ? req.body.sources.slice(0, 8).map((s: any) => ({ title: s?.title, url: s?.url, description: s?.snippet })) : [] } });
+    if (!topic || !sources.length) return res.status(400).json({ error: "Select at least one public source to analyze." });
+    if (!checkAiRateLimit(caller.uid)) return res.status(429).json({ error: "Too many requests. Try again in a minute." });
+    const quota = await checkAndReserveGeneration(db, caller.uid, caller.email);
+    if (!quota.allowed) return res.status(403).json({ error: quota.error || "Monthly allowance reached." });
+    try {
+      const response = await callGenerateContentWithRetry(getAI(), {
+        model: process.env.ECOSYSTEM_AI_MODEL || "gemini-4-hydrogen",
+        contents: buildDemandKnowledgePrompt(topic, sources),
+        config: { responseMimeType: "application/json", maxOutputTokens: 4096 },
+        strictContentGeneration: true
+      }, 2);
+      const knowledge = parseDemandKnowledge(JSON.parse(response.text), sources.length);
+      if (!quota.isPro) await commitGeneration(db, caller.uid, quota.reservationId);
+      return res.json({ topic, sources, knowledge, generatedAt: new Date().toISOString(), provenance: "ai_hypothesis" });
+    } catch {
+      if (!quota.isPro) await releaseReservation(db, caller.uid, quota.reservationId);
+      return res.status(502).json({ error: "Knowledge creation failed. Your generation allowance was released." });
+    }
+  });
+
+  // Save only after the creator explicitly reviews the draft. Client-provided
+  // sources and summaries remain hypotheses, not independently verified facts.
+  router.post("/demand/knowledge/save", async (req, res) => {
+    const caller = (req as any).caller as AuthedCaller;
+    try {
+      if (req.body?.approved !== true) return res.status(400).json({ error: "Review and approve the knowledge before saving." });
+      const topic = cleanString(req.body?.topic, 200);
+      const projectId = cleanString(req.body?.projectId, 200);
+      if (!topic || !projectId || projectId.includes("/")) return res.status(400).json({ error: "Select a project and provide a research topic." });
+      const project = await db.collection("projects").doc(projectId).get();
+      if (!project.exists || project.data()?.userId !== caller.uid) return res.status(403).json({ error: "This project is not available to your account." });
+      const sources = normalizeDemandSources({ web: { results: Array.isArray(req.body?.sources) ? req.body.sources.slice(0, 8).map((s: any) => ({ title: s?.title, url: s?.url, description: s?.snippet })) : [] } });
+      const knowledge = parseDemandKnowledge(req.body?.knowledge, sources.length);
+      const contribution = await contributeSharedIntelligence({
+        userId: caller.uid, projectId, sourceAppId: "demandworks", category: "research",
+        factType: "source_linked_knowledge", provenance: "ai_hypothesis", confidence: "low",
+        data: { title: topic, projectId, knowledge, sources, reviewStatus: "creator_approved", evidenceType: "user_reviewed_public_snippets" },
+        evidence: "Creator-reviewed search snippets and AI interpretations; not independently verified."
+      }, db);
+      if (!contribution.success || !contribution.id) throw new Error("Knowledge was not saved.");
+      return res.json({ id: contribution.id, deduplicated: Boolean(contribution.deduplicated) });
+    } catch {
+      return res.status(400).json({ error: "Could not save reviewed knowledge. Check the selected project and research draft." });
     }
   });
 
