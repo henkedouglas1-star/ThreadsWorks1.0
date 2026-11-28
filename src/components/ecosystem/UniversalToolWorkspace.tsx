@@ -331,6 +331,47 @@ export function UniversalToolWorkspace({
         </div>
       )}
 
+      {/* DemandWorks: guided choices, using the same existing tool IDs and handlers. */}
+      {appId === "demandworks" ? (
+        <section className="space-y-4" aria-label="DemandWorks steps">
+          <div>
+            <h2 className="text-lg font-bold text-slate-950 dark:text-white">What would you like to do?</h2>
+            <p className="text-sm text-slate-600 dark:text-zinc-400">Start with any step. Ideas from AI are starting points, not proof that people will buy.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {[
+              { title: "1. Find a problem", description: "Explore possible problems and questions.", ids: ["problem_discovery", "question_finder"] },
+              { title: "2. Understand your customers", description: "Learn from real conversations and existing solutions.", ids: ["interview_script", "research_report", "competitor_gap_notes"] },
+              { title: "3. Test your idea", description: "Ask people what they actually need.", ids: ["validation_survey"] },
+              { title: "4. Choose an opportunity", description: "Review your idea and plan a small test.", ids: ["opportunity_scorer"] }
+            ].map((step) => (
+              <div key={step.title} className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-4 space-y-2">
+                <h3 className="font-semibold text-slate-950 dark:text-white">{step.title}</h3>
+                <p className="text-xs text-slate-600 dark:text-zinc-400">{step.description}</p>
+                {tools.filter((tool) => step.ids.includes(tool.toolId)).map((tool) => (
+                  <button key={tool.toolId} type="button" aria-pressed={activeTool?.toolId === tool.toolId}
+                    onClick={() => { setSelectedToolId(tool.toolId); setErrorMsg(null); setStatusMsg(null); }}
+                    className={`block w-full text-left rounded-lg px-3 py-3 text-sm font-semibold border transition-colors ${activeTool?.toolId === tool.toolId ? "bg-indigo-600 border-indigo-600 text-white" : "border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-zinc-200 hover:border-indigo-400"}`}>
+                    {tool.name}
+                    {tool.availability !== "Available" && <span className="block text-xs font-normal">{tool.availability}</span>}
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+          <details className="rounded-lg border border-slate-200 dark:border-zinc-800 p-3" open={activeTool?.toolId === "live_market_scrape" ? true : undefined}>
+            <summary className="cursor-pointer text-sm font-semibold">More research tools</summary>
+            {tools.filter((tool) => !["problem_discovery", "question_finder", "interview_script", "research_report", "competitor_gap_notes", "validation_survey", "opportunity_scorer"].includes(tool.toolId)).map((tool) => (
+              <button key={tool.toolId} type="button" aria-pressed={activeTool?.toolId === tool.toolId}
+                onClick={() => { setSelectedToolId(tool.toolId); setErrorMsg(null); setStatusMsg(null); }}
+                className="block w-full text-left px-3 py-3 mt-2 rounded-lg border border-slate-200 dark:border-zinc-700 text-sm">
+                {tool.name} · {tool.availability}
+              </button>
+            ))}
+          </details>
+        </section>
+      ) : (
+        <>
       {/* Tool Selector Strip */}
       <div className="flex flex-wrap gap-2">
         {tools.map((tool) => {
@@ -362,6 +403,9 @@ export function UniversalToolWorkspace({
         })}
       </div>
 
+        </>
+      )}
+
       {activeTool && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Left: Structured Inputs + Context Controls */}
@@ -390,14 +434,14 @@ export function UniversalToolWorkspace({
                 {projects.length > 0 && (
                   <div className="space-y-1">
                     <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
-                      Shared Project Context (Optional)
+                      {appId === "demandworks" ? "Working project (optional)" : "Shared Project Context (Optional)"}
                     </label>
                     <select
                       value={selectedProjectId}
                       onChange={(e) => setSelectedProjectId(e.target.value)}
                       className="w-full rounded-lg border border-slate-300 dark:border-zinc-700 bg-[#fafaf9] dark:bg-[#09090b] px-3 py-2 text-xs text-slate-900 dark:text-zinc-100"
                     >
-                      <option value="">General Creator Profile Context</option>
+                      <option value="">{appId === "demandworks" ? "Use my creator profile" : "General Creator Profile Context"}</option>
                       {projects.map((p) => (
                         <option key={p.id} value={p.id}>
                           {p.name}
@@ -457,7 +501,7 @@ export function UniversalToolWorkspace({
                     className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400 text-white disabled:opacity-50 cursor-pointer transition-colors"
                   >
                     {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                    {isRunning ? "Generating..." : hasOutput ? "Regenerate" : `Run ${activeTool.name}`}
+                    {isRunning ? "Generating..." : hasOutput ? "Regenerate" : appId === "demandworks" ? "Get started with AI" : `Run ${activeTool.name}`}
                   </button>
                   {hasOutput && (
                     <>

@@ -340,11 +340,11 @@ export const ECOSYSTEM_TOOL_REGISTRY: EcosystemToolDefinition[] = [
   makeAiTool({
     appId: "demandworks",
     toolId: "problem_discovery",
-    name: "Buyer Problem Hypothesis Map",
-    intent: "Identify concrete buyer problems to test with real audience conversations.",
+    name: "Find Problems to Solve",
+    intent: "Get ideas for problems your audience might need help solving. Then check them with real people.",
     availability: "Available",
     requiredInputs: [
-      { key: "topic", label: "Market or audience domain", type: "text", placeholder: "e.g. Freelance designers pitching retainers" }
+      { key: "topic", label: "Who do you want to help?", type: "text", placeholder: "e.g. Freelance designers pitching retainers" }
     ],
     optionalInputs: [
       { key: "observedEvidence", label: "Real quotes or questions you already collected", type: "textarea", placeholder: "Optional: paste verbatim audience questions" }
@@ -352,9 +352,9 @@ export const ECOSYSTEM_TOOL_REGISTRY: EcosystemToolDefinition[] = [
     autoContextDomains: ["identity", "audience", "business"],
     aiInstructions: "List 5 concrete buyer problems, explicitly separating any user-provided observations from AI hypotheses that must be validated with real people.",
     outputSchema: [
-      { key: "verifiedObservations", label: "Documented Observations (From Your Inputs)" },
-      { key: "problemHypotheses", label: "AI Problem Hypotheses to Validate" },
-      { key: "validationQuestions", label: "Direct Questions to Ask Real People" }
+      { key: "verifiedObservations", label: "What you have heard from real people" },
+      { key: "problemHypotheses", label: "Possible problems to check" },
+      { key: "validationQuestions", label: "Questions to ask people" }
     ],
     connectedApps: ["offerworks", "productworks", "contentworks"],
     provenanceDefault: "ai_hypothesis",
@@ -363,19 +363,19 @@ export const ECOSYSTEM_TOOL_REGISTRY: EcosystemToolDefinition[] = [
   makeAiTool({
     appId: "demandworks",
     toolId: "question_finder",
-    name: "Audience Question Inventory",
-    intent: "Map high-intent buyer questions across beginner, active, and ready-to-buy stages.",
+    name: "What People Might Be Asking",
+    intent: "Discover possible questions to explore in conversations, content and products.",
     availability: "Available",
     requiredInputs: [
-      { key: "topic", label: "Core subject", type: "text", placeholder: "e.g. Getting your first digital product sale" }
+      { key: "topic", label: "What topic do you want to explore?", type: "text", placeholder: "e.g. Getting your first digital product sale" }
     ],
     optionalInputs: [],
     autoContextDomains: ["audience", "content"],
     aiInstructions: "Generate structured buyer questions grouped by awareness stage and indicate which questions make strong Threads posts vs. paid products.",
     outputSchema: [
-      { key: "discoveryQuestions", label: "Early Awareness Questions" },
-      { key: "evaluationQuestions", label: "Decision & Comparison Questions" },
-      { key: "productOpportunities", label: "Questions Pointing to Paid Products" }
+      { key: "discoveryQuestions", label: "Questions beginners may ask" },
+      { key: "evaluationQuestions", label: "Questions before choosing a solution" },
+      { key: "productOpportunities", label: "Questions that may lead to product ideas" }
     ],
     connectedApps: ["contentworks", "threadsworks", "offerworks"],
     provenanceDefault: "ai_hypothesis",
@@ -384,21 +384,21 @@ export const ECOSYSTEM_TOOL_REGISTRY: EcosystemToolDefinition[] = [
   makeAiTool({
     appId: "demandworks",
     toolId: "opportunity_scorer",
-    name: "Demand Opportunity Brief",
-    intent: "Evaluate a product idea across clarity, urgency, willingness to pay, and delivery speed.",
+    name: "Find Business Opportunities",
+    intent: "See what looks promising about your idea and how to test whether people would pay.",
     availability: "Available",
     requiredInputs: [
-      { key: "idea", label: "Product or service idea", type: "textarea", placeholder: "Describe the offer idea you want to test" }
+      { key: "idea", label: "What would you like to sell?", type: "textarea", placeholder: "Describe the offer idea you want to test" }
     ],
     optionalInputs: [
-      { key: "evidence", label: "Evidence collected so far", type: "textarea", placeholder: "Replies, DMs, interviews, or pre-orders" }
+      { key: "evidence", label: "What have real people told you so far?", type: "textarea", placeholder: "Replies, DMs, interviews, or pre-orders" }
     ],
     autoContextDomains: ["business", "audience", "products"],
     aiInstructions: "Evaluate the idea qualitatively across urgency, clarity of outcome, audience reach, and fastest MVP test. Explicitly flag missing real-world evidence rather than inventing market size numbers.",
     outputSchema: [
-      { key: "strengths", label: "Clear Strengths" },
-      { key: "evidenceGaps", label: "Missing Real-World Evidence" },
-      { key: "mvpTestPlan", label: "7-Day Low-Risk Validation Test" }
+      { key: "strengths", label: "What looks promising" },
+      { key: "evidenceGaps", label: "What you still need to learn" },
+      { key: "mvpTestPlan", label: "How to test your idea in 7 days" }
     ],
     connectedApps: ["offerworks", "productworks", "salesworks"],
     provenanceDefault: "ai_hypothesis",
@@ -407,19 +407,19 @@ export const ECOSYSTEM_TOOL_REGISTRY: EcosystemToolDefinition[] = [
   makeAiTool({
     appId: "demandworks",
     toolId: "interview_script",
-    name: "Customer Discovery Interview Guide",
-    intent: "Create non-leading questions for 15-minute buyer discovery calls.",
+    name: "Talk to Potential Customers",
+    intent: "Get simple questions for a 15-minute conversation about what people actually need.",
     availability: "Available",
     requiredInputs: [
-      { key: "problemArea", label: "Problem area to explore", type: "text", placeholder: "e.g. Scheduling consistent weekly content" }
+      { key: "problemArea", label: "What problem do you want to ask about?", type: "text", placeholder: "e.g. Scheduling consistent weekly content" }
     ],
     optionalInputs: [],
     autoContextDomains: ["audience", "business"],
     aiInstructions: "Write a 15-minute discovery interview guide with opening framing, past-behavior questions (not leading hypotheticals), and a respectful closing.",
     outputSchema: [
-      { key: "opener", label: "Warm Opening Script" },
-      { key: "coreQuestions", label: "Non-Leading Discovery Questions" },
-      { key: "noteTakingChecklist", label: "What to Listen & Log" }
+      { key: "opener", label: "How to start the conversation" },
+      { key: "coreQuestions", label: "Questions to ask" },
+      { key: "noteTakingChecklist", label: "What to listen for and write down" }
     ],
     connectedApps: ["meetingworks", "salesworks", "offerworks"],
     provenanceDefault: "recommendation",
@@ -428,8 +428,8 @@ export const ECOSYSTEM_TOOL_REGISTRY: EcosystemToolDefinition[] = [
   makeAiTool({
     appId: "demandworks",
     toolId: "validation_survey",
-    name: "Audience Validation Survey Builder",
-    intent: "Draft a concise 5-question survey to gather real buyer language.",
+    name: "Create a Customer Survey",
+    intent: "Create five questions to learn what your audience needs.",
     availability: "Available",
     requiredInputs: [
       { key: "goal", label: "What you want to learn", type: "text", placeholder: "e.g. Which starter template people need most" }
@@ -438,9 +438,9 @@ export const ECOSYSTEM_TOOL_REGISTRY: EcosystemToolDefinition[] = [
     autoContextDomains: ["audience", "business"],
     aiInstructions: "Build a crisp 5-question survey (mix of multiple-choice and short-answer) plus a Threads/email invitation post to collect real responses.",
     outputSchema: [
-      { key: "surveyQuestions", label: "5 Validation Survey Questions" },
-      { key: "invitePost", label: "Short Invitation Copy" },
-      { key: "interpretationGuide", label: "How to Read Responses" }
+      { key: "surveyQuestions", label: "Five survey questions" },
+      { key: "invitePost", label: "Message inviting people to respond" },
+      { key: "interpretationGuide", label: "What to look for in the answers" }
     ],
     connectedApps: ["threadsworks", "funnelworks", "communityworks"],
     provenanceDefault: "recommendation",
@@ -449,8 +449,8 @@ export const ECOSYSTEM_TOOL_REGISTRY: EcosystemToolDefinition[] = [
   makeAiTool({
     appId: "demandworks",
     toolId: "research_report",
-    name: "Buyer Research Synthesis Report",
-    intent: "Synthesize your real customer notes, DMs, and interview transcripts into structured takeaways.",
+    name: "Understand Your Customers",
+    intent: "Turn real conversations and customer feedback into useful next steps.",
     availability: "Available",
     requiredInputs: [
       { key: "rawNotes", label: "Paste your real notes, DMs, or interview transcripts", type: "textarea", placeholder: "Paste actual audience comments or call notes here" }
@@ -459,9 +459,9 @@ export const ECOSYSTEM_TOOL_REGISTRY: EcosystemToolDefinition[] = [
     autoContextDomains: ["audience", "projects"],
     aiInstructions: "Synthesize ONLY the real notes supplied by the user into recurring themes, exact customer phrases, and product/content recommendations. Never add unstated quotes.",
     outputSchema: [
-      { key: "recurringThemes", label: "Recurring Themes (From Your Notes)" },
-      { key: "exactLanguage", label: "Verbatim Buyer Phrases" },
-      { key: "recommendedActions", label: "Product & Content Recommendations" }
+      { key: "recurringThemes", label: "Common problems in your notes" },
+      { key: "exactLanguage", label: "What customers actually said" },
+      { key: "recommendedActions", label: "Ideas for your products and content" }
     ],
     connectedApps: ["offerworks", "productworks", "contentworks", "salesworks"],
     provenanceDefault: "user_provided_fact",
@@ -470,19 +470,19 @@ export const ECOSYSTEM_TOOL_REGISTRY: EcosystemToolDefinition[] = [
   makeAiTool({
     appId: "demandworks",
     toolId: "competitor_gap_notes",
-    name: "Alternative & Gap Analysis Worksheet",
-    intent: "Compare existing options your buyers try today and spot clear differentiation angles.",
+    name: "Find What's Missing",
+    intent: "Explore what people already use and where you could offer something better.",
     availability: "Available",
     requiredInputs: [
-      { key: "alternatives", label: "Existing alternatives buyers use today", type: "textarea", placeholder: "e.g. Free YouTube videos, spreadsheets, expensive agencies" }
+      { key: "alternatives", label: "What do people currently use to solve this problem?", type: "textarea", placeholder: "e.g. Free YouTube videos, spreadsheets, expensive agencies" }
     ],
     optionalInputs: [],
     autoContextDomains: ["business", "audience"],
     aiInstructions: "Analyze the listed alternatives neutrally—what each does well, where creators can offer a clearer/faster practical outcome, and positioning angles.",
     outputSchema: [
-      { key: "alternativesSummary", label: "How Current Alternatives Compare" },
-      { key: "differentiationAngles", label: "Practical Differentiation Opportunities" },
-      { key: "positioningTakeaways", label: "Clear Messaging Takeaways" }
+      { key: "alternativesSummary", label: "How existing solutions compare" },
+      { key: "differentiationAngles", label: "Ways you could help people better" },
+      { key: "positioningTakeaways", label: "How to explain your difference" }
     ],
     connectedApps: ["offerworks", "salesworks"],
     provenanceDefault: "ai_hypothesis",
@@ -491,10 +491,10 @@ export const ECOSYSTEM_TOOL_REGISTRY: EcosystemToolDefinition[] = [
   makeAiTool({
     appId: "demandworks",
     toolId: "live_market_scrape",
-    name: "Automated Live Web Trend Monitor",
-    intent: "Continuously scrape external forums and live search volume feeds.",
+    name: "Discover Trending Demand",
+    intent: "Explore live demand trends once a research connection is available.",
     availability: "In Development",
-    availabilityNote: "Live external market-feed scraping requires an authorized third-party search/trend API integration not yet configured in this environment.",
+    availabilityNote: "Coming later. Live research is not connected yet, so this tool cannot provide real-time trends.",
     requiredInputs: [{ key: "keyword", label: "Keyword", type: "text", placeholder: "e.g. creator templates" }],
     optionalInputs: [],
     autoContextDomains: ["audience"],
