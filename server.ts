@@ -5700,7 +5700,7 @@ app.post("/api/generate-posts-batch", async (req, res) => {
     const ctaOff = gated.directives.ctaOff;
     const destinations = gated.directives.destinations;
     const allowedUrls = gated.allowedUrls;
-    const allowPartialResults = body.allowPartialResults === true;
+    const allowPartialResults = body.allowPartialResults === true || (postCount >= 16 && body.allowPartialResults !== false && process.env.CONTENT_BATCH_PARALLEL_ENABLED === "true");
     const diversityLedger = buildRollingLedger(
       snapshot,
       Array.isArray(body.recentLibraryPosts) ? body.recentLibraryPosts : [],
@@ -5938,6 +5938,8 @@ app.post("/api/generate-posts-batch", async (req, res) => {
     }
 
     for (let offset = 0; offset < postCount; offset += chunkSize) {
+      try {
+      ensureTime();
       if (writerConcurrency > 1 && !prefetched.has(offset)) await prefetchWave(offset);
       ensureTime();
       const expected = Math.min(chunkSize, postCount - offset);
@@ -6081,6 +6083,17 @@ Return ONLY a single JSON draft object matching the schema.`;
       }));
       generatedPosts.push(...taggedChunk);
       failedSlots.push(...chunkResult.failedSlots);
+      } catch (err) {
+        const failure = err instanceof GenerationPipelineError ? err : classifyProviderOrNetworkError(err);
+        // Preserve only previously accepted drafts on recognized provider/network
+        // failures. Never suppress programming errors or bypass validation.
+        if (!allowPartialResults || res.destroyed || !generatedPosts.length ||
+            !failure || (failure.code !== "NETWORK_ERROR" && failure.code !== "PROVIDER_ERROR")) throw err;
+        for (let slotNumber = offset + 1; slotNumber <= postCount; slotNumber++) {
+          failedSlots.push({ slotNumber, reasons: ["Generation interrupted before this draft could be validated."], errorCode: failure.code });
+        }
+        break;
+      }
     }
 
     if (generatedPosts.length === 0) {
@@ -6190,7 +6203,7 @@ Return ONLY a single JSON draft object matching the schema.`;
       partial: isPartial,
       ...(isPartial ? {
         failedSlots,
-        warning: `${finalPosts.length} of ${postCount} drafts passed validation. ${failedSlots.length} draft${failedSlots.length === 1 ? " was" : "s were"} withheld after failing factual/quality checks on repair and replacement.`
+        warning: `${finalPosts.length} of ${postCount} drafts passed validation. ${failedSlots.length} draft${failedSlots.length === 1 ? " was" : "s were"} not returned because generation or validation did not complete.`
       } : {}),
       category,
       requestId,
