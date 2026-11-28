@@ -41,7 +41,7 @@ function drawPage(page: PlaybookPage, title: string, subtitle: string): HTMLCanv
     y += 25;
   }
   ctx.fillStyle = "#666"; ctx.font = "22px Arial";
-  ctx.fillText("FUNNELWORKS", 80, 1675);
+  ctx.fillText("PRODUCTWORKS", 80, 1675);
   ctx.textAlign = "right"; ctx.fillText(page.pageNumber + " / 2", 1150, 1675);
   return canvas;
 }
