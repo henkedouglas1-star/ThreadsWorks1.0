@@ -1,3 +1,5 @@
+import { getStripe } from "../stripeServer";
+import { identifyMembershipPrice } from "./membershipPaymentService";
 import { randomBytes } from "node:crypto";
 import type { Firestore } from "firebase-admin/firestore";
 import { MEMBERSHIP_PLANS } from "../src/data/membershipCatalog";
@@ -26,6 +28,21 @@ export async function createMembershipCheckoutIntent(db: Firestore, userId: stri
       (live !== "test" && live !== "live")) throw new Error("Membership billing is not configured.");
   const url = new URL(plan.paymentLink);
   if (url.origin !== "https://buy.stripe.com" || url.username || url.password) throw new Error("Invalid payment destination.");
+  // Validate the actual Stripe objects before issuing a checkout reference.
+  const stripe = getStripe();
+  const [link, price, lineItems] = await Promise.all([
+    stripe.paymentLinks.retrieve(paymentLinkId),
+    stripe.prices.retrieve(priceId),
+    stripe.paymentLinks.listLineItems(paymentLinkId, { limit: 2 }),
+  ]);
+  const items = lineItems.data;
+  if (!link.active || link.livemode !== (live === "live") || price.livemode !== link.livemode ||
+      !price.active || identifyMembershipPrice(price, configuredMembershipPrices()) !== planId ||
+      link.url !== plan.paymentLink || lineItems.has_more || items.length !== 1 ||
+      items[0]?.price?.id !== priceId || items[0]?.quantity !== 1 ||
+      (items[0] as { adjustable_quantity?: { enabled?: boolean } })?.adjustable_quantity?.enabled) {
+    throw new Error("Stripe membership configuration does not match the approved offer.");
+  }
   const reference = "mbr_" + randomBytes(32).toString("hex");
   const expiresAt = now + INTENT_TTL_MS;
   await db.collection(MEMBERSHIP_INTENT_COLLECTION).doc(reference).create({
