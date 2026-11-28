@@ -43,6 +43,7 @@ import {
   getEcosystemAppById
 } from "../../data/contentPaysUsRegistry";
 import { getToolsForApp } from "../../data/ecosystemToolRegistry";
+import { MembershipPanel } from "./MembershipPanel";
 import { PermanentCategoryBar } from "./PermanentCategoryBar";
 import { ContentPaysUsAcademyView } from "./ContentPaysUsAcademyView";
 import { FirstSaleEnginePanel } from "../ecosystem/FirstSaleEnginePanel";
@@ -82,6 +83,7 @@ type WorkspaceSubTab =
   | "applications"
   | "projects"
   | "academy"
+  | "memberships"
   | "memory"
   | "settings";
 
@@ -450,6 +452,7 @@ export function ContentPaysUsUnifiedWorkspace({
               { id: "projects", label: `Projects (${projects.filter((p) => p.status === "active").length})`, icon: FolderKanban },
               { id: "academy", label: "Academy", icon: BookOpen },
               { id: "memory", label: "Memory", icon: Brain },
+              { id: "memberships", label: "Memberships", icon: Sparkles },
               { id: "settings", label: "Settings", icon: Settings }
             ].map((tab) => {
               const Icon = tab.icon;
@@ -686,6 +689,8 @@ export function ContentPaysUsUnifiedWorkspace({
           onLaunchApp={handleLaunchApp}
         />
       )}
+
+      {activeSubTab === "memberships" && <MembershipPanel key={user?.uid} onOpenThreadsWorksPricing={() => onNavigateToTab("pricing")} />}
 
       {/* TAB: SHARED INTELLIGENCE MEMORY */}
       {activeSubTab === "memory" && <SharedIntelligenceMemoryPanel />}
