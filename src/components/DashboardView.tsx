@@ -518,6 +518,7 @@ export default function DashboardView({
         subscriptionStatus={subscriptionStatus || "free"}
         onNavigateToTab={handleNavigate}
         onRefreshProfile={onRefreshProfile}
+        onOpenProductWorksStudio={() => setActiveAppId("funnelworks")}
       />
 
       {/* DASHBOARD CONCISE HEADER BAR */}

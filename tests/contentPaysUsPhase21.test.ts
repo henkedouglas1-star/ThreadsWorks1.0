@@ -1,12 +1,37 @@
 import test from "node:test";
 import assert from "node:assert";
 import { adaptProfileToIdentity } from "../src/types/creatorIdentity";
-import { CONTENT_PAYS_US_APPS } from "../src/data/contentPaysUsRegistry";
+import {
+  CONTENT_PAYS_US_ACADEMY,
+  CONTENT_PAYS_US_APPS,
+  ECOSYSTEM_CATEGORY_TABS,
+  FIRST_SALE_ENGINE_WORKFLOW,
+  getAppsByCategory
+} from "../src/data/contentPaysUsRegistry";
 import { LEARN_TOPICS } from "../src/data/contentPaysUsLearn";
 
 test("ContentPaysUs Ecosystem Registry & Foundation Hardening Tests", () => {
-  // 1. Centralized Application Registry (20-Application Roadmap with strict statuses)
+  // 1. Exact Approved 20-Application Registry across 3 Permanent Categories
   assert.strictEqual(CONTENT_PAYS_US_APPS.length, 20);
+  assert.deepStrictEqual(
+    ECOSYSTEM_CATEGORY_TABS.map((t) => t.id),
+    ["Create & Sell", "Connect & Grow", "Automate & Scale"]
+  );
+  assert.strictEqual(getAppsByCategory("Create & Sell").length, 10);
+  assert.strictEqual(getAppsByCategory("Connect & Grow").length, 6);
+  assert.strictEqual(getAppsByCategory("Automate & Scale").length, 4);
+
+  // EmailWorks must NOT exist as a separate app (email tools live inside FunnelWorks & SalesWorks)
+  assert.strictEqual(
+    CONTENT_PAYS_US_APPS.find((a) => a.id === "emailworks" || a.name.toLowerCase() === "emailworks"),
+    undefined
+  );
+
+  // Academy & First Sale Engine are independent destinations outside the 20 apps
+  assert.strictEqual(CONTENT_PAYS_US_APPS.find((a) => a.id === "academy"), undefined);
+  assert.strictEqual(CONTENT_PAYS_US_APPS.find((a) => a.id === "first-sale-engine"), undefined);
+  assert.strictEqual(CONTENT_PAYS_US_ACADEMY.availability, "Available");
+  assert.strictEqual(FIRST_SALE_ENGINE_WORKFLOW.availability, "Available");
 
   const allowedStatuses = new Set(["Available", "In Development", "Planned"]);
   for (const app of CONTENT_PAYS_US_APPS) {
@@ -18,19 +43,20 @@ test("ContentPaysUs Ecosystem Registry & Foundation Hardening Tests", () => {
 
   const threadsWorks = CONTENT_PAYS_US_APPS.find((a) => a.id === "threadsworks");
   const productWorks = CONTENT_PAYS_US_APPS.find((a) => a.id === "productworks");
-  const academy = CONTENT_PAYS_US_APPS.find((a) => a.id === "academy");
   const meetingWorks = CONTENT_PAYS_US_APPS.find((a) => a.id === "meetingworks");
-  const firstSaleEngine = CONTENT_PAYS_US_APPS.find((a) => a.id === "first-sale-engine");
+  const storeWorks = CONTENT_PAYS_US_APPS.find((a) => a.id === "storeworks");
+  const adsWorks = CONTENT_PAYS_US_APPS.find((a) => a.id === "adsworks");
   const projectZ = CONTENT_PAYS_US_APPS.find((a) => a.id === "projectz");
 
   assert.strictEqual(threadsWorks?.availability, "Available");
   assert.strictEqual(threadsWorks?.externalLink, "/create");
-  assert.strictEqual(productWorks?.availability, "In Development");
+  assert.strictEqual(productWorks?.availability, "Available");
   assert.strictEqual(productWorks?.externalLink, "/productworks");
-  assert.strictEqual(academy?.availability, "Planned");
-  assert.strictEqual(meetingWorks?.availability, "Planned");
-  assert.strictEqual(firstSaleEngine?.availability, "Planned");
-  assert.strictEqual(projectZ?.availability, "Planned");
+  // External-provider apps must remain honestly classified as In Development
+  assert.strictEqual(meetingWorks?.availability, "In Development");
+  assert.strictEqual(storeWorks?.availability, "In Development");
+  assert.strictEqual(adsWorks?.availability, "In Development");
+  assert.strictEqual(projectZ?.availability, "Available");
 
   // 2. Creator Identity Adaptation
   const mockProfile = {

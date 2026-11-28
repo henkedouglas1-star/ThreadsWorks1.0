@@ -1,12 +1,9 @@
 export type AppAvailabilityStatus = "Available" | "In Development" | "Planned";
 
 export type EcosystemCategory =
-  | "Education"
-  | "Foundation"
-  | "Attention"
-  | "Monetization"
-  | "Customer Success"
-  | "Expansion";
+  | "Create & Sell"
+  | "Connect & Grow"
+  | "Automate & Scale";
 
 export interface EcosystemApp {
   id: string;
@@ -16,22 +13,47 @@ export interface EcosystemApp {
   headline: string;
   shortDescription: string;
   availability: AppAvailabilityStatus;
+  availabilityNote: string;
   badgeColor: string;
   purpose: string;
   problemSolved: string;
   intendedOutputs: string[];
   ecosystemRelationship: string;
+  connectedAppIds: string[];
   externalLink?: string;
 }
 
+/**
+ * Three permanent top-level navigation categories for the 20 specialized
+ * ContentPaysUs applications. All three tabs remain permanently visible
+ * on both the public website and inside the authenticated workspace.
+ */
+export const ECOSYSTEM_CATEGORY_TABS: ReadonlyArray<{
+  id: EcosystemCategory;
+  label: EcosystemCategory;
+  tagline: string;
+}> = [
+  {
+    id: "Create & Sell",
+    label: "Create & Sell",
+    tagline: "Brand, demand, offers, products, content, funnels, sales, store & delivery"
+  },
+  {
+    id: "Connect & Grow",
+    label: "Connect & Grow",
+    tagline: "Community, meetings, social proof, teams, affiliates & real growth analytics"
+  },
+  {
+    id: "Automate & Scale",
+    label: "Automate & Scale",
+    tagline: "Workflows, finances, paid ads planning & experimental AI lab"
+  }
+] as const;
+
 export const ECOSYSTEM_CATEGORIES = [
-  "All",
-  "Education",
-  "Foundation",
-  "Attention",
-  "Monetization",
-  "Customer Success",
-  "Expansion"
+  "Create & Sell",
+  "Connect & Grow",
+  "Automate & Scale"
 ] as const;
 
 export const AVAILABILITY_FILTERS: ReadonlyArray<"All" | AppAvailabilityStatus> = [
@@ -63,459 +85,578 @@ export function getAvailabilityDotClass(availability: AppAvailabilityStatus): st
   }
 }
 
-export const CONTENT_PAYS_US_APPS: EcosystemApp[] = [
-  // Education (1)
-  {
-    id: "academy",
-    name: "ContentPaysUs Academy",
-    category: "Education",
-    journeyStage: "Learn",
-    headline: "Free creator business education and practical courses.",
-    shortDescription:
-      "Planned free learning destination built around practical business skills, our flagship course 'How to Get Your First Sale', and future community-shared courses.",
-    availability: "Planned",
-    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
-    purpose:
-      "Give creators free, practical training so they can build real business skills before investing in software or ad spend.",
-    problemSolved:
-      "Expensive, theory-heavy courses and fragmented advice that leave new creators unsure what concrete step to take next.",
-    intendedOutputs: [
-      "Flagship Free Course: How to Get Your First Sale (Planned)",
-      "Step-by-Step Creator Business Playbooks",
-      "Future Community-Created Free Courses"
-    ],
-    ecosystemRelationship:
-      "Serves as the free educational entry point to ContentPaysUs—helping creators learn for free, build with AI, and grow together.",
-    externalLink: "/learn"
-  },
+/**
+ * Independent destinations (NOT part of the 20 specialized applications).
+ * - ContentPaysUs Academy: Independent free learning destination.
+ * - First Sale Engine: Cross-application guided workflow.
+ */
+export const CONTENT_PAYS_US_ACADEMY = {
+  id: "academy",
+  name: "ContentPaysUs Academy",
+  type: "Independent Learning Destination" as const,
+  availability: "Available" as AppAvailabilityStatus,
+  headline: "Learn for free. Build with AI. Grow together.",
+  description:
+    "Free, practical creator education featuring our interactive flagship course 'How to Get Your First Sale' with lessons, assignments, downloadable worksheets, and persistent learning progress.",
+  path: "/learn"
+};
 
-  // Foundation (2)
+export const FIRST_SALE_ENGINE_WORKFLOW = {
+  id: "first-sale-engine",
+  name: "First Sale Engine",
+  type: "Cross-Application Guided Workflow" as const,
+  availability: "Available" as AppAvailabilityStatus,
+  headline: "Follow a clear, practical path to your first verified sale.",
+  description:
+    "A guided workflow spanning CreatorWorks, DemandWorks, OfferWorks, ProductWorks, ThreadsWorks, SalesWorks, MeetingWorks, and DeliveryWorks—dynamically adapting to what you have already completed.",
+  path: "/workspace"
+};
+
+/**
+ * Exact approved 20 specialized ContentPaysUs applications organized into
+ * 3 permanent categories:
+ * - Category 1: Create & Sell (10)
+ * - Category 2: Connect & Grow (6)
+ * - Category 3: Automate & Scale (4)
+ *
+ * EmailWorks is removed (email capabilities live inside FunnelWorks and SalesWorks).
+ * ContentPaysUs Academy is an independent learning destination (not one of the 20 apps).
+ * First Sale Engine is a cross-application guided workflow (not one of the 20 apps).
+ */
+export const CONTENT_PAYS_US_APPS: EcosystemApp[] = [
+  // =========================================================================
+  // CATEGORY 1 — CREATE & SELL (10 Applications)
+  // =========================================================================
   {
     id: "creatorworks",
     name: "CreatorWorks",
-    category: "Foundation",
+    category: "Create & Sell",
     journeyStage: "Identify",
-    headline: "Develop your personal brand, positioning, and direction.",
+    headline: "Develop your personal brand, positioning, and voice.",
     shortDescription:
-      "Clarify your core expertise, audience focus, and consistent brand voice before publishing content or launching offers.",
-    availability: "Planned",
-    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+      "Clarify your positioning, target audience, brand story, voice guidelines, and messaging foundation—then save approved brand assets directly to your shared creator profile.",
+    availability: "Available",
+    availabilityNote: "All 11 brand & positioning tools are live and sync directly with your Shared Intelligence profile.",
+    badgeColor: "text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30",
     purpose:
-      "Help creators define their unique perspective, target audience, and brand identity with practical clarity.",
+      "Establish a clear, reusable creator identity so every application in ContentPaysUs understands who you help and how you sound.",
     problemSolved:
-      "Publishing scattered posts without a clear positioning statement or recognizable creator point of view.",
+      "Publishing scattered posts or offers without clear positioning, differentiated perspective, or consistent voice rules.",
     intendedOutputs: [
-      "Creator Brand Positioning Blueprint",
-      "Target Audience & Core Value Map",
-      "Voice & Messaging Guidelines"
+      "Personal Brand Positioning & Bio Suite",
+      "Audience & Value Proposition Map",
+      "Voice Guidelines, Stories & Messaging Pillars"
     ],
     ecosystemRelationship:
-      "Establishes the creator identity context that feeds into ThreadsWorks, OfferWorks, and every connected application via Shared Intelligence."
+      "Writes approved brand context into your creator profile and transfers positioning directly into DemandWorks, OfferWorks, ProductWorks, ContentWorks, and ThreadsWorks.",
+    connectedAppIds: ["demandworks", "offerworks", "productworks", "contentworks", "threadsworks"],
+    externalLink: "/workspace"
   },
   {
     id: "demandworks",
     name: "DemandWorks",
-    category: "Foundation",
+    category: "Create & Sell",
     journeyStage: "Identify",
-    headline: "Discover what people actually want to buy.",
+    headline: "Discover and validate what people actually want to buy.",
     shortDescription:
-      "Find and validate real buyer problems your audience is actively trying to solve before spending weeks building.",
-    availability: "Planned",
-    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+      "Map buyer pain points, audience questions, customer interview scripts, validation surveys, and structured opportunity reports—clearly distinguishing AI hypotheses from verified buyer evidence.",
+    availability: "In Development",
+    availabilityNote:
+      "Structured research, interview, survey, and demand-report tools are live; automated live web scraping requires external search-feed integration.",
+    badgeColor: "text-indigo-700 dark:text-indigo-400 border-indigo-300 dark:border-indigo-500/30",
     purpose:
-      "Surface real audience questions, recurring friction, and unmet needs so you build products people are ready to pay for.",
+      "Surface real buyer friction and structure real customer conversations before you spend weeks building a product.",
     problemSolved:
-      "Guessing what product or content will resonate instead of validating genuine market demand first.",
+      "Guessing what product to build instead of testing real buyer problems and documenting authentic customer language.",
     intendedOutputs: [
-      "Buyer Problem Validation Report",
-      "Audience Question & Friction Inventory",
-      "Demand-Backed Offer Angle Briefs"
+      "Problem & Audience Question Inventories (Labeled Hypotheses vs. Evidence)",
+      "Customer Interview Guides & Validation Surveys",
+      "Buyer Opportunity & Demand Briefs"
     ],
     ecosystemRelationship:
-      "Feeds validated buyer problems directly into ContentWorks, OfferWorks, and ProductWorks so every project starts from real demand."
+      "Feeds documented buyer language and validated problems directly into OfferWorks, ProductWorks, ContentWorks, and SalesWorks.",
+    connectedAppIds: ["offerworks", "productworks", "contentworks", "salesworks"],
+    externalLink: "/workspace"
   },
-
-  // Attention (4)
+  {
+    id: "offerworks",
+    name: "OfferWorks",
+    category: "Create & Sell",
+    journeyStage: "Build",
+    headline: "Shape what you know into a clear, buyable offer.",
+    shortDescription:
+      "Structure your core promise, deliverables, pricing tiers, bonuses, ethical guarantees, lead magnets, tripwires, and upsell paths into editable commercial blueprints.",
+    availability: "Available",
+    availabilityNote: "All 11 offer-structuring tools are live with persistent saved versions and cross-app transfers.",
+    badgeColor: "text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30",
+    purpose:
+      "Translate your practical expertise into a clear, honest commercial offer that prospective buyers understand immediately.",
+    problemSolved:
+      "Knowing your topic deeply while struggling to define scope, deliverables, and transparent pricing.",
+    intendedOutputs: [
+      "Core Offer Blueprint & Value Promise",
+      "Pricing Tiers, Bonuses & Risk-Reversal Terms",
+      "Lead Magnet, Tripwire & Upsell Architecture"
+    ],
+    ecosystemRelationship:
+      "Sends structured offer definitions directly into ProductWorks, FunnelWorks, SalesWorks, and StoreWorks.",
+    connectedAppIds: ["productworks", "funnelworks", "salesworks", "storeworks"],
+    externalLink: "/workspace"
+  },
+  {
+    id: "productworks",
+    name: "ProductWorks",
+    category: "Create & Sell",
+    journeyStage: "Build",
+    headline: "Create downloadable digital products and auto-prepare promotions.",
+    shortDescription:
+      "Build downloadable 2-page PDF playbooks, 7-slide PNG/ZIP carousels, ebooks, workbooks, checklists, course outlines, storefront copy, and automatically prepared Threads promotional drafts.",
+    availability: "Available",
+    availabilityNote:
+      "Create, Edit, Export (PDF/PNG/ZIP/MD/HTML), and Automatic Promotion to ThreadsWorks are live inside your workspace.",
+    badgeColor: "text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30",
+    purpose:
+      "Turn creator ideas, offers, and existing Threads posts into editable, downloadable digital products paired with ready-to-review promotional drafts.",
+    problemSolved:
+      "Spending weeks formatting PDFs, designing slide carousels, and manually rewriting promotional posts for every product.",
+    intendedOutputs: [
+      "Downloadable 2-Page PDF Playbooks & 7-Slide PNG/ZIP Carousels",
+      "Ebooks, Workbooks, Checklists, Templates & Course Assets",
+      "Automatic Product Promotion Drafts Ready for ThreadsWorks"
+    ],
+    ecosystemRelationship:
+      "Turns OfferWorks plans into finished digital products, automatically prepares promotional drafts for ThreadsWorks, and publishes listings to StoreWorks and DeliveryWorks.",
+    connectedAppIds: ["threadsworks", "storeworks", "deliveryworks", "funnelworks", "salesworks"],
+    externalLink: "/productworks"
+  },
   {
     id: "threadsworks",
     name: "ThreadsWorks",
-    category: "Attention",
+    category: "Create & Sell",
     journeyStage: "Attract",
     headline: "Write, organize, and schedule Meta Threads content.",
     shortDescription:
-      "Draft voice-preserved Meta Threads posts and multi-part threads, strengthen opening hooks, manage your content library, and schedule publishing via official Meta OAuth.",
+      "Draft voice-preserved Meta Threads posts and multi-part threads, lock stronger opening hooks, manage your content library, track synced analytics, and schedule publishing via official Meta OAuth.",
     availability: "Available",
+    availabilityNote: "Live today on ThreadsWorks.com with 60 free posts/month (150 AI generations) and Pro unlimited plans.",
     badgeColor: "text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30",
     purpose:
-      "Give Meta Threads creators a reliable AI writing workspace, hook studio, content library, and automated publishing calendar.",
+      "Provide Meta Threads creators with a dependable AI writing studio, hook workspace, content library, and automated publishing calendar.",
     problemSolved:
-      "Staring at a blank post, losing your natural voice to generic AI copy, and struggling to publish consistently every week.",
+      "Staring at a blank post, losing your authentic voice to generic AI output, and falling off a consistent publishing cadence.",
     intendedOutputs: [
-      "AI-Generated Meta Threads Single Posts & Multi-Part Threads",
+      "Voice-Preserved Single Posts & Multi-Part Meta Threads",
       "Strategic Angles & Locked Opening Hooks (<140 chars)",
       "Private Content Library & Automated Meta Threads Calendar"
     ],
     ecosystemRelationship:
-      "The original, live application where ContentPaysUs started—actively serving creators today on ThreadsWorks.com.",
+      "The original flagship application where ContentPaysUs began—receiving briefs from ContentWorks and automatic promotional drafts from ProductWorks.",
+    connectedAppIds: ["contentworks", "productworks", "funnelworks", "growthworks"],
     externalLink: "/create"
   },
   {
     id: "contentworks",
     name: "ContentWorks",
-    category: "Attention",
+    category: "Create & Sell",
     journeyStage: "Attract",
-    headline: "Plan content strategies and editorial roadmaps.",
+    headline: "Plan content strategies, pillars, and editorial calendars.",
     shortDescription:
-      "Map content pillars, recurring themes, and multi-week editorial calendars tied directly to your brand and commercial goals.",
-    availability: "Planned",
-    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+      "Build content pillars, topic clusters, multi-week editorial calendars, launch campaigns, and repurposing blueprints—then send briefs straight into ThreadsWorks.",
+    availability: "Available",
+    availabilityNote: "All 10 content strategy and editorial planning tools are live with 1-click transfer to ThreadsWorks.",
+    badgeColor: "text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30",
     purpose:
-      "Turn positioning and buyer research into a repeatable editorial plan that builds audience trust week after week.",
+      "Connect brand positioning and buyer problems to a repeatable editorial strategy that compounds trust every week.",
     problemSolved:
-      "Disorganized content ideas and inconsistent publishing routines that stall audience growth.",
+      "Publishing reactive, disconnected posts without an overarching pillar architecture or launch cadence.",
     intendedOutputs: [
-      "Content Pillar & Theme Architecture",
-      "Recurring Editorial Calendar Plan",
-      "Topic-to-Offer Alignment Map"
+      "Content Pillar & Topic Cluster Systems",
+      "Multi-Week Editorial & Launch Campaign Plans",
+      "Actionable Content Briefs Sent Directly to ThreadsWorks"
     ],
     ecosystemRelationship:
-      "Connects DemandWorks insights into structured content queues for ThreadsWorks and EmailWorks."
-  },
-  {
-    id: "communityworks",
-    name: "CommunityWorks",
-    category: "Attention",
-    journeyStage: "Connect",
-    headline: "Connect with creators and build real audience relationships.",
-    shortDescription:
-      "Turn passive readers into engaged relationships through structured conversations, peer creator connections, and thoughtful follow-up.",
-    availability: "Planned",
-    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
-    purpose:
-      "Help creators build authentic two-way dialogue with their audience and connect with fellow builders across the ecosystem.",
-    problemSolved:
-      "Treating social platforms like a one-way broadcast channel and building in isolation without peer support.",
-    intendedOutputs: [
-      "Audience Conversation & Reply Workflows",
-      "Creator Peer Network & Collaboration Spaces",
-      "Community Engagement Checklists"
-    ],
-    ecosystemRelationship:
-      "Turns the attention earned in ThreadsWorks into lasting trust, peer accountability, and warm buyer relationships."
-  },
-  {
-    id: "emailworks",
-    name: "EmailWorks",
-    category: "Attention",
-    journeyStage: "Connect",
-    headline: "Build direct email relationships you own.",
-    shortDescription:
-      "Write welcome sequences, weekly creator newsletters, and buyer follow-up emails grounded in your shared brand voice and offers.",
-    availability: "Planned",
-    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
-    purpose:
-      "Give creators a direct, algorithm-independent channel to nurture subscribers and introduce offers clearly.",
-    problemSolved:
-      "Relying exclusively on social media reach without an owned list to stay connected with interested readers.",
-    intendedOutputs: [
-      "Subscriber Welcome Sequence",
-      "Weekly Creator Newsletter Drafts",
-      "Offer Launch & Follow-Up Emails"
-    ],
-    ecosystemRelationship:
-      "Pairs with ThreadsWorks and FunnelWorks to carry social readers into direct email conversations."
-  },
-
-  // Monetization (5)
-  {
-    id: "offerworks",
-    name: "OfferWorks",
-    category: "Monetization",
-    journeyStage: "Build",
-    headline: "Shape what you know into a clear, buyable offer.",
-    shortDescription:
-      "Define the promise, scope, deliverables, and transparent pricing of your digital product, workshop, or advisory service.",
-    availability: "Planned",
-    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
-    purpose:
-      "Translate your practical knowledge into a concrete commercial offer that prospective buyers understand immediately.",
-    problemSolved:
-      "Knowing your topic deeply but struggling to package it into a focused offer people feel confident purchasing.",
-    intendedOutputs: [
-      "Structured Offer Promise & Scope Brief",
-      "Deliverables & Buyer Outcome Breakdown",
-      "Transparent Pricing & Packaging Options"
-    ],
-    ecosystemRelationship:
-      "Shapes validated ideas from DemandWorks into clear offers ready for ProductWorks and First Sale Engine."
-  },
-  {
-    id: "productworks",
-    name: "ProductWorks",
-    category: "Monetization",
-    journeyStage: "Build",
-    headline: "Create downloadable digital product assets from your ideas.",
-    shortDescription:
-      "Generate downloadable 2-page PDF playbooks, 7-slide visual carousels (PNG & ZIP), companion posts, and storefront copy from a single idea or existing post.",
-    availability: "In Development",
-    badgeColor: "text-indigo-700 dark:text-indigo-400 border-indigo-300 dark:border-indigo-500/30",
-    purpose:
-      "Turn creator ideas and Threads posts into polished, downloadable digital product packages in minutes.",
-    problemSolved:
-      "Spending weeks formatting PDFs, designing slide carousels, and drafting storefront copy before testing a digital product.",
-    intendedOutputs: [
-      "Downloadable 2-Page PDF Playbooks & Guides",
-      "7-Slide Social Carousels (Individual PNGs & ZIP)",
-      "Companion Promotional Posts & Storefront Copy"
-    ],
-    ecosystemRelationship:
-      "Currently in active development inside the ThreadsWorks workspace—bridging content creation directly into digital product assets.",
-    externalLink: "/productworks"
-  },
-  {
-    id: "first-sale-engine",
-    name: "First Sale Engine",
-    category: "Monetization",
-    journeyStage: "Sell",
-    headline: "Follow a clear, practical path to your first verified sale.",
-    shortDescription:
-      "Step-by-step validation, direct buyer outreach guidance, and milestone tracking built specifically to help creators cross zero-to-one.",
-    availability: "Planned",
-    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
-    purpose:
-      "Remove guesswork from getting your very first paying customer by focusing on simple offers, direct conversations, and verified outcomes.",
-    problemSolved:
-      "Overbuilding complex funnels and websites while delaying the real conversations that lead to a first sale.",
-    intendedOutputs: [
-      "Zero-to-One Offer Validation Checklist",
-      "Direct Buyer Outreach & Conversation Guide",
-      "First Verified Sale Milestone Tracker"
-    ],
-    ecosystemRelationship:
-      "Directly supports the ContentPaysUs mission—helping 1,000 creators achieve their first verified sale alongside ContentPaysUs Academy."
+      "Bridges CreatorWorks and DemandWorks into structured publishing schedules inside ThreadsWorks and FunnelWorks.",
+    connectedAppIds: ["threadsworks", "funnelworks", "productworks", "growthworks"],
+    externalLink: "/workspace"
   },
   {
     id: "funnelworks",
     name: "FunnelWorks",
-    category: "Monetization",
+    category: "Create & Sell",
     journeyStage: "Sell",
-    headline: "Connect content, offers, and buying steps cleanly.",
+    headline: "Connect content, opt-ins, email sequences, and buying paths.",
     shortDescription:
-      "Map straightforward paths from discovery posts and free resources to your paid offer without confusing detours.",
-    availability: "Planned",
-    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+      "Design conversion funnels, landing pages, lead-magnet opt-ins, link-in-bio hubs, welcome & launch email sequences, newsletters, and capture real leads directly into SalesWorks.",
+    availability: "In Development",
+    availabilityNote:
+      "Funnel, landing page, email sequence, newsletter builders, and Firestore lead capture are live; automated outbound email sending requires a configured ESP/SMTP provider.",
+    badgeColor: "text-indigo-700 dark:text-indigo-400 border-indigo-300 dark:border-indigo-500/30",
     purpose:
-      "Design clear, respectful customer journeys so interested readers always know the logical next step.",
+      "Give interested readers a clear, respectful path from public content to your lead magnet, email sequence, and paid offer.",
     problemSolved:
-      "Disconnected posts and product links that leave interested followers unsure how to learn more or buy.",
+      "Disconnected social links, missing lead capture, and scattered email copy that leave interested followers unsure what to do next.",
     intendedOutputs: [
-      "Content-to-Offer Pathway Blueprint",
-      "Lead Resource & Next-Step Mapping",
-      "Conversion Bottleneck Checklist"
+      "Funnel Maps, Landing Page Copy & Link-in-Bio Blueprints",
+      "Welcome Sequences, Launch Emails & Creator Newsletters",
+      "Persistent Lead Capture Connected Directly to SalesWorks CRM"
     ],
     ecosystemRelationship:
-      "Bridges Attention tools (ThreadsWorks, EmailWorks) with Monetization tools (OfferWorks, ProductWorks, SalesWorks)."
+      "Houses all conversion-pathway and email-copy workflows (replacing a separate EmailWorks app) and routes captured leads into SalesWorks.",
+    connectedAppIds: ["salesworks", "storeworks", "productworks", "threadsworks"],
+    externalLink: "/workspace"
   },
   {
     id: "salesworks",
     name: "SalesWorks",
-    category: "Monetization",
+    category: "Create & Sell",
     journeyStage: "Sell",
-    headline: "Help buyers understand your offer clearly and decide with confidence.",
+    headline: "Manage buyer conversations, CRM pipeline, and sales assets.",
     shortDescription:
-      "Draft transparent sales pages, offer breakdowns, and honest objection-handling copy without high-pressure tactics.",
-    availability: "Planned",
-    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+      "Run a persistent Customer CRM & Sales Pipeline alongside transparent sales pages, DM/outreach scripts, objection guides, follow-up emails, proposals, and client agreements.",
+    availability: "Available",
+    availabilityNote:
+      "Persistent CRM pipeline, contact tracking, and all sales copy/proposal tools are live and linked to MeetingWorks & FinanceWorks.",
+    badgeColor: "text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30",
     purpose:
-      "Communicate what your offer delivers, who it helps, and what outcomes to expect using clear, evidence-based messaging.",
+      "Help creators track real buyer conversations from first inquiry to closed sale using clear, honest, non-manipulative messaging.",
     problemSolved:
-      "Struggling to explain the real value of your offer or defaulting to manipulative marketing scripts.",
+      "Losing warm leads in scattered DMs or struggling to explain an offer clearly without high-pressure sales scripts.",
     intendedOutputs: [
-      "Clear Offer & Sales Page Copy",
-      "Transparent FAQ & Objection Guide",
-      "Launch Messaging Framework"
+      "Persistent Customer CRM & Multi-Stage Sales Pipeline",
+      "Sales Page Copy, Outreach Scripts & Follow-Up Emails",
+      "Proposals, Client Agreements & Objection Guides"
     ],
     ecosystemRelationship:
-      "Works with OfferWorks and ProofWorks so every sales page reflects your authentic voice and verified customer feedback."
+      "Receives leads from FunnelWorks, connects buyer calls to MeetingWorks, and records verified deal outcomes for FinanceWorks and First Sale Engine.",
+    connectedAppIds: ["meetingworks", "financeworks", "deliveryworks", "proofworks"],
+    externalLink: "/workspace"
   },
-
-  // Customer Success (3)
   {
-    id: "meetingworks",
-    name: "MeetingWorks",
-    category: "Customer Success",
-    journeyStage: "Connect",
-    headline: "Run structured discovery calls, coaching sessions, and buyer conversations.",
+    id: "storeworks",
+    name: "StoreWorks",
+    category: "Create & Sell",
+    journeyStage: "Sell",
+    headline: "Organize product listings, pricing, bundles, and your creator storefront.",
     shortDescription:
-      "Prepare conversation agendas, capture buyer questions, and turn live creator meetings into clear action items and offer insights.",
-    availability: "Planned",
-    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+      "Create and manage persistent storefront product listings, pricing tiers, discount codes, and product bundles directly from your ProductWorks assets.",
+    availability: "In Development",
+    availabilityNote:
+      "Storefront builder, persistent product listings, pricing, discount codes, and bundles are live; live creator marketplace checkout & seller payouts require Stripe Connect setup.",
+    badgeColor: "text-indigo-700 dark:text-indigo-400 border-indigo-300 dark:border-indigo-500/30",
     purpose:
-      "Make live discovery calls, customer interviews, and client sessions organized, productive, and connected to your projects.",
+      "Give every creator a structured catalog for organizing offers, bundles, and transparent pricing separate from ThreadsWorks SaaS billing.",
     problemSolved:
-      "Unstructured calls and scattered meeting notes that lose valuable buyer insights and follow-up commitments.",
+      "Scattering product links, ad-hoc pricing, and bundle offers across disconnected tools.",
     intendedOutputs: [
-      "Structured Discovery & Coaching Call Agendas",
-      "Buyer Insight & Objection Summaries",
-      "Post-Meeting Follow-Up Action Plans"
+      "Persistent Creator Storefront & Product Catalog",
+      "Pricing Tiers, Discount Codes & Bundle Configurations",
+      "Ready-to-Publish Storefront Copy & Product Listings"
     ],
     ecosystemRelationship:
-      "Feeds real language and questions from live conversations back into DemandWorks, ThreadsWorks, and DeliveryWorks."
+      "Publishes finished products from ProductWorks and hands completed orders to DeliveryWorks and FinanceWorks.",
+    connectedAppIds: ["productworks", "deliveryworks", "financeworks", "affiliateworks"],
+    externalLink: "/workspace"
   },
   {
     id: "deliveryworks",
     name: "DeliveryWorks",
-    category: "Customer Success",
+    category: "Create & Sell",
     journeyStage: "Deliver",
-    headline: "Onboard buyers smoothly and deliver real customer value.",
+    headline: "Onboard buyers, deliver digital products, and host structured courses.",
     shortDescription:
-      "Organize welcome checklists, product delivery steps, and client milestones so buyers get results from what they purchase.",
-    availability: "Planned",
-    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+      "Manage access-controlled digital product delivery records, structured course modules/lessons/quizzes, customer onboarding sequences, support responses, and feedback collection.",
+    availability: "Available",
+    availabilityNote:
+      "Digital delivery catalog, course/lesson/quiz progress records, and onboarding/feedback generators are live in Firestore.",
+    badgeColor: "text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30",
     purpose:
-      "Ensure every customer receives a clear, dependable experience from purchase to first practical win.",
+      "Ensure every paying customer receives a dependable, well-organized delivery experience from purchase to practical outcome.",
     problemSolved:
-      "Disorganized fulfillment and unclear onboarding that frustrate buyers and reduce repeat business.",
+      "Disorganized post-purchase fulfillment and unclear onboarding that frustrate buyers and prevent repeat referrals.",
     intendedOutputs: [
-      "Customer Welcome & Quick-Start Sequence",
-      "Offer Fulfillment & Delivery Checklist",
-      "Customer Outcome Check-In Prompts"
+      "Access-Controlled Digital Delivery & Course Hosting Records",
+      "Customer Welcome, Onboarding & Support Playbooks",
+      "Structured Feedback Prompts Linked to ProofWorks"
     ],
     ecosystemRelationship:
-      "Follows SalesWorks and ProductWorks to turn completed sales into satisfied customers and long-term trust."
+      "Follows StoreWorks and SalesWorks to fulfill purchases and route verified customer feedback directly into ProofWorks.",
+    connectedAppIds: ["proofworks", "salesworks", "storeworks", "communityworks"],
+    externalLink: "/workspace"
+  },
+
+  // =========================================================================
+  // CATEGORY 2 — CONNECT & GROW (6 Applications)
+  // =========================================================================
+  {
+    id: "communityworks",
+    name: "CommunityWorks",
+    category: "Connect & Grow",
+    journeyStage: "Connect",
+    headline: "Connect with creators in a shared community network.",
+    shortDescription:
+      "Participate in the internal ContentPaysUs creator network: publish posts, comment, like, repost, follow creators, save threads, join groups, send direct messages, and share products or meetings.",
+    availability: "Available",
+    availabilityNote:
+      "Internal Firestore-backed creator feed, comments, likes, reposts, follows, groups, direct messages, and report/block moderation are live.",
+    badgeColor: "text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30",
+    purpose:
+      "Help creators learn alongside peers, exchange honest feedback, and build real business relationships inside the ecosystem.",
+    problemSolved:
+      "Building a creator business in isolation without peer accountability, direct dialogue, or collaborative momentum.",
+    intendedOutputs: [
+      "Creator Feed, Discussion Groups & Discovery Directory",
+      "Direct Messages, Follows, Likes, Reposts & Saved Posts",
+      "Product/Meeting Sharing & Safety Moderation Controls"
+    ],
+    ecosystemRelationship:
+      "Connects peers across ContentPaysUs and shares products from ProductWorks, sessions from MeetingWorks, and referrals from AffiliateWorks.",
+    connectedAppIds: ["meetingworks", "productworks", "affiliateworks", "teamworks"],
+    externalLink: "/workspace"
+  },
+  {
+    id: "meetingworks",
+    name: "MeetingWorks",
+    category: "Connect & Grow",
+    journeyStage: "Connect",
+    headline: "Schedule discovery calls, run meeting rooms, and capture action items.",
+    shortDescription:
+      "Create persistent meeting rooms, manage appointments and shareable invitations, run structured agendas and in-room chat, share product links, and generate AI meeting summaries & follow-ups.",
+    availability: "In Development",
+    availabilityNote:
+      "Scheduling, persistent rooms, invitations, agendas, chat, host notes, and AI summaries are live; live audio/video/screen-share requires WebRTC TURN/SFU media infrastructure.",
+    badgeColor: "text-indigo-700 dark:text-indigo-400 border-indigo-300 dark:border-indigo-500/30",
+    purpose:
+      "Turn discovery calls, coaching sessions, and buyer interviews into organized conversations with documented next steps.",
+    problemSolved:
+      "Unstructured calls and scattered notes that lose buyer questions, objections, and follow-up commitments.",
+    intendedOutputs: [
+      "Persistent Meeting Rooms, Appointments & Shareable Invites",
+      "Structured Call Agendas, In-Room Chat & Product Link Sharing",
+      "AI Meeting Summaries, Action Items & Follow-Up Drafts"
+    ],
+    ecosystemRelationship:
+      "Connects directly to SalesWorks CRM contacts and feeds real buyer insights back into DemandWorks and DeliveryWorks.",
+    connectedAppIds: ["salesworks", "demandworks", "deliveryworks", "communityworks"],
+    externalLink: "/workspace"
   },
   {
     id: "proofworks",
     name: "ProofWorks",
-    category: "Customer Success",
+    category: "Connect & Grow",
     journeyStage: "Deliver",
-    headline: "Organize genuine customer feedback, examples, and outcomes.",
+    headline: "Collect, verify, and organize genuine customer proof.",
     shortDescription:
-      "Collect, verify, and structure authentic customer stories, case studies, and real work examples in one organized library.",
-    availability: "Planned",
-    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+      "Build a structured Evidence & Social Proof library with testimonial requests, case studies, and outcome portfolios—explicitly labeling self-reported, evidence-supported, and transaction-verified results.",
+    availability: "Available",
+    availabilityNote:
+      "Persistent Proof & Evidence Library and all proof-asset generators are live with strict verification-tier labels.",
+    badgeColor: "text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30",
     purpose:
-      "Help creators document real, verifiable customer outcomes without exaggerating claims.",
+      "Document authentic customer outcomes truthfully without fabricating testimonials, inflating numbers, or exaggerating claims.",
     problemSolved:
-      "Letting valuable customer feedback stay buried in emails and direct messages instead of organizing it cleanly.",
+      "Letting genuine customer wins stay buried in emails and DMs instead of organizing verifiable proof for buyers.",
     intendedOutputs: [
-      "Customer Feedback Collection Prompts",
-      "Structured Case Study Outlines",
-      "Verified Social Proof Library"
+      "Verification-Tagged Proof & Case Study Library",
+      "Testimonial & Review Request Workflows",
+      "Honest Proof Assets for SalesWorks, FunnelWorks & ThreadsWorks"
     ],
     ecosystemRelationship:
-      "Connects real outcomes from DeliveryWorks back into SalesWorks and ThreadsWorks content."
-  },
-
-  // Expansion (5)
-  {
-    id: "growthworks",
-    name: "GrowthWorks",
-    category: "Expansion",
-    journeyStage: "Grow",
-    headline: "Measure what actually drives audience and business growth.",
-    shortDescription:
-      "Review cross-app performance signals, identify topics and offers that convert, and focus your effort on what works.",
-    availability: "Planned",
-    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
-    purpose:
-      "Replace vanity-metric guesswork with clear visibility into which content and offers create real business progress.",
-    problemSolved:
-      "Tracking isolated likes and impressions without knowing which actions lead to subscribers and paying customers.",
-    intendedOutputs: [
-      "Unified Creator Outcome Dashboard",
-      "Content-to-Conversion Review Brief",
-      "Quarterly Focus & Experiment Plan"
-    ],
-    ecosystemRelationship:
-      "Aggregates verified signals across ContentPaysUs so your next cycle is sharper than the last."
-  },
-  {
-    id: "adsworks",
-    name: "AdsWorks",
-    category: "Expansion",
-    journeyStage: "Grow",
-    headline: "Amplify proven content and offers with paid distribution.",
-    shortDescription:
-      "Turn validated organic posts and tested offers into structured paid campaign briefs and creative angles.",
-    availability: "Planned",
-    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
-    purpose:
-      "Help creators scale what already resonates organically instead of spending ad budget on untested messaging.",
-    problemSolved:
-      "Burning money on paid ads before validating which hooks, angles, and offers actually convert.",
-    intendedOutputs: [
-      "Paid Creative Briefs Built from Proven Posts",
-      "Campaign Angle & Audience Test Matrix",
-      "Budget & Conversion Review Checklist"
-    ],
-    ecosystemRelationship:
-      "Takes top-performing organic messages from ThreadsWorks and validated offers from ProductWorks into paid reach."
+      "Receives customer feedback from DeliveryWorks and supplies verifiable proof assets to SalesWorks, StoreWorks, and ThreadsWorks.",
+    connectedAppIds: ["deliveryworks", "salesworks", "storeworks", "threadsworks"],
+    externalLink: "/workspace"
   },
   {
     id: "teamworks",
     name: "TeamWorks",
-    category: "Expansion",
+    category: "Connect & Grow",
     journeyStage: "Grow",
-    headline: "Collaborate with peers, collaborators, and growing support teams.",
+    headline: "Coordinate collaborators, roles, tasks, and content approvals.",
     shortDescription:
-      "Coordinate shared projects, creator collaborations, and co-marketing recommendations as your business expands.",
-    availability: "Planned",
-    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+      "Create shared creator workspaces with role-based member invites, assigned tasks, project milestones, approval checkpoints, and structured partnership proposals.",
+    availability: "Available",
+    availabilityNote:
+      "Shared team workspaces, role assignments, task/milestone boards, approval gates, and collaboration docs are live.",
+    badgeColor: "text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30",
     purpose:
-      "Enable creators to partner with peers and delegate recurring workflows without losing brand voice consistency.",
+      "Help solo creators transition smoothly into peer collaborations and assistant support without losing voice or quality control.",
     problemSolved:
-      "Hitting a solo bandwidth ceiling or losing consistency when collaborating with partners and assistants.",
+      "Hitting a solo bandwidth wall or losing brand consistency when coordinating with editors, partners, and collaborators.",
     intendedOutputs: [
-      "Creator Collaboration & Co-Marketing Plans",
-      "Shared Project Handoff Workflows",
-      "Brand Voice Guardrails for Collaborators"
+      "Shared Workspaces with Role-Based Permissions",
+      "Task Boards, Milestones & Content Approval Queues",
+      "Co-Marketing Proposals & Collaboration Agreements"
     ],
     ecosystemRelationship:
-      "Extends Shared Projects across peers and support teams while keeping your core creator identity intact."
+      "Extends Shared Projects across collaborators while keeping owner permissions and brand voice guardrails enforced.",
+    connectedAppIds: ["communityworks", "contentworks", "threadsworks", "automationworks"],
+    externalLink: "/workspace"
   },
   {
     id: "affiliateworks",
     name: "AffiliateWorks",
-    category: "Expansion",
+    category: "Connect & Grow",
     journeyStage: "Grow",
-    headline: "Grow through transparent partner and customer recommendations.",
+    headline: "Grow through transparent partner and customer referrals.",
     shortDescription:
-      "Equip satisfied customers and creator partners with clear referral resources, swipe copy, and transparent commission tracking.",
-    availability: "Planned",
-    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+      "Configure creator affiliate programs, commission structures, trackable referral links with self-referral prevention, partner swipe copy, and verified commission tracking.",
+    availability: "Available",
+    availabilityNote:
+      "Reuses existing ThreadsWorks Partner Hub infrastructure plus affiliate program builder, swipe copy, and self-referral checks.",
+    badgeColor: "text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30",
     purpose:
-      "Turn genuine customer advocacy and creator partnerships into a structured referral channel.",
+      "Turn genuine customer advocacy and creator partnerships into a transparent, properly attributed referral channel.",
     problemSolved:
-      "Managing word-of-mouth referrals manually without clear partner assets or reliable attribution.",
+      "Tracking partner recommendations informally in spreadsheets without clear swipe resources or reliable attribution.",
     intendedOutputs: [
-      "Partner Program Terms & Structure",
-      "Partner Resource Kit & Honest Swipe Copy",
-      "Referral Attribution & Payout Workflow"
+      "Affiliate Program Terms & Commission Configurations",
+      "Trackable Partner Links (With Self-Referral Prevention)",
+      "Partner Swipe Copy, Launch Emails & Attribution Tracking"
     ],
     ecosystemRelationship:
-      "Extends validated offers from ProductWorks and SalesWorks into partner-driven distribution."
+      "Connects directly to StoreWorks offers, existing Partner Hub attribution, and FinanceWorks commission tracking.",
+    connectedAppIds: ["storeworks", "financeworks", "communityworks", "salesworks"],
+    externalLink: "/workspace"
+  },
+  {
+    id: "growthworks",
+    name: "GrowthWorks",
+    category: "Connect & Grow",
+    journeyStage: "Grow",
+    headline: "Measure real performance and plan focused growth experiments.",
+    shortDescription:
+      "Review real synced ThreadsWorks metrics and workspace outcomes with zero fabricated numbers—paired with growth strategy, experiment planning, and milestone tracking.",
+    availability: "Available",
+    availabilityNote:
+      "Live analytics read strictly from real Firestore records (zero synthetic numbers), plus experiment and goal planning tools.",
+    badgeColor: "text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30",
+    purpose:
+      "Replace vanity-metric guesswork with transparent reporting on what topics, offers, and workflows actually move your business forward.",
+    problemSolved:
+      "Chasing random tactics without clear visibility into which content and experiments produce real subscriber and buyer momentum.",
+    intendedOutputs: [
+      "Real-Data Creator Performance Summary (Zero Fabricated Metrics)",
+      "Structured Growth Experiment & Hypothesis Plans",
+      "Quarterly Goal & Milestone Review Reports"
+    ],
+    ecosystemRelationship:
+      "Reads real performance records from ThreadsWorks, SalesWorks, and FinanceWorks to guide your next growth cycle.",
+    connectedAppIds: ["threadsworks", "contentworks", "salesworks", "adsworks"],
+    externalLink: "/workspace"
+  },
+
+  // =========================================================================
+  // CATEGORY 3 — AUTOMATE & SCALE (4 Applications)
+  // =========================================================================
+  {
+    id: "automationworks",
+    name: "AutomationWorks",
+    category: "Automate & Scale",
+    journeyStage: "Grow",
+    headline: "Automate safe cross-app workflows with human approval gates.",
+    shortDescription:
+      "Build persistent trigger-condition-action workflows across ContentPaysUs—including Product Saved → Prepare Promotion and Verified Order → Prepare Delivery—with idempotency, execution logs, retries, and strict approval gates.",
+    availability: "Available",
+    availabilityNote:
+      "Persistent workflow builder, approval gates, idempotent internal execution engine, and run history are live; unauthorized external publishing/payments are strictly blocked.",
+    badgeColor: "text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30",
+    purpose:
+      "Eliminate repetitive manual handoffs between ContentPaysUs applications while keeping humans in control of external actions.",
+    problemSolved:
+      "Manually copying product details into promo drafts, onboarding checklists, and CRM updates every time you ship.",
+    intendedOutputs: [
+      "Persistent Cross-App Trigger → Condition → Action Workflows",
+      "Natural-Language Workflow Blueprints & Approval Gates",
+      "Idempotent Execution History with Bounded Error Recovery"
+    ],
+    ecosystemRelationship:
+      "Orchestrates safe internal handoffs across ProductWorks, ThreadsWorks, SalesWorks, DeliveryWorks, and FinanceWorks.",
+    connectedAppIds: ["productworks", "threadsworks", "salesworks", "deliveryworks", "financeworks"],
+    externalLink: "/workspace"
+  },
+  {
+    id: "financeworks",
+    name: "FinanceWorks",
+    category: "Automate & Scale",
+    journeyStage: "Grow",
+    headline: "Track expenses, generate invoices, and review real creator P&L.",
+    shortDescription:
+      "Log real business expenses, generate downloadable HTML/CSV/print-ready PDF invoices, track verified commerce revenue & affiliate commissions, and model clearly labeled budgets and forecasts.",
+    availability: "Available",
+    availabilityNote:
+      "Persistent expense ledger, invoice generator with exports, real P&L rollups, and clearly labeled budget forecasts are live.",
+    badgeColor: "text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30",
+    purpose:
+      "Give independent creators transparent financial clarity built strictly on recorded expenses and verified sales—never fabricated numbers.",
+    problemSolved:
+      "Running a creator business without knowing true net profit, chasing manual invoice templates, or guessing cash runway.",
+    intendedOutputs: [
+      "Persistent Expense Ledger & Real P&L Summary",
+      "Downloadable Client Invoices (HTML / Print-PDF / CSV)",
+      "Creator Budget Plans & Explicitly Labeled Forecast Scenarios"
+    ],
+    ecosystemRelationship:
+      "Aggregates verified deal outcomes from SalesWorks/StoreWorks and commission records from AffiliateWorks without touching ThreadsWorks SaaS billing.",
+    connectedAppIds: ["salesworks", "storeworks", "affiliateworks", "growthworks"],
+    externalLink: "/workspace"
+  },
+  {
+    id: "adsworks",
+    name: "AdsWorks",
+    category: "Automate & Scale",
+    journeyStage: "Grow",
+    headline: "Plan paid campaigns built on proven organic content and offers.",
+    shortDescription:
+      "Turn validated organic messages and offers into ad copy variations, short-form video scripts, campaign strategies, targeting briefs, budget models, and creative comparison matrices.",
+    availability: "In Development",
+    availabilityNote:
+      "Ad copy, video scripts, campaign strategy, targeting, budget planner, and report tools are live; live ad-account launch & spend sync require external Ad Platform OAuth.",
+    badgeColor: "text-indigo-700 dark:text-indigo-400 border-indigo-300 dark:border-indigo-500/30",
+    purpose:
+      "Help creators prepare disciplined, evidence-backed paid campaigns after validating messaging organically.",
+    problemSolved:
+      "Wasting ad budget on untested hooks, vague targeting, or disconnected landing pages.",
+    intendedOutputs: [
+      "Paid Ad Copy Variations & Short-Form Video Scripts",
+      "Campaign Strategy, Audience Targeting & Budget Models",
+      "Creative Comparison & Campaign Review Briefs"
+    ],
+    ecosystemRelationship:
+      "Draws proven organic angles from ThreadsWorks and GrowthWorks alongside validated offers from OfferWorks and FunnelWorks.",
+    connectedAppIds: ["threadsworks", "growthworks", "funnelworks", "offerworks"],
+    externalLink: "/workspace"
   },
   {
     id: "projectz",
     name: "Project Z",
-    category: "Expansion",
+    category: "Automate & Scale",
     journeyStage: "Grow",
-    headline: "Next-generation AI workflows for creator leverage and momentum.",
+    headline: "Isolated AI experimentation lab for next-generation business scenarios.",
     shortDescription:
-      "Planned forward-looking research track exploring autonomous creator workflows, cross-channel intelligence, and deeper leverage.",
-    availability: "Planned",
-    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+      "Test hypothetical business scenarios, opportunity experiments, strategy simulations, and multi-agent workflow prototypes inside a clearly isolated sandbox separated from production data.",
+    availability: "Available",
+    availabilityNote:
+      "Experimental lab tools are live, clearly labeled hypothetical, and strictly isolated from live production customer records.",
+    badgeColor: "text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30",
     purpose:
-      "Explore next-generation AI capabilities that save creators time while preserving authentic human judgment.",
+      "Provide a safe, clearly labeled sandbox for exploring bold creator business models and AI workflow concepts.",
     problemSolved:
-      "Keeping independent creators ahead as AI workflows and digital distribution evolve.",
+      "Testing speculative ideas without polluting live brand profiles, customer CRMs, or verified financial records.",
     intendedOutputs: [
-      "Next-Generation Creator Workflow Concepts",
-      "Cross-App Intelligence Prototypes",
-      "Creator Autonomy Research Notes"
+      "Hypothetical Business Scenario & Strategy Simulations",
+      "New Opportunity Experiments & Risk Stress-Tests",
+      "Multi-Agent Creator Workflow Prototypes"
     ],
     ecosystemRelationship:
-      "Represents the long-term innovation horizon for the ContentPaysUs ecosystem once core applications mature."
+      "Reads your creator context in read-only mode and isolates all experimental outputs until you explicitly promote an idea into a real project.",
+    connectedAppIds: ["demandworks", "offerworks", "automationworks", "growthworks"],
+    externalLink: "/workspace"
   }
 ];
+
+export function getAppsByCategory(category: EcosystemCategory): EcosystemApp[] {
+  return CONTENT_PAYS_US_APPS.filter((app) => app.category === category);
+}
+
+export function getEcosystemAppById(appId: string): EcosystemApp | undefined {
+  return CONTENT_PAYS_US_APPS.find((app) => app.id === appId);
+}

@@ -120,7 +120,7 @@ export function ContentPaysUsAbout({
               Transparent progressive delivery
             </h2>
             <p className="text-sm leading-relaxed text-slate-600 dark:text-zinc-400">
-              We label every application across our {CONTENT_PAYS_US_APPS.length}-application roadmap honestly. <strong className="font-semibold text-slate-900 dark:text-zinc-200">ThreadsWorks</strong> is Available today for Meta Threads writing and scheduling. <strong className="font-semibold text-slate-900 dark:text-zinc-200">ProductWorks</strong> is In Development for downloadable product assets. All other roadmap applications—including ContentPaysUs Academy, CommunityWorks, MeetingWorks, and First Sale Engine—are clearly marked Planned until built and verified.
+              We organize all {CONTENT_PAYS_US_APPS.length} specialized applications across three permanent categories—<strong className="font-semibold text-slate-900 dark:text-zinc-200">Create &amp; Sell</strong>, <strong className="font-semibold text-slate-900 dark:text-zinc-200">Connect &amp; Grow</strong>, and <strong className="font-semibold text-slate-900 dark:text-zinc-200">Automate &amp; Scale</strong>—alongside our free <strong className="font-semibold text-slate-900 dark:text-zinc-200">ContentPaysUs Academy</strong> and cross-app <strong className="font-semibold text-slate-900 dark:text-zinc-200">First Sale Engine</strong> workflow. Every tool is classified honestly as Available, In Development (when external provider keys are required), or Planned.
             </p>
           </div>
 

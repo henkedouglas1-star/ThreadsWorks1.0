@@ -1,29 +1,57 @@
-import React, { useState, useEffect, useRef } from "react";
-import { 
-  Compass, 
-  FolderKanban, 
-  Layers, 
-  Settings, 
-  Sparkles, 
-  Plus, 
-  ExternalLink, 
-  CheckCircle2, 
-  Archive, 
-  RotateCcw,
-  Edit3, 
-  Trash2, 
-  Shield, 
-  User, 
-  Zap, 
+import React, { useEffect, useRef, useState } from "react";
+import {
+  AlertCircle,
+  Archive,
+  ArrowLeft,
   ArrowRight,
-  Bookmark,
+  BookOpen,
+  Brain,
+  CheckCircle2,
+  Compass,
+  Edit3,
+  ExternalLink,
+  FolderKanban,
+  Layers,
   Loader2,
-  AlertCircle
+  Plus,
+  RotateCcw,
+  Settings,
+  Sparkles
 } from "lucide-react";
-import { db, withTimeout, handleFirestoreError, OperationType } from "../../firebase";
-import { collection, query, where, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { db, withTimeout } from "../../firebase";
+import { addDoc, collection, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
 import { EcosystemProject } from "../../types/sharedProjects";
-import { CONTENT_PAYS_US_APPS } from "../../data/contentPaysUsRegistry";
+import {
+  CONTENT_PAYS_US_APPS,
+  EcosystemCategory,
+  getAppsByCategory,
+  getAvailabilityDotClass,
+  getAvailabilityTextClass,
+  getEcosystemAppById
+} from "../../data/contentPaysUsRegistry";
+import { getToolsForApp } from "../../data/ecosystemToolRegistry";
+import { PermanentCategoryBar } from "./PermanentCategoryBar";
+import { ContentPaysUsAcademyView } from "./ContentPaysUsAcademyView";
+import { FirstSaleEnginePanel } from "../ecosystem/FirstSaleEnginePanel";
+import { ProductWorksEnhancedPanel } from "../ecosystem/ProductWorksEnhancedPanel";
+import {
+  ToolTransferPayload,
+  UniversalToolWorkspace
+} from "../ecosystem/UniversalToolWorkspace";
+import {
+  AffiliateWorksModule,
+  AutomationWorksModule,
+  CommunityWorksModule,
+  DeliveryWorksModule,
+  FinanceWorksModule,
+  GrowthWorksModule,
+  MeetingWorksModule,
+  ProofWorksModule,
+  SalesWorksCrmModule,
+  SharedIntelligenceMemoryPanel,
+  StoreWorksModule,
+  TeamWorksModule
+} from "../ecosystem/OperationalAppModules";
 
 interface ContentPaysUsUnifiedWorkspaceProps {
   user: any;
@@ -31,22 +59,42 @@ interface ContentPaysUsUnifiedWorkspaceProps {
   subscriptionStatus: string;
   onNavigateToTab: (tab: string) => void;
   onRefreshProfile: () => void;
+  onOpenProductWorksStudio?: () => void;
 }
+
+type WorkspaceSubTab =
+  | "first-sale"
+  | "applications"
+  | "projects"
+  | "academy"
+  | "memory"
+  | "settings";
 
 export function ContentPaysUsUnifiedWorkspace({
   user,
   profile,
   subscriptionStatus,
   onNavigateToTab,
-  onRefreshProfile
+  onRefreshProfile,
+  onOpenProductWorksStudio
 }: ContentPaysUsUnifiedWorkspaceProps) {
-  const [activeSubTab, setActiveSubTab] = useState<"home" | "projects" | "applications" | "settings">("home");
+  const [activeSubTab, setActiveSubTab] = useState<WorkspaceSubTab>("applications");
+  const [activeCategory, setActiveCategory] = useState<EcosystemCategory>("Create & Sell");
+  const [activeEcosystemAppId, setActiveEcosystemAppId] = useState<string | null>(null);
+
+  // Preserved unsaved drafts across app switches (strictly cleared on UID switch)
+  const [draftCache, setDraftCache] = useState<
+    Record<string, { toolId: string; inputs: Record<string, string>; sections: Record<string, string>; title: string }>
+  >({});
+  const [incomingTransfer, setIncomingTransfer] = useState<ToolTransferPayload | null>(null);
+
+  // Shared projects state
   const [projects, setProjects] = useState<EcosystemProject[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
   const [projectError, setProjectError] = useState<string | null>(null);
   const [projectSuccessMessage, setProjectSuccessMessage] = useState<string | null>(null);
-  
-  // Project Modal state (Create / Edit)
+
+  // Project modal state (Create / Edit)
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState("");
@@ -55,10 +103,29 @@ export function ContentPaysUsUnifiedWorkspace({
   const [projectStatus, setProjectStatus] = useState<"active" | "archived" | "completed">("active");
   const [selectedAppId, setSelectedAppId] = useState("threadsworks");
   const [submittingProject, setSubmittingProject] = useState(false);
+
   const activeUidRef = useRef<string | null>(user?.uid || null);
   activeUidRef.current = user?.uid || null;
 
-  // Clear ALL project, modal, notification, and tab state immediately when authenticated account changes
+  // Support deep link ?app=<id> when coming from public /applications/:id
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const requestedApp = params.get("app");
+    if (!requestedApp) return;
+    if (requestedApp === "threadsworks") {
+      onNavigateToTab("engine");
+      return;
+    }
+    const found = getEcosystemAppById(requestedApp);
+    if (found) {
+      setActiveCategory(found.category);
+      setActiveSubTab("applications");
+      setActiveEcosystemAppId(found.id);
+    }
+  }, []);
+
+  // Reset ALL workspace, project, draft cache, and transfer state immediately on UID change
   useEffect(() => {
     const requestUid = user?.uid || null;
     setProjects([]);
@@ -72,7 +139,10 @@ export function ContentPaysUsUnifiedWorkspace({
     setProjectStatus("active");
     setSelectedAppId("threadsworks");
     setSubmittingProject(false);
-    setActiveSubTab("home");
+    setActiveEcosystemAppId(null);
+    setDraftCache({});
+    setIncomingTransfer(null);
+    setActiveSubTab("applications");
 
     if (!requestUid) {
       setLoadingProjects(false);
@@ -86,8 +156,8 @@ export function ContentPaysUsUnifiedWorkspace({
       try {
         const q = query(collection(db, "projects"), where("userId", "==", requestUid));
         const snapshot = await withTimeout(getDocs(q), 5000, true);
-        if (!isMounted || activeUidRef.current !== requestUid) return; // Ignore stale asynchronous results if user changed
-        
+        if (!isMounted || activeUidRef.current !== requestUid) return;
+
         const list: EcosystemProject[] = [];
         snapshot.forEach((docSnap) => {
           list.push({ id: docSnap.id, ...docSnap.data() } as EcosystemProject);
@@ -104,12 +174,69 @@ export function ContentPaysUsUnifiedWorkspace({
     };
 
     fetchProjects();
-
     return () => {
       isMounted = false;
     };
   }, [user?.uid]);
 
+  const handleLaunchApp = (appId: string) => {
+    if (appId === "threadsworks") {
+      onNavigateToTab("engine");
+      return;
+    }
+    const app = getEcosystemAppById(appId);
+    if (app) {
+      setActiveCategory(app.category);
+    }
+    setActiveSubTab("applications");
+    setActiveEcosystemAppId(appId);
+  };
+
+  const handleTransferToApp = (payload: ToolTransferPayload) => {
+    setIncomingTransfer(payload);
+    if (payload.targetAppId === "threadsworks") {
+      handleSendBriefToThreadsWorks(payload.title, payload.content);
+      return;
+    }
+    handleLaunchApp(payload.targetAppId);
+  };
+
+  const handleSendBriefToThreadsWorks = async (title: string, body: string) => {
+    const requestUid = user?.uid;
+    if (!requestUid) return;
+    const now = new Date().toISOString();
+    try {
+      await withTimeout(
+        addDoc(collection(db, "posts"), {
+          userId: requestUid,
+          title: title.slice(0, 140),
+          hook: body.split("\n")[0]?.slice(0, 260) || title,
+          singlePost: body.slice(0, 500),
+          threadParts: [body.slice(0, 500)],
+          topic: title.slice(0, 120),
+          stage: "draft",
+          status: "draft",
+          format: "single",
+          notes: "Transferred safely as a draft from ContentPaysUs ecosystem. Review before scheduling or publishing.",
+          createdAt: now,
+          updatedAt: now
+        }),
+        5000,
+        true
+      );
+      if (activeUidRef.current !== requestUid) return;
+      setProjectSuccessMessage(`Saved "${title}" as a draft in your ThreadsWorks Library (never auto-published).`);
+      setTimeout(() => {
+        if (activeUidRef.current === requestUid) setProjectSuccessMessage(null);
+      }, 4500);
+    } catch (err: any) {
+      if (activeUidRef.current === requestUid) {
+        setProjectError(err?.message || "Could not save draft to ThreadsWorks Library.");
+      }
+    }
+  };
+
+  // Project CRUD handlers
   const handleOpenCreateModal = () => {
     setEditingProjectId(null);
     setProjectName("");
@@ -143,12 +270,11 @@ export function ContentPaysUsUnifiedWorkspace({
     try {
       const now = new Date().toISOString();
       if (editingProjectId) {
-        // Edit existing project
         const targetId = editingProjectId;
         const projRef = doc(db, "projects", targetId);
         const payload = {
           name: projectName.trim(),
-          objective: projectObjective.trim() || "Grow creator brand and monetize knowledge",
+          objective: projectObjective.trim() || "Build creator brand and earn verified sales",
           description: projectDescription.trim(),
           status: projectStatus,
           associatedAppIds: [selectedAppId],
@@ -156,14 +282,13 @@ export function ContentPaysUsUnifiedWorkspace({
         };
         await withTimeout(updateDoc(projRef, payload), 4000, true);
         if (activeUidRef.current !== requestUid) return;
-        setProjects(prev => prev.map(p => p.id === targetId ? { ...p, ...payload } : p));
+        setProjects((prev) => prev.map((p) => (p.id === targetId ? { ...p, ...payload } : p)));
         setProjectSuccessMessage("Project updated successfully.");
       } else {
-        // Create new project
         const payload = {
           userId: requestUid,
           name: projectName.trim(),
-          objective: projectObjective.trim() || "Grow creator brand and monetize knowledge",
+          objective: projectObjective.trim() || "Build creator brand and earn verified sales",
           description: projectDescription.trim(),
           status: "active" as const,
           associatedAppIds: [selectedAppId],
@@ -172,8 +297,7 @@ export function ContentPaysUsUnifiedWorkspace({
         };
         const docRef = await withTimeout(addDoc(collection(db, "projects"), payload), 4000, true);
         if (activeUidRef.current !== requestUid) return;
-        const newProj = { id: docRef.id, ...payload };
-        setProjects(prev => [newProj, ...prev]);
+        setProjects((prev) => [{ id: docRef.id, ...payload }, ...prev]);
         setProjectSuccessMessage("Project created successfully.");
       }
       setShowProjectModal(false);
@@ -182,8 +306,7 @@ export function ContentPaysUsUnifiedWorkspace({
       }, 4000);
     } catch (err: any) {
       if (activeUidRef.current !== requestUid) return;
-      console.error("Error saving project:", err);
-      setProjectError(err?.message || "Failed to save project due to security rules or network error.");
+      setProjectError(err?.message || "Failed to save project.");
     } finally {
       if (activeUidRef.current === requestUid) setSubmittingProject(false);
     }
@@ -199,251 +322,419 @@ export function ContentPaysUsUnifiedWorkspace({
       const now = new Date().toISOString();
       await withTimeout(updateDoc(projRef, { status: nextStatus, updatedAt: now }), 4000, true);
       if (activeUidRef.current !== requestUid) return;
-      setProjects(prev => prev.map(p => p.id === projectId ? { ...p, status: nextStatus, updatedAt: now } : p));
+      setProjects((prev) =>
+        prev.map((p) => (p.id === projectId ? { ...p, status: nextStatus, updatedAt: now } : p))
+      );
       setProjectSuccessMessage(nextStatus === "active" ? "Project restored to active." : "Project archived.");
       setTimeout(() => {
         if (activeUidRef.current === requestUid) setProjectSuccessMessage(null);
       }, 3000);
-    } catch (err: any) {
-      if (activeUidRef.current !== requestUid) return;
-      console.warn("Failed to update project status:", err);
-      setProjectError("Failed to update project status.");
+    } catch {
+      if (activeUidRef.current === requestUid) setProjectError("Failed to update project status.");
+    }
+  };
+
+  const categoryApps = getAppsByCategory(activeCategory);
+  const activeAppObj = activeEcosystemAppId ? getEcosystemAppById(activeEcosystemAppId) : null;
+  const activeAppHasAiTools = activeEcosystemAppId
+    ? getToolsForApp(activeEcosystemAppId).some((t) => !(t.mode === "operational" && t.outputSchema.length === 0))
+    : false;
+
+  const renderOperationalModule = (appId: string) => {
+    switch (appId) {
+      case "salesworks":
+        return <SalesWorksCrmModule onTransferToApp={handleTransferToApp} />;
+      case "storeworks":
+        return <StoreWorksModule />;
+      case "deliveryworks":
+        return <DeliveryWorksModule />;
+      case "communityworks":
+        return <CommunityWorksModule currentUid={user?.uid} />;
+      case "meetingworks":
+        return <MeetingWorksModule onTransferToApp={handleTransferToApp} />;
+      case "proofworks":
+        return <ProofWorksModule />;
+      case "teamworks":
+        return <TeamWorksModule />;
+      case "affiliateworks":
+        return <AffiliateWorksModule currentUid={user?.uid} />;
+      case "growthworks":
+        return <GrowthWorksModule />;
+      case "automationworks":
+        return <AutomationWorksModule />;
+      case "financeworks":
+        return <FinanceWorksModule issuerEmail={profile?.email || user?.email} />;
+      default:
+        return null;
     }
   };
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      
-      {/* Ecosystem Unified Header */}
-      <div className="rounded-3xl border border-slate-800 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 p-6 sm:p-8 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-semibold mb-3">
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>ContentPaysUs Unified Workspace</span>
+    <div className="cpu-public-site space-y-6 animate-fade-in text-left">
+      {/* Unified Ecosystem Header — Light & Dark Mode Parity */}
+      <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-5 sm:p-6 shadow-sm space-y-5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-1.5">
+            <div className="inline-flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-400">
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>ContentPaysUs Unified Creator Workspace</span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-950 dark:text-white tracking-tight">
+              Welcome back, {(profile?.email || user?.email || "Creator").split("@")[0]}
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 max-w-2xl">
+              20 connected creator applications organized into Create &amp; Sell, Connect &amp; Grow, and Automate &amp; Scale—powered by one shared creator identity and memory layer.
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-2">
-            Welcome back, {profile?.email || user?.email || "Creator"}
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-300">
-            Manage your shared creator identity, ecosystem projects, and specialized applications from one hub.
-          </p>
-        </div>
 
-        {/* Primary Ecosystem Navigation Tabs */}
-        <div className="flex flex-wrap gap-1.5 bg-slate-950/80 border border-slate-800 p-1.5 rounded-2xl">
-          {[
-            { id: "home", label: "Home", icon: Compass },
-            { id: "projects", label: "Projects", icon: FolderKanban },
-            { id: "applications", label: "Applications", icon: Layers },
-            { id: "settings", label: "Settings", icon: Settings }
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeSubTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                role="button"
-                aria-label={`Navigate to ${tab.label}`}
-                onClick={() => setActiveSubTab(tab.id as any)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  isActive
-                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
-                    : "text-slate-400 hover:text-white hover:bg-slate-900"
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {tab.label}
-              </button>
-            );
-          })}
+          {/* Primary Workspace Sub-Navigation */}
+          <div className="flex flex-wrap gap-1.5 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-[#09090b] p-1">
+            {[
+              { id: "applications", label: "Applications (20)", icon: Layers },
+              { id: "first-sale", label: "First Sale Engine", icon: Compass },
+              { id: "projects", label: `Projects (${projects.filter((p) => p.status === "active").length})`, icon: FolderKanban },
+              { id: "academy", label: "Academy", icon: BookOpen },
+              { id: "memory", label: "Memory", icon: Brain },
+              { id: "settings", label: "Settings", icon: Settings }
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeSubTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  aria-label={`Navigate to ${tab.label}`}
+                  onClick={() => {
+                    setActiveSubTab(tab.id as WorkspaceSubTab);
+                    if (tab.id !== "applications") setActiveEcosystemAppId(null);
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                    isActive
+                      ? "bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm"
+                      : "text-slate-700 dark:text-zinc-300 hover:bg-white dark:hover:bg-zinc-900"
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Success / Error Notification Banners */}
+      {/* Permanent Sticky 3-Category Bar (Always Visible While Scrolling) */}
+      <PermanentCategoryBar
+        variant="workspace"
+        stickyTopClass="top-0"
+        activeCategory={activeCategory}
+        onSelectCategory={(cat) => {
+          setActiveCategory(cat);
+          setActiveSubTab("applications");
+          setActiveEcosystemAppId(null);
+        }}
+        firstSaleActive={activeSubTab === "first-sale"}
+        onOpenFirstSaleEngine={() => {
+          setActiveSubTab("first-sale");
+          setActiveEcosystemAppId(null);
+        }}
+        academyActive={activeSubTab === "academy"}
+        onOpenAcademy={() => {
+          setActiveSubTab("academy");
+          setActiveEcosystemAppId(null);
+        }}
+      />
+
+      {/* Notifications */}
       {projectSuccessMessage && (
-        <div className="flex items-center gap-2 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
+        <div className="flex items-center gap-2 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300 text-xs font-semibold">
           <CheckCircle2 className="h-4 w-4 shrink-0" />
           <span>{projectSuccessMessage}</span>
         </div>
       )}
-
       {projectError && (
-        <div className="flex items-center gap-2 p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold">
+        <div className="flex items-center gap-2 p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-300 dark:border-rose-500/30 text-rose-800 dark:text-rose-300 text-xs font-semibold">
           <AlertCircle className="h-4 w-4 shrink-0" />
           <span>{projectError}</span>
         </div>
       )}
 
-      {/* Tab 1: Home Dashboard */}
-      {activeSubTab === "home" && (
-        <div className="space-y-8 animate-fade-in">
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {/* ThreadsWorks Quick Launch */}
-            <div className="rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-slate-900 to-emerald-950/20 p-6 flex flex-col justify-between shadow-xl">
-              <div>
-                <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold border border-emerald-500/20 mb-4 inline-block">
-                  Flagship App
-                </span>
-                <h3 className="text-xl font-bold text-white mb-2">ThreadsWorks Studio</h3>
-                <p className="text-xs text-slate-300 leading-relaxed mb-6">
-                  Draft AI Threads posts, develop stronger hooks, and manage your content calendar.
-                </p>
-              </div>
-              <button
-                role="button"
-                aria-label="Launch ThreadsWorks Content Engine"
-                onClick={() => onNavigateToTab("engine")}
-                className="w-full py-3 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 cursor-pointer"
-              >
-                Launch ThreadsWorks <ExternalLink className="h-3.5 w-3.5" />
-              </button>
-            </div>
+      {/* TAB: APPLICATIONS (Grid OR Active Launched App) */}
+      {activeSubTab === "applications" && (
+        <div className="space-y-6">
+          {activeAppObj ? (
+            <div className="space-y-6">
+              {/* Active App Header Bar */}
+              <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setActiveEcosystemAppId(null)}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-400 hover:underline cursor-pointer"
+                    >
+                      <ArrowLeft className="h-3.5 w-3.5" /> Back to {activeAppObj.category}
+                    </button>
+                    <span className="text-slate-300 dark:text-zinc-700">/</span>
+                    <span className="font-mono text-xs text-slate-500 dark:text-zinc-400">{activeAppObj.category}</span>
+                    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${getAvailabilityTextClass(activeAppObj.availability)}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${getAvailabilityDotClass(activeAppObj.availability)}`} />
+                      {activeAppObj.availability}
+                    </span>
+                  </div>
+                  <h2 className="text-xl font-extrabold text-slate-950 dark:text-white">{activeAppObj.name}</h2>
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400">{activeAppObj.headline}</p>
+                </div>
 
-            {/* ProductWorks Quick Launch */}
-            <div className="rounded-3xl border border-indigo-500/30 bg-gradient-to-br from-slate-900 to-indigo-950/20 p-6 flex flex-col justify-between shadow-xl">
-              <div>
-                <span className="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-300 text-xs font-bold border border-indigo-500/20 mb-4 inline-block">
-                  In Development
-                </span>
-                <h3 className="text-xl font-bold text-white mb-2">ProductWorks</h3>
-                <p className="text-xs text-slate-300 leading-relaxed mb-6">
-                  Create downloadable PDF playbooks, 7-slide social carousels, and storefront sales copy.
-                </p>
+                {/* Quick App Switcher for Connected Apps */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {activeAppObj.connectedAppIds.slice(0, 3).map((connId) => {
+                    const conn = getEcosystemAppById(connId);
+                    if (!conn) return null;
+                    return (
+                      <button
+                        key={conn.id}
+                        type="button"
+                        onClick={() => handleLaunchApp(conn.id)}
+                        className="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 text-[11px] font-semibold text-slate-700 dark:text-zinc-300 hover:border-indigo-400 cursor-pointer"
+                      >
+                        → {conn.name}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <button
-                role="button"
-                aria-label="Launch ProductWorks Digital Product Generator"
-                onClick={() => {
-                  if (typeof window !== "undefined") {
-                    window.location.href = "/productworks";
+
+              {/* ProductWorks Special Full Studio */}
+              {activeAppObj.id === "productworks" && (
+                <ProductWorksEnhancedPanel
+                  onNavigateToThreadsWorksLibrary={() => onNavigateToTab("calendar")}
+                  onOpenOriginalStudio={onOpenProductWorksStudio}
+                />
+              )}
+
+              {/* Dedicated Operational Module (if applicable) */}
+              {renderOperationalModule(activeAppObj.id)}
+
+              {/* Companion Universal AI Studio (if app has registered AI tools) */}
+              {activeAppHasAiTools && (
+                <UniversalToolWorkspace
+                  key={activeAppObj.id}
+                  appId={activeAppObj.id}
+                  projects={projects}
+                  draftCache={draftCache}
+                  onUpdateDraftCache={(id, draft) =>
+                    setDraftCache((prev) => ({ ...prev, [id]: draft }))
                   }
-                }}
-                className="w-full py-3 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 cursor-pointer"
-              >
-                Launch ProductWorks <ExternalLink className="h-3.5 w-3.5" />
-              </button>
+                  incomingTransfer={
+                    incomingTransfer && incomingTransfer.targetAppId === activeAppObj.id
+                      ? incomingTransfer
+                      : null
+                  }
+                  onConsumeTransfer={() => setIncomingTransfer(null)}
+                  onTransferToApp={handleTransferToApp}
+                  onSendBriefToThreadsWorks={handleSendBriefToThreadsWorks}
+                  onProfileSynced={onRefreshProfile}
+                />
+              )}
             </div>
-
-            {/* Ecosystem Projects Summary */}
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 flex flex-col justify-between shadow-xl">
-              <div>
-                <span className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs font-bold border border-purple-500/20 mb-4 inline-block">
-                  Active Projects
+          ) : (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+                <div>
+                  <h2 className="text-lg font-extrabold text-slate-950 dark:text-white">
+                    {activeCategory} ({categoryApps.length} Applications)
+                  </h2>
+                  <p className="text-xs text-slate-600 dark:text-zinc-400">
+                    Launch any application below. Your profile, saved projects, and Shared Intelligence context travel automatically.
+                  </p>
+                </div>
+                <span className="font-mono text-xs text-slate-500 dark:text-zinc-400">
+                  20 Total Apps · 3 Permanent Categories
                 </span>
-                <h3 className="text-xl font-bold text-white mb-2">{projects.filter(p => p.status === "active").length} Projects</h3>
-                <p className="text-xs text-slate-300 leading-relaxed mb-6">
-                  Manage your shared creator projects across the ContentPaysUs ecosystem.
-                </p>
               </div>
-              <button
-                role="button"
-                aria-label="Manage Ecosystem Projects"
-                onClick={() => setActiveSubTab("projects")}
-                className="w-full py-3 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center justify-center gap-2 cursor-pointer"
-              >
-                View Projects <ArrowRight className="h-3.5 w-3.5" />
-              </button>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {categoryApps.map((app) => (
+                  <div
+                    key={app.id}
+                    className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-5 flex flex-col justify-between gap-4 hover:border-indigo-400 dark:hover:border-indigo-500/60 transition-colors"
+                  >
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+                          {app.category}
+                        </span>
+                        <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold ${getAvailabilityTextClass(app.availability)}`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${getAvailabilityDotClass(app.availability)}`} />
+                          {app.availability}
+                        </span>
+                      </div>
+
+                      <div>
+                        <h3 className="text-base font-bold text-slate-950 dark:text-white">{app.name}</h3>
+                        <p className="text-xs font-medium text-indigo-700 dark:text-indigo-400 mt-0.5">{app.headline}</p>
+                      </div>
+
+                      <p className="text-xs text-slate-600 dark:text-zinc-400 leading-relaxed">
+                        {app.shortDescription}
+                      </p>
+
+                      {app.availabilityNote && (
+                        <p className="text-[11px] text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/25 border border-amber-200 dark:border-amber-500/20 rounded-lg px-2.5 py-1.5">
+                          {app.availabilityNote}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-200 dark:border-zinc-800 flex items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        aria-label={`Launch ${app.name}`}
+                        onClick={() => handleLaunchApp(app.id)}
+                        className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                          app.id === "threadsworks"
+                            ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                            : "bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400 text-white"
+                        }`}
+                      >
+                        {app.id === "threadsworks" ? "Open Studio" : `Launch ${app.name}`}
+                        {app.id === "threadsworks" ? <ExternalLink className="h-3.5 w-3.5" /> : <ArrowRight className="h-3.5 w-3.5" />}
+                      </button>
+
+                      {draftCache[app.id] && (
+                        <span className="font-mono text-[10px] text-indigo-700 dark:text-indigo-400">
+                          Draft saved
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-
-          </div>
-
+          )}
         </div>
       )}
 
-      {/* Tab 2: Shared Projects */}
+      {/* TAB: FIRST SALE ENGINE */}
+      {activeSubTab === "first-sale" && (
+        <FirstSaleEnginePanel
+          onLaunchApp={handleLaunchApp}
+          onLaunchThreadsWorks={() => onNavigateToTab("engine")}
+        />
+      )}
+
+      {/* TAB: CONTENTPAYSUS ACADEMY */}
+      {activeSubTab === "academy" && (
+        <ContentPaysUsAcademyView
+          isAuthenticated={Boolean(user?.uid)}
+          onLaunchApp={handleLaunchApp}
+        />
+      )}
+
+      {/* TAB: SHARED INTELLIGENCE MEMORY */}
+      {activeSubTab === "memory" && <SharedIntelligenceMemoryPanel />}
+
+      {/* TAB: SHARED PROJECTS */}
       {activeSubTab === "projects" && (
-        <div className="space-y-6 animate-fade-in">
-          
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-xl font-bold text-white">Shared Creator Projects</h2>
-              <p className="text-xs text-slate-400">Persistent project records referenced across ecosystem applications.</p>
+              <h2 className="text-lg font-extrabold text-slate-950 dark:text-white">Shared Creator Projects</h2>
+              <p className="text-xs text-slate-600 dark:text-zinc-400">
+                Persistent project records shared across every ContentPaysUs application.
+              </p>
             </div>
             <button
-              role="button"
+              type="button"
               aria-label="Create New Ecosystem Project"
               onClick={handleOpenCreateModal}
-              className="px-5 py-3 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white inline-flex items-center gap-1.5 cursor-pointer"
             >
               <Plus className="h-4 w-4" /> New Project
             </button>
           </div>
 
-          {/* Project List */}
           {loadingProjects ? (
-            <div className="flex flex-col items-center justify-center py-16 gap-3">
-              <Loader2 className="h-6 w-6 text-indigo-400 animate-spin" />
-              <span className="text-xs text-slate-400 font-medium">Loading ecosystem projects...</span>
+            <div className="flex items-center gap-2 py-8 text-xs text-slate-500">
+              <Loader2 className="h-4 w-4 animate-spin text-indigo-600" /> Loading projects...
             </div>
           ) : projects.length === 0 ? (
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-12 text-center space-y-4">
-              <FolderKanban className="h-10 w-10 text-slate-600 mx-auto" />
-              <h3 className="text-sm font-bold text-white">No projects created yet</h3>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto">Create your first ecosystem project to organize your brand objectives and associated applications.</p>
+            <div className="rounded-2xl border border-dashed border-slate-300 dark:border-zinc-700 bg-white dark:bg-[#111115] p-10 text-center space-y-3">
+              <FolderKanban className="h-8 w-8 text-slate-400 mx-auto" />
+              <h3 className="text-sm font-bold text-slate-950 dark:text-white">No projects created yet</h3>
+              <p className="text-xs text-slate-600 dark:text-zinc-400 max-w-sm mx-auto">
+                Create your first ecosystem project so your offer, product, and content stay aligned across apps.
+              </p>
               <button
-                role="button"
-                aria-label="Create Your First Project"
+                type="button"
                 onClick={handleOpenCreateModal}
-                className="px-4 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 text-white cursor-pointer inline-flex items-center gap-1.5"
+                className="px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 text-white cursor-pointer inline-flex items-center gap-1.5"
               >
                 <Plus className="h-3.5 w-3.5" /> Create Project
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {projects.map((proj) => (
-                <div key={proj.id} className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 flex flex-col justify-between shadow-xl">
+                <div
+                  key={proj.id}
+                  className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-5 flex flex-col justify-between gap-4"
+                >
                   <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className={`px-2.5 py-0.5 rounded text-[11px] font-bold uppercase ${
-                        proj.status === "active" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-slate-800 text-slate-400"
-                      }`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span
+                        className={`px-2 py-0.5 rounded font-mono text-[10px] font-bold uppercase ${
+                          proj.status === "active"
+                            ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"
+                            : "bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400"
+                        }`}
+                      >
                         {proj.status}
                       </span>
                       <span className="text-[11px] text-slate-500">
                         Updated {new Date(proj.updatedAt).toLocaleDateString()}
                       </span>
                     </div>
-
-                    <h3 className="text-lg font-bold text-white mb-2">{proj.name}</h3>
-                    <p className="text-xs font-medium text-indigo-300 mb-2">{proj.objective}</p>
+                    <h3 className="text-base font-bold text-slate-950 dark:text-white">{proj.name}</h3>
+                    <p className="text-xs font-medium text-indigo-700 dark:text-indigo-400 mt-1">{proj.objective}</p>
                     {proj.description && (
-                      <p className="text-xs text-slate-300 mb-4">{proj.description}</p>
+                      <p className="text-xs text-slate-600 dark:text-zinc-400 mt-2">{proj.description}</p>
                     )}
                   </div>
-
-                  <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      {proj.associatedAppIds?.map(appId => (
-                        <span key={appId} className="px-2 py-1 rounded bg-slate-800 text-slate-300 text-[10px] font-semibold uppercase">
-                          {appId}
-                        </span>
+                  <div className="pt-3 border-t border-slate-200 dark:border-zinc-800 flex items-center justify-between">
+                    <div className="flex flex-wrap gap-1.5">
+                      {proj.associatedAppIds?.map((id) => (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => handleLaunchApp(id)}
+                          className="px-2 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-mono text-[10px] uppercase hover:text-indigo-600 cursor-pointer"
+                        >
+                          {id}
+                        </button>
                       ))}
                     </div>
                     <div className="flex items-center gap-3">
                       <button
-                        role="button"
-                        aria-label={`Edit project ${proj.name}`}
+                        type="button"
                         onClick={() => handleOpenEditModal(proj)}
-                        className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 cursor-pointer font-semibold"
+                        className="text-xs text-indigo-700 dark:text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer font-semibold"
                       >
                         <Edit3 className="h-3.5 w-3.5" /> Edit
                       </button>
                       <button
-                        role="button"
-                        aria-label={`${proj.status === "archived" ? "Restore" : "Archive"} project ${proj.name}`}
+                        type="button"
                         onClick={() => handleToggleArchive(proj.id, proj.status)}
-                        className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1 cursor-pointer font-semibold"
+                        className="text-xs text-slate-600 dark:text-zinc-400 hover:text-slate-950 dark:hover:text-white flex items-center gap-1 cursor-pointer font-semibold"
                       >
                         {proj.status === "archived" ? (
                           <>
-                            <RotateCcw className="h-3.5 w-3.5 text-emerald-400" /> Restore
+                            <RotateCcw className="h-3.5 w-3.5 text-emerald-600" /> Restore
                           </>
                         ) : (
                           <>
-                            <Archive className="h-3.5 w-3.5 text-rose-400" /> Archive
+                            <Archive className="h-3.5 w-3.5 text-rose-600" /> Archive
                           </>
                         )}
                       </button>
@@ -454,67 +745,76 @@ export function ContentPaysUsUnifiedWorkspace({
             </div>
           )}
 
-          {/* Project Modal (Create & Edit) */}
           {showProjectModal && (
-            <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-              <div className="rounded-3xl border border-slate-800 bg-slate-900 p-8 max-w-lg w-full shadow-2xl space-y-6">
-                <h3 className="text-lg font-bold text-white">
+            <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+              <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-6 max-w-lg w-full shadow-2xl space-y-4">
+                <h3 className="text-lg font-bold text-slate-950 dark:text-white">
                   {editingProjectId ? "Edit Ecosystem Project" : "Create Ecosystem Project"}
                 </h3>
-                <form onSubmit={handleSaveProject} className="space-y-4">
+                <form onSubmit={handleSaveProject} className="space-y-3.5">
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">Project Name (max 100 chars)</label>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">
+                      Project Name (max 100 chars)
+                    </label>
                     <input
                       type="text"
                       required
                       maxLength={100}
                       value={projectName}
                       onChange={(e) => setProjectName(e.target.value)}
-                      placeholder="e.g. Q4 Creator Knowledge Monetization"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                      placeholder="e.g. First Digital Playbook Launch"
+                      className="w-full rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-[#09090b] px-3 py-2 text-xs text-slate-900 dark:text-zinc-100"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">Primary Objective (max 200 chars)</label>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">
+                      Primary Objective (max 200 chars)
+                    </label>
                     <input
                       type="text"
                       maxLength={200}
                       value={projectObjective}
                       onChange={(e) => setProjectObjective(e.target.value)}
-                      placeholder="e.g. Launch PDF playbook and grow Threads audience"
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                      placeholder="e.g. Earn first verified sale from Meta Threads audience"
+                      className="w-full rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-[#09090b] px-3 py-2 text-xs text-slate-900 dark:text-zinc-100"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">Description (Optional)</label>
+                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">
+                      Description (Optional)
+                    </label>
                     <textarea
+                      rows={3}
                       value={projectDescription}
                       onChange={(e) => setProjectDescription(e.target.value)}
-                      placeholder="Brief notes or scope..."
-                      rows={3}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-indigo-500"
+                      className="w-full rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-[#09090b] p-3 text-xs text-slate-900 dark:text-zinc-100"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 mb-1">Primary Associated App</label>
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">
+                        Primary App
+                      </label>
                       <select
                         value={selectedAppId}
                         onChange={(e) => setSelectedAppId(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                        className="w-full rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-[#09090b] px-3 py-2 text-xs text-slate-900 dark:text-zinc-100"
                       >
-                        <option value="threadsworks">ThreadsWorks (Attention)</option>
-                        <option value="productworks">ProductWorks (Monetization)</option>
-                        <option value="creatorworks">CreatorWorks (Foundation)</option>
-                        <option value="offerworks">OfferWorks (Monetization)</option>
+                        {CONTENT_PAYS_US_APPS.map((a) => (
+                          <option key={a.id} value={a.id}>
+                            {a.name} ({a.category})
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-300 mb-1">Status</label>
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">
+                        Status
+                      </label>
                       <select
                         value={projectStatus}
                         onChange={(e) => setProjectStatus(e.target.value as any)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
+                        className="w-full rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-[#09090b] px-3 py-2 text-xs text-slate-900 dark:text-zinc-100"
                       >
                         <option value="active">Active</option>
                         <option value="archived">Archived</option>
@@ -522,22 +822,18 @@ export function ContentPaysUsUnifiedWorkspace({
                       </select>
                     </div>
                   </div>
-                  <div className="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
+                  <div className="pt-3 border-t border-slate-200 dark:border-zinc-800 flex justify-end gap-2">
                     <button
                       type="button"
-                      role="button"
-                      aria-label="Cancel project operation"
                       onClick={() => setShowProjectModal(false)}
-                      className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer"
+                      className="px-4 py-2 rounded-lg text-xs font-semibold border border-slate-300 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 cursor-pointer"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      role="button"
-                      aria-label="Save ecosystem project"
                       disabled={submittingProject}
-                      className="px-5 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                      className="px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
                     >
                       {submittingProject && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                       {editingProjectId ? "Save Changes" : "Create Project"}
@@ -547,130 +843,44 @@ export function ContentPaysUsUnifiedWorkspace({
               </div>
             </div>
           )}
-
         </div>
       )}
 
-      {/* Tab 3: Applications Directory */}
-      {activeSubTab === "applications" && (
-        <div className="space-y-6 animate-fade-in">
-          <div>
-            <h2 className="text-xl font-bold text-white">Ecosystem Applications Directory</h2>
-            <p className="text-xs text-slate-400">All {CONTENT_PAYS_US_APPS.length} roadmap applications across education, foundation, attention, monetization, customer success, and expansion.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {CONTENT_PAYS_US_APPS.map((app) => (
-              <div key={app.id} className="rounded-3xl border border-slate-800 bg-slate-900/80 p-6 flex flex-col justify-between shadow-xl">
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${app.badgeColor}`}>
-                      {app.availability}
-                    </span>
-                    <span className="text-[11px] font-semibold text-slate-400 uppercase">{app.category}</span>
-                  </div>
-
-                  <h3 className="text-lg font-bold text-white mb-2">{app.name}</h3>
-                  <p className="text-xs font-medium text-indigo-300 mb-2">{app.headline}</p>
-                  <p className="text-xs text-slate-300 leading-relaxed mb-6">{app.shortDescription}</p>
-                </div>
-
-                <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between">
-                  {app.id === "threadsworks" ? (
-                    <button
-                      role="button"
-                      aria-label="Launch ThreadsWorks App"
-                      onClick={() => onNavigateToTab("engine")}
-                      className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 cursor-pointer"
-                    >
-                      Launch Workspace <ExternalLink className="h-3 w-3" />
-                    </button>
-                  ) : app.id === "productworks" ? (
-                    <button
-                      role="button"
-                      aria-label="Launch ProductWorks App"
-                      onClick={() => {
-                        if (typeof window !== "undefined") {
-                          window.location.href = "/productworks";
-                        }
-                      }}
-                      className="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white flex items-center gap-1.5 cursor-pointer"
-                    >
-                      Launch ProductWorks <ExternalLink className="h-3 w-3" />
-                    </button>
-                  ) : (
-                    <span className="text-[11px] font-semibold text-slate-500">Planned Ecosystem Tool</span>
-                  )}
-                  <button
-                    role="button"
-                    aria-label={`View details for ${app.name}`}
-                    onClick={() => {
-                      if (typeof window !== "undefined") {
-                        window.location.href = `/applications/${app.id}`;
-                      }
-                    }}
-                    className="text-xs font-semibold text-indigo-400 hover:underline cursor-pointer"
-                  >
-                    View Details
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Tab 4: Settings & Profile */}
+      {/* TAB: SETTINGS */}
       {activeSubTab === "settings" && (
-        <div className="space-y-6 animate-fade-in max-w-3xl">
+        <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-6 max-w-3xl space-y-5">
           <div>
-            <h2 className="text-xl font-bold text-white">Creator Identity & Settings</h2>
-            <p className="text-xs text-slate-400">Manage your shared creator profile, subscription entitlement, and connected accounts.</p>
+            <h2 className="text-lg font-extrabold text-slate-950 dark:text-white">Creator Identity &amp; Plan</h2>
+            <p className="text-xs text-slate-600 dark:text-zinc-400">
+              One shared account, subscription entitlement, and voice profile across all 20 ContentPaysUs applications.
+            </p>
           </div>
-
-          <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-8 space-y-6 shadow-xl">
-            <div className="flex items-center gap-4 pb-6 border-b border-slate-800">
-              <div className="h-12 w-12 rounded-2xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center font-bold text-lg">
-                {(profile?.email || user?.email || "C")[0].toUpperCase()}
-              </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-[#0d0d11]">
               <div>
-                <h3 className="text-base font-bold text-white">{profile?.email || user?.email}</h3>
-                <span className="text-xs text-slate-400 font-mono">UID: {user?.uid}</span>
+                <div className="text-xs font-bold text-slate-950 dark:text-white">{profile?.email || user?.email}</div>
+                <div className="text-[11px] font-mono text-slate-500">UID: {user?.uid}</div>
               </div>
+              <span className="px-2.5 py-1 rounded-full font-mono text-[11px] font-bold uppercase bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-500/20">
+                {subscriptionStatus || "free"}
+              </span>
             </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-950 border border-slate-800">
-                <div>
-                  <div className="text-xs font-bold text-white mb-0.5">Subscription Status</div>
-                  <div className="text-xs text-slate-400">Current plan entitlement across ecosystem apps</div>
-                </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
-                  subscriptionStatus === "active" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-slate-800 text-slate-300"
-                }`}>
-                  {subscriptionStatus}
-                </span>
+            <div className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-[#0d0d11]">
+              <div>
+                <div className="text-xs font-bold text-slate-950 dark:text-white">Creator Voice, Offer &amp; Business DNA</div>
+                <div className="text-xs text-slate-600 dark:text-zinc-400">Shared automatically with ThreadsWorks and all ContentPaysUs AI tools.</div>
               </div>
-
-              <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-950 border border-slate-800">
-                <div>
-                  <div className="text-xs font-bold text-white mb-0.5">Creator Voice & Offer</div>
-                  <div className="text-xs text-slate-400">Synchronized shared identity profile</div>
-                </div>
-                <button
-                  role="button"
-                  aria-label="Navigate to Profile Settings"
-                  onClick={() => onNavigateToTab("profile")}
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-200 hover:bg-slate-700 cursor-pointer"
-                >
-                  Edit Profile
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => onNavigateToTab("profile")}
+                className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer"
+              >
+                Edit Profile
+              </button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }

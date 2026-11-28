@@ -349,26 +349,26 @@ export const PUBLIC_MARKETING_ROUTES: PublicMarketingRoute[] = [
       "Explore all 20 applications in the ContentPaysUs ecosystem on ThreadsWorks.com, starting with ThreadsWorks for Meta Threads and ProductWorks.",
     priority: "0.9",
     changefreq: "weekly",
-    platformNote: "ContentPaysUs Ecosystem · 20-Application Roadmap.",
+    platformNote: "ContentPaysUs Ecosystem · 20 Specialized Applications in 3 Categories.",
     h1: "Specialized applications connected around one creator business.",
     lead:
-      "Every application in ContentPaysUs is classified honestly as Available, In Development, or Planned—starting with ThreadsWorks today.",
+      "Explore all 20 ContentPaysUs applications across Create & Sell, Connect & Grow, and Automate & Scale—each classified honestly as Available, In Development, or Planned.",
     primaryCtaLabel: "GET STARTED FREE",
-    sectionsHeading: "Available Today, In Development, and Planned",
+    sectionsHeading: "Three Permanent Categories, 20 Specialized Applications",
     sectionsIntro:
-      "Start with ThreadsWorks for Meta Threads writing and scheduling, test ProductWorks for downloadable digital assets, and carry your creator profile forward as planned tools launch.",
+      "Start with ThreadsWorks and ProductWorks today, explore ContentPaysUs Academy for free, and connect every step through the First Sale Engine.",
     features: [
       {
-        heading: "ThreadsWorks (Available)",
-        body: "Write voice-preserved Meta Threads posts and multi-part threads, refine opening hooks, manage your content library, and schedule publishing via official Meta OAuth."
+        heading: "Create & Sell (10 Applications)",
+        body: "CreatorWorks, DemandWorks, OfferWorks, ProductWorks (Available), ThreadsWorks (Available), ContentWorks, FunnelWorks, SalesWorks, StoreWorks, and DeliveryWorks."
       },
       {
-        heading: "ProductWorks (In Development)",
-        body: "Turn an idea or existing post into downloadable 2-page PDF playbooks, 7-slide carousels, companion posts, and storefront sales copy."
+        heading: "Connect & Grow (6 Applications)",
+        body: "CommunityWorks, MeetingWorks, ProofWorks, TeamWorks, AffiliateWorks, and GrowthWorks—connecting peers, meetings, verified proof, referrals, and real analytics."
       },
       {
-        heading: "18 Planned Ecosystem Applications",
-        body: "Planned roadmap tools spanning ContentPaysUs Academy, CreatorWorks, DemandWorks, ContentWorks, CommunityWorks, EmailWorks, OfferWorks, First Sale Engine, FunnelWorks, SalesWorks, MeetingWorks, DeliveryWorks, ProofWorks, GrowthWorks, AdsWorks, TeamWorks, AffiliateWorks, and Project Z."
+        heading: "Automate & Scale (4 Applications)",
+        body: "AutomationWorks, FinanceWorks, AdsWorks, and Project Z—automating safe internal handoffs, tracking real P&L, planning paid campaigns, and testing experimental workflows."
       }
     ],
     relatedLinks: [
@@ -380,12 +380,12 @@ export const PUBLIC_MARKETING_ROUTES: PublicMarketingRoute[] = [
       {
         path: "/learn",
         label: "ContentPaysUs Academy",
-        description: "Explore our planned free creator education destination."
+        description: "Study free creator business courses including How to Get Your First Sale."
       },
       {
         path: "/productworks",
         label: "ProductWorks",
-        description: "See how ProductWorks generates downloadable digital product assets."
+        description: "See how ProductWorks generates downloadable digital product assets and promo drafts."
       },
       {
         path: "/about",
@@ -401,25 +401,25 @@ export const PUBLIC_MARKETING_ROUTES: PublicMarketingRoute[] = [
     kind: "ecosystem",
     title: "ContentPaysUs Academy | Free Creator Business Education",
     description:
-      "Learn for free, build with AI, and grow together with ContentPaysUs Academy—featuring our planned flagship course, How to Get Your First Sale.",
+      "Learn for free, build with AI, and grow together with ContentPaysUs Academy—featuring our free flagship course, How to Get Your First Sale.",
     priority: "0.8",
     changefreq: "weekly",
-    platformNote: "ContentPaysUs Academy · Planned Free Learning Destination.",
+    platformNote: "ContentPaysUs Academy · Free Creator Learning Destination.",
     h1: "Learn for free. Build with AI. Grow together.",
     lead:
-      "ContentPaysUs Academy is our planned free creator learning destination featuring the upcoming flagship course How to Get Your First Sale and future community-created free courses.",
+      "ContentPaysUs Academy is our free creator learning destination featuring the interactive flagship course How to Get Your First Sale with practical lessons, assignments, and worksheets.",
     primaryCtaLabel: "GET STARTED FREE",
     sectionsHeading: "Practical Creator Business Education",
     sectionsIntro:
       "Foundational creator skills should be accessible to everyone—paired directly with practical tools inside ThreadsWorks.com.",
     features: [
       {
-        heading: "Flagship Course: How to Get Your First Sale (Planned)",
-        body: "A planned free, step-by-step course covering buyer problem discovery, starter product packaging, helpful content, and earning your first verified customer."
+        heading: "Flagship Course: How to Get Your First Sale (Available Free)",
+        body: "An interactive, step-by-step free course covering buyer problem discovery, starter product packaging, helpful content, and earning your first verified customer."
       },
       {
         heading: "Future Community-Created Free Courses",
-        body: "As the Academy grows, community members will be able to create and share their own free practical courses with fellow creators."
+        body: "Clearly separated from official ContentPaysUs curriculum, community members will be able to publish and share free practical courses with fellow creators."
       },
       {
         heading: "Nine-Topic Creator Reference Guide",

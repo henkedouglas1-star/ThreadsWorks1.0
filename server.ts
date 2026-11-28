@@ -18,6 +18,7 @@ import { CONTENT_GENERATOR_RULEBOOK, MULTI_POST_HOOK_OPTIMIZATION_SYSTEM, CONTEN
 import { buildRobotsTxt, buildSitemapXml, getPublicMarketingRoute } from "./src/marketing/marketingRoutes";
 import { renderNoIndexAppShellHtml, renderPublicRouteHtml } from "./server/seoPrerender";
 import { createFunnelworksRouter } from "./server/funnelworksRoutes";
+import { createEcosystemRouter } from "./server/ecosystemRoutes";
 import {
   createPreviewAuthHandoffRouter,
   isPreviewAuthHandoffEnvironment,
@@ -47,8 +48,11 @@ import {
   formatIntelligentMemoryBrainPrompt
 } from "./server/contentMemoryService";
 import {
+  ProjectOwnershipError,
   retrieveSharedIntelligenceContext,
-  contributeSharedIntelligence
+  contributeSharedIntelligence,
+  listSharedIntelligenceContributions,
+  deleteSharedIntelligenceContribution
 } from "./server/sharedIntelligenceService";
 import {
   getOrBuildGenerationIntelligenceSnapshot,
@@ -327,6 +331,7 @@ const adminApp = getApps().length === 0
 const serverDb = getFirestore(adminApp, databaseId);
 const serverAuth = getAuth(adminApp);
 app.use("/api/funnelworks", createFunnelworksRouter(serverDb, serverAuth));
+app.use("/api/ecosystem", createEcosystemRouter(serverDb, serverAuth));
 if (isPreviewAuthHandoffEnvironment()) {
   app.use("/api/auth/preview-handoff", createPreviewAuthHandoffRouter(serverAuth));
 }
@@ -12157,19 +12162,26 @@ async function main() {
         return res.status(401).json({ error: "Missing or invalid authorization token" });
       }
       const token = authHeader.split("Bearer ")[1];
-      const decodedToken = await getAuth().verifyIdToken(token);
+      const decodedToken = await serverAuth.verifyIdToken(token);
       const userId = decodedToken.uid;
 
-      const { appId, projectId, taskType, domains } = req.body;
-      const context = await retrieveSharedIntelligenceContext({
-        userId,
-        appId: appId || "threadsworks",
-        projectId,
-        taskType: taskType || "content_generation",
-        domains
-      });
+      const { appId, projectId, taskType, domains, maxContextChars } = req.body || {};
+      const context = await retrieveSharedIntelligenceContext(
+        {
+          userId,
+          appId: appId || "threadsworks",
+          projectId,
+          taskType: taskType || "content_generation",
+          domains,
+          maxContextChars
+        },
+        serverDb
+      );
       return res.json({ success: true, context });
     } catch (err: any) {
+      if (err instanceof ProjectOwnershipError) {
+        return res.status(403).json({ error: err.message });
+      }
       console.error("[API_INTELLIGENCE_CONTEXT_ERROR]", err);
       return res.status(500).json({ error: err?.message || "Failed to retrieve shared intelligence context" });
     }
@@ -12182,24 +12194,63 @@ async function main() {
         return res.status(401).json({ error: "Missing or invalid authorization token" });
       }
       const token = authHeader.split("Bearer ")[1];
-      const decodedToken = await getAuth().verifyIdToken(token);
+      const decodedToken = await serverAuth.verifyIdToken(token);
       const userId = decodedToken.uid;
 
-      const { sourceAppId, projectId, category, factType, data, evidence, confidence } = req.body;
-      const result = await contributeSharedIntelligence({
-        userId,
-        sourceAppId: sourceAppId || "threadsworks",
-        projectId,
-        category,
-        factType,
-        data,
-        evidence,
-        confidence
-      });
+      const { sourceAppId, projectId, category, factType, provenance, data, evidence, confidence } = req.body || {};
+      const result = await contributeSharedIntelligence(
+        {
+          userId,
+          sourceAppId: sourceAppId || "threadsworks",
+          projectId,
+          category,
+          factType,
+          provenance,
+          data,
+          evidence,
+          confidence
+        },
+        serverDb
+      );
       return res.json(result);
     } catch (err: any) {
+      if (err instanceof ProjectOwnershipError) {
+        return res.status(403).json({ error: err.message });
+      }
       console.error("[API_INTELLIGENCE_CONTRIBUTE_ERROR]", err);
       return res.status(500).json({ error: err?.message || "Failed to contribute shared intelligence" });
+    }
+  });
+
+  app.get("/api/intelligence/contributions", async (req: express.Request, res: express.Response) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ error: "Missing or invalid authorization token" });
+      }
+      const decodedToken = await serverAuth.verifyIdToken(authHeader.split("Bearer ")[1]);
+      const contributions = await listSharedIntelligenceContributions(decodedToken.uid, serverDb);
+      return res.json({ success: true, contributions });
+    } catch (err: any) {
+      return res.status(500).json({ error: err?.message || "Failed to list intelligence memory" });
+    }
+  });
+
+  app.delete("/api/intelligence/contributions/:id", async (req: express.Request, res: express.Response) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ error: "Missing or invalid authorization token" });
+      }
+      const decodedToken = await serverAuth.verifyIdToken(authHeader.split("Bearer ")[1]);
+      const result = await deleteSharedIntelligenceContribution(decodedToken.uid, req.params.id, serverDb);
+      if (!result.success) return res.status(404).json(result);
+      return res.json(result);
+    } catch (err: any) {
+      if (err instanceof ProjectOwnershipError) {
+        return res.status(403).json({ error: err.message });
+      }
+      return res.status(500).json({ error: err?.message || "Failed to delete intelligence memory" });
     }
   });
 

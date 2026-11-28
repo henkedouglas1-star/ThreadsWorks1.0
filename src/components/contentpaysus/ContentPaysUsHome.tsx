@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import { ArrowRight, BookOpen, Check, Layers, ExternalLink } from "lucide-react";
 import {
   AppAvailabilityStatus,
+  EcosystemCategory,
+  getAppsByCategory,
   getAvailabilityDotClass,
   getAvailabilityTextClass
 } from "../../data/contentPaysUsRegistry";
+import { PermanentCategoryBar } from "./PermanentCategoryBar";
 
 interface ContentPaysUsHomeProps {
   onNavigate: (route: string) => void;
@@ -52,63 +55,63 @@ const CUSTOMER_GOALS: CustomerGoal[] = [
   {
     number: "03",
     goal: "Discover what people will buy.",
-    outcome: "Research real audience friction and validate buyer demand before investing weeks building.",
-    destinationLabel: "DemandWorks Roadmap",
+    outcome: "Research real audience friction, draft interview scripts, and validate buyer demand before investing weeks building.",
+    destinationLabel: "DemandWorks",
     path: "/applications/demandworks",
-    availability: "Planned"
+    availability: "In Development"
   },
   {
     number: "04",
     goal: "Build my personal brand.",
     outcome: "Clarify your positioning, audience focus, and voice guidelines across every project.",
-    destinationLabel: "CreatorWorks Roadmap",
+    destinationLabel: "CreatorWorks",
     path: "/applications/creatorworks",
-    availability: "Planned"
+    availability: "Available"
   },
   {
     number: "05",
     goal: "Create a digital product.",
-    outcome: "Turn an idea or post into a downloadable PDF playbook, 7-slide carousel, and storefront copy.",
+    outcome: "Turn an idea or post into a downloadable PDF playbook, 7-slide carousel, storefront copy, and promo drafts.",
     destinationLabel: "ProductWorks",
     path: "/productworks",
-    availability: "In Development"
+    availability: "Available"
   },
   {
     number: "06",
     goal: "Find paying customers.",
-    outcome: "Connect helpful public content directly to clear, transparent buying steps.",
-    destinationLabel: "FunnelWorks Roadmap",
+    outcome: "Connect helpful public content to clear opt-ins, email sequences, CRM tracking, and transparent buying steps.",
+    destinationLabel: "FunnelWorks & SalesWorks",
     path: "/applications/funnelworks",
-    availability: "Planned"
+    availability: "In Development"
   },
   {
     number: "07",
     goal: "Make my first sale.",
-    outcome: "Follow a focused zero-to-one path from offer validation to your first verified customer.",
-    destinationLabel: "First Sale Engine Roadmap",
-    path: "/applications/first-sale-engine",
-    availability: "Planned"
+    outcome: "Follow a focused zero-to-one cross-app workflow from offer validation to your first verified customer.",
+    destinationLabel: "First Sale Engine Workflow",
+    path: "/workspace",
+    availability: "Available"
   },
   {
     number: "08",
     goal: "Learn new business skills.",
-    outcome: "Study practical creator fundamentals for free with our planned flagship first-sale curriculum.",
+    outcome: "Study practical creator fundamentals for free with our interactive flagship course 'How to Get Your First Sale'.",
     destinationLabel: "ContentPaysUs Academy",
     path: "/learn",
-    availability: "Planned"
+    availability: "Available"
   },
   {
     number: "09",
     goal: "Connect with other creators.",
-    outcome: "Build peer relationships, share feedback, and turn social replies into lasting community.",
-    destinationLabel: "CommunityWorks Roadmap",
+    outcome: "Join the internal creator network to share posts, exchange feedback, message peers, and collaborate.",
+    destinationLabel: "CommunityWorks",
     path: "/applications/communityworks",
-    availability: "Planned"
+    availability: "Available"
   },
   {
     number: "10",
     goal: "Save time with AI.",
-    outcome: "Write faster in your authentic voice with 60 free monthly Threads posts and reusable context.",
+    outcome: "Write faster in your authentic voice with 60 free monthly Threads posts and reusable Shared Intelligence.",
     destinationLabel: "Open ThreadsWorks",
     path: "/create",
     availability: "Available"
@@ -121,88 +124,88 @@ const CREATOR_JOURNEY_STAGES: JourneyStage[] = [
     name: "Learn",
     summary: "Build practical business skills without paying for theory-heavy courses before you earn.",
     howItConnects:
-      "Free lessons and frameworks in ContentPaysUs Academy establish clear mental models that feed straight into your creator projects.",
+      "Free interactive lessons, assignments, and worksheets in ContentPaysUs Academy connect straight into your creator projects.",
     primaryPath: "/learn",
-    primaryActionLabel: "Explore ContentPaysUs Academy",
-    status: "Planned",
-    capabilities: ["ContentPaysUs Academy", "How to Get Your First Sale (Planned)"]
+    primaryActionLabel: "Open ContentPaysUs Academy",
+    status: "Available",
+    capabilities: ["ContentPaysUs Academy (Independent)", "How to Get Your First Sale (Free Course)"]
   },
   {
     number: "02",
     name: "Identify",
     summary: "Clarify your positioning and pinpoint concrete problems your audience is willing to pay to solve.",
     howItConnects:
-      "Your shared creator profile and validated audience questions carry automatically into your writing and offer planning.",
-    primaryPath: "/applications/demandworks",
-    primaryActionLabel: "View Identify Roadmap",
-    status: "Planned",
-    capabilities: ["CreatorWorks", "DemandWorks"]
+      "Your shared creator profile and documented audience questions carry automatically into your writing and offer planning.",
+    primaryPath: "/applications/creatorworks",
+    primaryActionLabel: "Explore CreatorWorks & DemandWorks",
+    status: "Available",
+    capabilities: ["CreatorWorks (Available)", "DemandWorks (In Development)"]
   },
   {
     number: "03",
     name: "Build",
     summary: "Package what you know into a clear offer and downloadable digital assets customers can use right away.",
     howItConnects:
-      "ProductWorks turns existing ideas and Threads posts into downloadable PDF playbooks, carousels, and storefront copy inside one workspace.",
+      "OfferWorks shapes your promise and pricing; ProductWorks builds PDF playbooks, carousels, and auto-prepares Threads promo drafts.",
     primaryPath: "/productworks",
     primaryActionLabel: "Explore ProductWorks",
-    status: "In Development",
-    capabilities: ["OfferWorks", "ProductWorks"]
+    status: "Available",
+    capabilities: ["OfferWorks (Available)", "ProductWorks (Available)"]
   },
   {
     number: "04",
     name: "Attract",
     summary: "Publish clear, voice-preserved content consistently so the right people discover your expertise.",
     howItConnects:
-      "ThreadsWorks is live today—helping you draft posts, lock stronger hooks, organize your library, and schedule directly to Meta Threads.",
+      "ContentWorks plans pillars and calendars while ThreadsWorks drafts, locks hooks, and schedules directly to Meta Threads.",
     primaryPath: "/ai-threads-post-generator",
     primaryActionLabel: "Explore ThreadsWorks",
     status: "Available",
-    capabilities: ["ThreadsWorks (Available)", "ContentWorks"]
+    capabilities: ["ThreadsWorks (Available)", "ContentWorks (Available)"]
   },
   {
     number: "05",
     name: "Connect",
     summary: "Move beyond one-way broadcasting into real conversations, peer creator networks, and direct relationships.",
     howItConnects:
-      "Shared context links your public posts with community dialogues, email follow-ups, and structured discovery meetings.",
+      "Shared context links your public posts with CommunityWorks discussions, FunnelWorks email sequences, and MeetingWorks sessions.",
     primaryPath: "/applications/communityworks",
-    primaryActionLabel: "View Connect Roadmap",
-    status: "Planned",
-    capabilities: ["CommunityWorks", "EmailWorks", "MeetingWorks"]
+    primaryActionLabel: "Explore CommunityWorks",
+    status: "Available",
+    capabilities: ["CommunityWorks (Available)", "MeetingWorks (In Development)"]
   },
   {
     number: "06",
     name: "Sell",
-    summary: "Present your offer transparently, answer honest questions, and help buyers make confident decisions.",
+    summary: "Present your offer transparently, manage leads cleanly, and help buyers make confident decisions.",
     howItConnects:
-      "Your validated audience language and product assets flow into clear buying paths without hype or manipulative scripts.",
-    primaryPath: "/applications/first-sale-engine",
-    primaryActionLabel: "View First Sale Engine Roadmap",
-    status: "Planned",
-    capabilities: ["First Sale Engine", "FunnelWorks", "SalesWorks"]
+      "First Sale Engine guides you across FunnelWorks, SalesWorks CRM, and StoreWorks without hype or manipulative scripts.",
+    primaryPath: "/applications/salesworks",
+    primaryActionLabel: "Explore SalesWorks & StoreWorks",
+    status: "Available",
+    capabilities: ["First Sale Engine (Guided Workflow)", "FunnelWorks", "SalesWorks", "StoreWorks"]
   },
   {
     number: "07",
     name: "Deliver",
     summary: "Onboard every customer smoothly, fulfill what you promised, and document genuine outcomes.",
     howItConnects:
-      "Organized fulfillment and verified customer feedback strengthen your future content, offers, and reputation.",
+      "DeliveryWorks fulfills digital products and courses while ProofWorks organizes verification-tagged customer outcomes.",
     primaryPath: "/applications/deliveryworks",
-    primaryActionLabel: "View Deliver Roadmap",
-    status: "Planned",
-    capabilities: ["DeliveryWorks", "ProofWorks"]
+    primaryActionLabel: "Explore DeliveryWorks & ProofWorks",
+    status: "Available",
+    capabilities: ["DeliveryWorks (Available)", "ProofWorks (Available)"]
   },
   {
     number: "08",
     name: "Grow",
-    summary: "Double down on what drives real customer outcomes through analytics, partnerships, and focused leverage.",
+    summary: "Double down on what drives real customer outcomes through real analytics, automation, and partnerships.",
     howItConnects:
-      "Shared intelligence across projects highlights what actually converts so growth compounds over time.",
+      "Real Firestore metrics, safe internal workflows, transparent finances, and partner referrals compound your momentum.",
     primaryPath: "/applications/growthworks",
-    primaryActionLabel: "View Growth Roadmap",
-    status: "Planned",
-    capabilities: ["GrowthWorks", "AdsWorks", "TeamWorks", "AffiliateWorks", "Project Z"]
+    primaryActionLabel: "Explore Growth & Scale Apps",
+    status: "Available",
+    capabilities: ["GrowthWorks", "TeamWorks", "AffiliateWorks", "AutomationWorks", "FinanceWorks", "AdsWorks", "Project Z"]
   }
 ];
 
@@ -211,10 +214,12 @@ export function ContentPaysUsHome({
   onOpenAuth,
   isAuthenticated = false
 }: ContentPaysUsHomeProps) {
-  const [activeStageIndex, setActiveStageIndex] = useState(3); // Default highlight on Attract (live ThreadsWorks) or Learn? Let's start on 0 (Learn) for exact 1->8 narrative flow.
+  const [activeStageIndex, setActiveStageIndex] = useState(0);
   const [selectedStage, setSelectedStage] = useState(0);
+  const [activeEcosystemCategory, setActiveEcosystemCategory] = useState<EcosystemCategory>("Create & Sell");
 
   const currentStage = CREATOR_JOURNEY_STAGES[selectedStage] || CREATOR_JOURNEY_STAGES[activeStageIndex];
+  const categoryApps = getAppsByCategory(activeEcosystemCategory);
 
   const handleLink = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
@@ -285,8 +290,8 @@ export function ContentPaysUsHome({
                 <strong className="font-semibold text-slate-900 dark:text-zinc-200">ThreadsWorks:</strong> Available today (60 free posts/month)
               </span>
               <span className="inline-flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400" aria-hidden="true" />
-                <strong className="font-semibold text-slate-900 dark:text-zinc-200">ProductWorks:</strong> In Development
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" aria-hidden="true" />
+                <strong className="font-semibold text-slate-900 dark:text-zinc-200">ProductWorks:</strong> Available (PDF, Carousel &amp; Auto-Promotion)
               </span>
               <a
                 href="/create"
@@ -474,6 +479,63 @@ export function ContentPaysUsHome({
         </div>
       </section>
 
+      {/* 3B. PERMANENT 3-CATEGORY ECOSYSTEM DIRECTORY PREVIEW */}
+      <section id="ecosystem-categories" className="bg-white dark:bg-[#0c0c0f]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-18 sm:pt-24 pb-8">
+          <div className="max-w-3xl">
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700 dark:text-indigo-400">
+              20 Specialized Applications · 3 Permanent Categories
+            </p>
+            <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+              Switch seamlessly across Create &amp; Sell, Connect &amp; Grow, and Automate &amp; Scale.
+            </h2>
+            <p className="mt-3 text-base leading-relaxed text-slate-600 dark:text-zinc-400">
+              All three categories remain permanently accessible on both our website and inside your workspace—alongside free education in ContentPaysUs Academy and the guided First Sale Engine.
+            </p>
+          </div>
+        </div>
+
+        <PermanentCategoryBar
+          activeCategory={activeEcosystemCategory}
+          onSelectCategory={setActiveEcosystemCategory}
+          onOpenAcademy={() => onNavigate("/learn")}
+          onOpenFirstSaleEngine={() => onNavigate("/workspace")}
+          stickyTopClass="top-16"
+          variant="public"
+        />
+
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-20">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {categoryApps.map((app) => (
+              <a
+                key={app.id}
+                href={`/applications/${app.id}`}
+                onClick={(e) => handleLink(e, `/applications/${app.id}`)}
+                className="group rounded-xl border border-slate-200 dark:border-zinc-800 bg-[#fafaf9] dark:bg-[#111115] p-5 flex flex-col justify-between gap-3 hover:border-indigo-400 dark:hover:border-indigo-500/60 transition-colors"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-base font-bold text-slate-950 dark:text-white group-hover:text-indigo-700 dark:group-hover:text-indigo-300">
+                      {app.name}
+                    </h3>
+                    <span className={`inline-flex items-center gap-1 text-[11px] font-semibold ${getAvailabilityTextClass(app.availability)}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${getAvailabilityDotClass(app.availability)}`} aria-hidden="true" />
+                      {app.availability}
+                    </span>
+                  </div>
+                  <p className="mt-1.5 text-xs leading-relaxed text-slate-600 dark:text-zinc-400">
+                    {app.headline}
+                  </p>
+                </div>
+                <span className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-700 dark:text-indigo-400">
+                  Explore {app.name} <ArrowRight className="h-3 w-3" />
+                </span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* 4. BRAND RELATIONSHIP & ORIGIN STORY — "It started with a thread." */}
       <section id="story" className="bg-white dark:bg-[#0c0c0f]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-18 sm:py-24">
@@ -612,11 +674,11 @@ export function ContentPaysUsHome({
             <div className="lg:col-span-6 space-y-4">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                 <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700 dark:text-indigo-400">
-                  ContentPaysUs Academy
+                  ContentPaysUs Academy · Independent Learning Destination
                 </p>
-                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-zinc-400">
-                  <span className="h-1.5 w-1.5 rounded-full bg-slate-400 dark:bg-zinc-500" aria-hidden="true" />
-                  Planned
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" aria-hidden="true" />
+                  Available Free
                 </span>
               </div>
 
@@ -625,11 +687,11 @@ export function ContentPaysUsHome({
               </h2>
 
               <p className="text-base leading-relaxed text-slate-600 dark:text-zinc-400">
-                ContentPaysUs Academy is our planned free learning destination designed to teach the practical fundamentals of audience building, offer creation, and earning your first sale—without locking foundational education behind expensive paywalls.
+                ContentPaysUs Academy is our free learning destination designed to teach the practical fundamentals of audience building, offer creation, and earning your first sale—without locking foundational education behind expensive paywalls.
               </p>
 
               <p className="text-base leading-relaxed text-slate-600 dark:text-zinc-400">
-                As the ecosystem grows, community members will also be able to create and share free educational courses so creators can learn directly from peers solving real problems.
+                Start our interactive flagship course today, download structured worksheets, save progress in your account, and jump straight into the connected ecosystem tools.
               </p>
 
               <div className="pt-2">
@@ -639,7 +701,7 @@ export function ContentPaysUsHome({
                   className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-700 dark:text-indigo-400 hover:underline underline-offset-4"
                 >
                   <BookOpen className="h-4 w-4" />
-                  Explore ContentPaysUs Academy Curriculum
+                  Start ContentPaysUs Academy Free
                   <ArrowRight className="h-4 w-4" />
                 </a>
               </div>
@@ -649,11 +711,11 @@ export function ContentPaysUsHome({
               <div className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-[#fafaf9] dark:bg-[#111115] p-6 sm:p-8 space-y-5">
                 <div className="flex items-center justify-between gap-3">
                   <span className="font-mono text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
-                    Planned Flagship Course
+                    Official Flagship Course
                   </span>
-                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-zinc-400">
-                    <span className="h-1.5 w-1.5 rounded-full bg-slate-400 dark:bg-zinc-500" aria-hidden="true" />
-                    Planned · Free
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" aria-hidden="true" />
+                    Available · Free
                   </span>
                 </div>
 
@@ -662,22 +724,22 @@ export function ContentPaysUsHome({
                     How to Get Your First Sale
                   </h3>
                   <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-zinc-400">
-                    A practical, zero-fluff roadmap covering how to identify a real buyer problem, build a focused starter product, communicate its value clearly, and earn your first verified customer.
+                    A practical, zero-fluff interactive course covering how to identify a real buyer problem, build a focused starter product, communicate its value clearly, and earn your first verified customer.
                   </p>
                 </div>
 
                 <ul className="space-y-2.5 pt-4 border-t border-slate-200 dark:border-zinc-800 text-sm text-slate-700 dark:text-zinc-300">
                   <li className="flex items-start gap-2.5">
                     <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
-                    <span>Free to access once launched—no paywall for core business skills.</span>
+                    <span>Free to access today with downloadable worksheets and saved lesson progress.</span>
                   </li>
                   <li className="flex items-start gap-2.5">
                     <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
-                    <span>Designed to pair directly with live tools like ThreadsWorks and ProductWorks.</span>
+                    <span>Direct links from every lesson straight into ThreadsWorks, ProductWorks, and SalesWorks.</span>
                   </li>
                   <li className="flex items-start gap-2.5">
                     <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
-                    <span>Future open library for community-created free creator courses.</span>
+                    <span>Clear separation between official ContentPaysUs curriculum and future community courses.</span>
                   </li>
                 </ul>
               </div>

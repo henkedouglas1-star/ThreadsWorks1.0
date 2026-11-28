@@ -141,9 +141,12 @@ test("ContentPaysUs public ecosystem routes (/applications, /learn, /about) prer
   assert.ok(applications && learn && about, "All three ContentPaysUs public routes must exist");
 
   const appsHtml = renderPublicRouteHtml(BASE_TEMPLATE, applications);
-  assert.match(appsHtml, /20-Application Roadmap/);
+  assert.match(appsHtml, /Three Permanent Categories, 20 Specialized Applications/);
+  assert.match(appsHtml, /Create &amp; Sell \(10 Applications\)/);
+  assert.match(appsHtml, /Connect &amp; Grow \(6 Applications\)/);
+  assert.match(appsHtml, /Automate &amp; Scale \(4 Applications\)/);
   assert.match(appsHtml, /ThreadsWorks \(Available\)/);
-  assert.match(appsHtml, /ProductWorks \(In Development\)/);
+  assert.match(appsHtml, /ProductWorks \(Available\)/);
 
   const learnHtml = renderPublicRouteHtml(BASE_TEMPLATE, learn);
   assert.match(learnHtml, /Learn for free\. Build with AI\. Grow together\./);

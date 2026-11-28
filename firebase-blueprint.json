@@ -316,6 +316,234 @@
         "learnedStrategies": "array",
         "lastUpdated": "string"
       }
+    },
+    "projects": {
+      "description": "Shared creator projects across all 20 ContentPaysUs applications.",
+      "schema": {
+        "userId": "string",
+        "name": "string",
+        "objective": "string",
+        "description": "string",
+        "status": "string",
+        "associatedAppIds": "array",
+        "createdAt": "string",
+        "updatedAt": "string"
+      }
+    },
+    "ecosystem_assets": {
+      "description": "Persistent versioned assets created across all 20 ContentPaysUs applications.",
+      "schema": {
+        "id": "string",
+        "userId": "string",
+        "appId": "string",
+        "toolId": "string",
+        "title": "string",
+        "sections": "object",
+        "projectId": "string",
+        "provenance": "string",
+        "isolatedExperiment": "boolean",
+        "version": "number",
+        "versions": "array",
+        "createdAt": "string",
+        "updatedAt": "string"
+      }
+    },
+    "intelligence_contributions": {
+      "description": "Deduplicated Shared Intelligence facts with provenance and Project Z isolation.",
+      "schema": {
+        "id": "string",
+        "userId": "string",
+        "sourceAppId": "string",
+        "projectId": "string",
+        "category": "string",
+        "factType": "string",
+        "provenance": "string",
+        "fingerprint": "string",
+        "isolated": "boolean",
+        "data": "object",
+        "createdAt": "string"
+      }
+    },
+    "crm_contacts": {
+      "description": "SalesWorks creator CRM leads, deals, and follow-up pipeline.",
+      "schema": {
+        "id": "string",
+        "userId": "string",
+        "name": "string",
+        "email": "string",
+        "handle": "string",
+        "stage": "string",
+        "offerInterest": "string",
+        "dealValueCents": "number",
+        "verificationStatus": "string",
+        "isTestRecord": "boolean",
+        "createdAt": "string",
+        "updatedAt": "string"
+      }
+    },
+    "store_listings": {
+      "description": "StoreWorks creator catalog listings, bundles, and discount codes.",
+      "schema": {
+        "id": "string",
+        "userId": "string",
+        "title": "string",
+        "priceCents": "number",
+        "discountCode": "string",
+        "discountPercent": "number",
+        "isBundle": "boolean",
+        "status": "string",
+        "createdAt": "string"
+      }
+    },
+    "delivery_items": {
+      "description": "DeliveryWorks digital download portals and course access records.",
+      "schema": {
+        "id": "string",
+        "userId": "string",
+        "title": "string",
+        "deliveryType": "string",
+        "accessToken": "string",
+        "createdAt": "string"
+      }
+    },
+    "community_posts": {
+      "description": "CommunityWorks creator network feed posts and discussions.",
+      "schema": {
+        "id": "string",
+        "authorId": "string",
+        "authorName": "string",
+        "category": "string",
+        "body": "string",
+        "likedBy": "array",
+        "comments": "array",
+        "createdAt": "string"
+      }
+    },
+    "community_groups": {
+      "description": "CommunityWorks peer groups and accountability circles.",
+      "schema": {
+        "id": "string",
+        "ownerId": "string",
+        "name": "string",
+        "memberIds": "array",
+        "createdAt": "string"
+      }
+    },
+    "community_messages": {
+      "description": "CommunityWorks direct messages between authenticated creators.",
+      "schema": {
+        "id": "string",
+        "senderId": "string",
+        "recipientId": "string",
+        "participants": "array",
+        "text": "string",
+        "createdAt": "string"
+      }
+    },
+    "community_moderation": {
+      "description": "CommunityWorks report and block moderation records.",
+      "schema": {
+        "id": "string",
+        "userId": "string",
+        "action": "string",
+        "targetUid": "string",
+        "targetPostId": "string",
+        "createdAt": "string"
+      }
+    },
+    "meetings": {
+      "description": "MeetingWorks persistent rooms, agendas, invitations, and in-room chat.",
+      "schema": {
+        "id": "string",
+        "userId": "string",
+        "title": "string",
+        "scheduledFor": "string",
+        "inviteCode": "string",
+        "agenda": "string",
+        "chatMessages": "array",
+        "createdAt": "string"
+      }
+    },
+    "proof_items": {
+      "description": "ProofWorks customer outcomes tagged with strict verification tiers.",
+      "schema": {
+        "id": "string",
+        "userId": "string",
+        "customerName": "string",
+        "outcomeSummary": "string",
+        "verificationTier": "string",
+        "createdAt": "string"
+      }
+    },
+    "team_workspaces": {
+      "description": "TeamWorks shared workspaces, roles, tasks, and approvals.",
+      "schema": {
+        "id": "string",
+        "ownerId": "string",
+        "name": "string",
+        "members": "array",
+        "tasks": "array",
+        "approvals": "array",
+        "createdAt": "string"
+      }
+    },
+    "affiliate_programs": {
+      "description": "AffiliateWorks referral programs with self-referral guard.",
+      "schema": {
+        "id": "string",
+        "userId": "string",
+        "name": "string",
+        "commissionPercent": "number",
+        "referralCode": "string",
+        "selfReferralBlocked": "boolean",
+        "createdAt": "string"
+      }
+    },
+    "automation_workflows": {
+      "description": "AutomationWorks trigger/condition/action workflow definitions.",
+      "schema": {
+        "id": "string",
+        "userId": "string",
+        "name": "string",
+        "trigger": "string",
+        "actionType": "string",
+        "requiresApproval": "boolean",
+        "maxRetries": "number",
+        "createdAt": "string"
+      }
+    },
+    "automation_runs": {
+      "description": "Server-authoritative idempotent execution logs for AutomationWorks.",
+      "schema": {
+        "id": "string",
+        "userId": "string",
+        "workflowId": "string",
+        "idempotencyKey": "string",
+        "status": "string",
+        "executedAt": "string"
+      }
+    },
+    "finance_entries": {
+      "description": "FinanceWorks real creator revenue, expense, refund, and invoice records.",
+      "schema": {
+        "id": "string",
+        "userId": "string",
+        "type": "string",
+        "description": "string",
+        "amountCents": "number",
+        "status": "string",
+        "isTestTransaction": "boolean",
+        "createdAt": "string"
+      }
+    },
+    "academy_progress": {
+      "description": "Per-user ContentPaysUs Academy lesson completion and worksheet notes.",
+      "schema": {
+        "userId": "string",
+        "completedLessonIds": "array",
+        "assignmentNotes": "object",
+        "updatedAt": "string"
+      }
     }
   }
 }

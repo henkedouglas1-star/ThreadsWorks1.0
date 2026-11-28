@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /api/
+Disallow: /workspace
 Disallow: /apps
 Disallow: /dashboard
 Disallow: /create
