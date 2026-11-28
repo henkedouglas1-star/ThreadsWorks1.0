@@ -5691,7 +5691,7 @@ app.post("/api/generate-posts-batch", async (req, res) => {
 
     // Request and creator background are separate inputs, never interchangeable.
     const contentRequest = resolveBatchRequest(body);
-    const postCount = resolveEffectivePostCount(body, contentRequest, 5);
+    const postCount = Math.min(7, resolveEffectivePostCount(body, contentRequest, 4));
     const gated = buildGatedWriteContext(resolvedContext, body, contentRequest);
     const writingPlan = gated.writingPlan;
     const characterLimit = gated.directives.characterLimit;
