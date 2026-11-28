@@ -174,14 +174,14 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
   // =========================================================================
   // On-demand public research, separate from the future continuous trend monitor.
   router.get("/demand/research-status", (_req, res) => {
-    return res.json({ configured: Boolean(process.env.GEMINI_API_KEY?.trim() && process.env.DEMAND_GROUNDING_ENABLED === "true") });
+    return res.json({ configured: Boolean(process.env.GEMINI_API_KEY?.trim() && process.env.DEMAND_GROUNDING_ENABLED === "true" && process.env.DEMAND_GROUNDING_RELEASE_APPROVED === "true") });
   });
 
   router.post("/demand/research", async (req, res) => {
     const caller = (req as any).caller as AuthedCaller;
     const topic = typeof req.body?.topic === "string" ? req.body.topic.trim() : "";
     if (!topic || topic.length > 200) return res.status(400).json({ error: "Enter a public research topic of 1–200 characters." });
-    if (!process.env.GEMINI_API_KEY?.trim() || process.env.DEMAND_GROUNDING_ENABLED !== "true") return res.status(503).json({ error: "Live research is not connected yet." });
+    if (!process.env.GEMINI_API_KEY?.trim() || process.env.DEMAND_GROUNDING_ENABLED !== "true" || process.env.DEMAND_GROUNDING_RELEASE_APPROVED !== "true") return res.status(503).json({ error: "Live research is not connected yet." });
     if (!checkAiRateLimit(caller.uid)) return res.status(429).json({ error: "Too many requests. Try again in a minute." });
     // Charge a generation allowance for each successful search, preserving current membership policy.
     const quota = await checkAndReserveGeneration(db, caller.uid, caller.email);
@@ -202,14 +202,14 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
     }
   });
 
-  // Analyze selected public snippets separately; never label model interpretation as verified data.
+  // Analyze independent creator notes; never label model interpretation as verified data.
   router.post("/demand/knowledge", async (req, res) => {
     const caller = (req as any).caller as AuthedCaller;
     const topic = cleanString(req.body?.topic, 200);
     const notes = cleanString(req.body?.notes, 8000);
     if (req.body?.independentNotes !== true || !notes) return res.status(400).json({ error: "Provide independently collected creator notes, not Google-grounded results." });
     const sources = [{ title: "Creator-provided notes", url: "", snippet: notes }];
-    if (!topic || !sources.length) return res.status(400).json({ error: "Select at least one public source to analyze." });
+    if (!topic) return res.status(400).json({ error: "Enter a topic to understand." });
     if (!checkAiRateLimit(caller.uid)) return res.status(429).json({ error: "Too many requests. Try again in a minute." });
     const quota = await checkAndReserveGeneration(db, caller.uid, caller.email);
     if (!quota.allowed) return res.status(403).json({ error: quota.error || "Monthly allowance reached." });
