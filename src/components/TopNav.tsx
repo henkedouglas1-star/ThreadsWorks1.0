@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import ThreadsWorksLogo from "./ThreadsWorksLogo";
+import PageShareButton from "./PageShareButton";
 import { 
   Sparkles, 
   Zap, 
@@ -168,6 +169,8 @@ export default function TopNav({
               </nav>
 
               <div className="hidden md:block h-4 w-px bg-border-primary dark:bg-zinc-800 mx-0.5" />
+
+              <PageShareButton />
 
               {/* Settings Gear Toggle */}
               <button
