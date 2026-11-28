@@ -83,8 +83,8 @@ export interface SharedIntelligenceResponse {
       signaturePhrases: string[];
     };
     performance?: {
-      medianViews: number;
-      avgEngagementRate: number;
+      medianViews: number | null;
+      avgEngagementRate: number | null;
       topPerformingConcept?: string;
     };
   };
@@ -139,7 +139,7 @@ export async function retrieveSharedIntelligenceContext(
       offer: profileData?.offer || "",
       audience: profileData?.audience || "",
       desiredResult: profileData?.desiredResult || "",
-      writingStyle: profileData?.writingStyle || "Direct, conversational, peer-to-peer",
+      writingStyle: profileData?.writingStyle || "",
       customInstruction: profileData?.customInstruction || profileData?.rawVoice || ""
     };
     if (!profileData?.writingStyle) {
@@ -150,22 +150,18 @@ export async function retrieveSharedIntelligenceContext(
   // Audience Intelligence Domain
   if (domains.includes("audience")) {
     responseDomains.audience = {
-      targetAudience: profileData?.audience || "Solopreneurs and creators",
-      painPoints: [
-        "Struggling to turn knowledge into structured content",
-        "Inconsistent publishing momentum",
-        "Unclear offer packaging"
-      ],
-      objectives: [profileData?.desiredResult || "Build a sustainable creator business"]
+      targetAudience: profileData?.audience || "",
+      painPoints: [],
+      objectives: profileData?.desiredResult ? [profileData.desiredResult] : []
     };
   }
 
   // Commercial Intelligence Domain
   if (domains.includes("commercial")) {
     responseDomains.commercial = {
-      offerDetails: profileData?.offer || "Digital playbooks and content systems",
-      pricingModel: "Tiered subscription / Digital products",
-      salesObjectives: profileData?.desiredResult || "Convert audience attention into offers"
+      offerDetails: profileData?.offer || "",
+      
+      salesObjectives: profileData?.desiredResult || ""
     };
     if (!profileData?.offer) {
       missingInformation.push("commercial.offerDetails");
@@ -229,16 +225,17 @@ export async function retrieveSharedIntelligenceContext(
       analyticsSnap.forEach((d: any) => analyticsRecords.push(d.data()));
 
       responseDomains.performance = {
-        medianViews: 50,
-        avgEngagementRate: 3.5,
-        topPerformingConcept: analyticsRecords[0]?.contentMemoryContext?.canonicalConcept || "Core Topic Framework"
+        medianViews: null,
+        avgEngagementRate: null
       };
       sourceReferences.push(`analytics_posts (records: ${analyticsRecords.length})`);
+      missingInformation.push("performance.medianViews", "performance.avgEngagementRate");
     } catch (err) {
       console.warn("[SHARED_INTELLIGENCE] Performance intelligence note:", err);
+      missingInformation.push("performance.medianViews", "performance.avgEngagementRate");
       responseDomains.performance = {
-        medianViews: 50,
-        avgEngagementRate: 3.0
+        medianViews: null,
+        avgEngagementRate: null
       };
     }
   }
@@ -274,7 +271,7 @@ export async function contributeSharedIntelligence(
     category,
     factType,
     data,
-    evidence: evidence || "Creator action / verified platform activity",
+    evidence: evidence || null,
     confidence: factType === "user_provided_fact" ? 1.0 : confidence,
     verificationStatus: factType === "user_provided_fact" ? "verified" : "unverified",
     createdAt: new Date().toISOString()
