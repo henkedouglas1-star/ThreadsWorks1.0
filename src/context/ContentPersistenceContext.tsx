@@ -102,7 +102,7 @@ const ContentPersistenceContext = createContext<ContentPersistenceContextType | 
 
 const getStoredUid = (): string | null => {
   if (typeof window === "undefined") return null;
-  return auth.currentUser?.uid || safeGetLocalStorage("threads_last_known_uid") || null;
+  return auth.currentUser?.uid || null;
 };
 
 const getInitialPosts = (category: "attention" | "trust" | "sales"): GeneratedPost[] => {
@@ -125,14 +125,9 @@ const getInitialString = (keyPrefix: string, fallback: string = ""): string => {
   if (typeof window === "undefined") return fallback;
   try {
     const uid = getStoredUid();
-    if (uid) {
-      const saved = localStorage.getItem(`${keyPrefix}_${uid}`);
-      if (saved !== null) return saved;
-    }
-    const savedGlobal = localStorage.getItem(keyPrefix);
-    if (savedGlobal !== null) return savedGlobal;
-    const savedAnon = localStorage.getItem(`${keyPrefix}_anonymous`);
-    if (savedAnon !== null) return savedAnon;
+    if (!uid) return fallback;
+    const saved = localStorage.getItem(`${keyPrefix}_${uid}`);
+    if (saved !== null) return saved;
     return fallback;
   } catch {
     return fallback;
@@ -375,10 +370,6 @@ export const ContentPersistenceProvider: React.FC<{ children: React.ReactNode }>
   const getEffectiveUid = (): string | null => {
     if (currentUser?.uid) return currentUser.uid;
     if (auth.currentUser?.uid) return auth.currentUser.uid;
-    if (typeof window !== "undefined") {
-      const lastUid = safeGetLocalStorage("threads_last_known_uid");
-      if (lastUid) return lastUid;
-    }
     return null;
   };
 
@@ -459,12 +450,20 @@ export const ContentPersistenceProvider: React.FC<{ children: React.ReactNode }>
             if (Array.isArray(parsed)) {
               setAttentionPostsState(parsed);
               attentionPostsRef.current = parsed;
+            } else {
+              setAttentionPostsState([]);
+              attentionPostsRef.current = [];
             }
           } else if (attentionPostsRef.current.length > 0 && prevUid === uid) {
             localStorage.setItem(`threads_attention_posts_${uid}`, JSON.stringify(attentionPostsRef.current));
+          } else {
+            setAttentionPostsState([]);
+            attentionPostsRef.current = [];
           }
         } catch (e) {
           console.warn("Error restoring attention posts:", e);
+          setAttentionPostsState([]);
+          attentionPostsRef.current = [];
         }
 
         try {
@@ -474,12 +473,20 @@ export const ContentPersistenceProvider: React.FC<{ children: React.ReactNode }>
             if (Array.isArray(parsed)) {
               setTrustPostsState(parsed);
               trustPostsRef.current = parsed;
+            } else {
+              setTrustPostsState([]);
+              trustPostsRef.current = [];
             }
           } else if (trustPostsRef.current.length > 0 && prevUid === uid) {
             localStorage.setItem(`threads_trust_posts_${uid}`, JSON.stringify(trustPostsRef.current));
+          } else {
+            setTrustPostsState([]);
+            trustPostsRef.current = [];
           }
         } catch (e) {
           console.warn("Error restoring trust posts:", e);
+          setTrustPostsState([]);
+          trustPostsRef.current = [];
         }
 
         try {
@@ -489,13 +496,48 @@ export const ContentPersistenceProvider: React.FC<{ children: React.ReactNode }>
             if (Array.isArray(parsed)) {
               setSalesPostsState(parsed);
               salesPostsRef.current = parsed;
+            } else {
+              setSalesPostsState([]);
+              salesPostsRef.current = [];
             }
           } else if (salesPostsRef.current.length > 0 && prevUid === uid) {
             localStorage.setItem(`threads_sales_posts_${uid}`, JSON.stringify(salesPostsRef.current));
+          } else {
+            setSalesPostsState([]);
+            salesPostsRef.current = [];
           }
         } catch (e) {
           console.warn("Error restoring sales posts:", e);
+          setSalesPostsState([]);
+          salesPostsRef.current = [];
         }
+
+        try {
+          const savedHooks = localStorage.getItem(`threads_all_32_hooks_${uid}`);
+          setAll32HooksState(savedHooks ? JSON.parse(savedHooks) : []);
+        } catch { setAll32HooksState([]); }
+
+        try {
+          const savedHooksActive = localStorage.getItem(`threads_are_hooks_active_${uid}`);
+          setAreHooksActiveState(savedHooksActive !== null ? JSON.parse(savedHooksActive) : false);
+        } catch { setAreHooksActiveState(false); }
+
+        try {
+          const savedUnits = localStorage.getItem(`threads_strategic_units_${uid}`);
+          setStrategicUnitsState(savedUnits ? JSON.parse(savedUnits) : []);
+        } catch { setStrategicUnitsState([]); }
+
+        try {
+          const savedAngle = localStorage.getItem(`threads_active_strategic_angle_${uid}`);
+          setActiveStrategicAngleState(savedAngle ? JSON.parse(savedAngle) : null);
+        } catch { setActiveStrategicAngleState(null); }
+
+        setStrategicCreatorRequestState(safeGetLocalStorage(`threads_strategic_creator_request_${uid}`) || "");
+
+        try {
+          const savedUnitsActive = localStorage.getItem(`threads_are_strategic_units_active_${uid}`);
+          setAreStrategicUnitsActiveState(savedUnitsActive !== null ? JSON.parse(savedUnitsActive) : false);
+        } catch { setAreStrategicUnitsActiveState(false); }
 
         try {
           const savedPillars = localStorage.getItem(`threads_pillar_history_${uid}`);
@@ -612,9 +654,10 @@ export const ContentPersistenceProvider: React.FC<{ children: React.ReactNode }>
 
         setSimulationWarningState(safeGetLocalStorage(`threads_simulation_warning_${uid}`) || null);
       } else {
-        // Clear in-memory state on sign-out only if user was previously authenticated
+        // Clear all in-memory state on sign-out so no prior account data can leak
         if (prevUid) {
           safeRemoveLocalStorage("threads_last_known_uid");
+          safeRemoveLocalStorage("threads_custom_instruction");
           setAttentionPostsState([]);
           setTrustPostsState([]);
           setSalesPostsState([]);
@@ -631,8 +674,16 @@ export const ContentPersistenceProvider: React.FC<{ children: React.ReactNode }>
           setSimulationWarningState(null);
           setActiveIdeaState(null);
           setRawCreatorThoughtState("");
+          setActiveCtaState(null);
           setCtaPreferencesState("");
           setContentDestinationsState([]);
+          setRecentPillarHistoryState([]);
+          setAll32HooksState([]);
+          setAreHooksActiveState(false);
+          setStrategicUnitsState([]);
+          setActiveStrategicAngleState(null);
+          setStrategicCreatorRequestState("");
+          setAreStrategicUnitsActiveState(false);
         }
         previousUidRef.current = null;
       }
@@ -725,14 +776,9 @@ export const ContentPersistenceProvider: React.FC<{ children: React.ReactNode }>
     customInstructionRef.current = text;
     setCustomInstructionState(text);
     const uid = getEffectiveUid();
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && uid) {
       try {
-        localStorage.setItem("threads_custom_instruction", text);
-        if (uid) {
-          localStorage.setItem(`threads_custom_instruction_${uid}`, text);
-        } else {
-          localStorage.setItem("threads_custom_instruction_anonymous", text);
-        }
+        localStorage.setItem(`threads_custom_instruction_${uid}`, text);
         window.dispatchEvent(new CustomEvent("creator-context-updated", { detail: text }));
       } catch (e) {
         console.warn("LocalStorage sync failed for custom instructions:", e);

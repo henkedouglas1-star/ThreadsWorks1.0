@@ -12,6 +12,10 @@ import {
   AuthUserLike,
   configureAuthPersistenceWithFallback,
   createInitialAuthSessionState,
+  getAuthPortalModeFromSearch,
+  getSafePostAuthRedirectFromSearch,
+  isContentPaysUsInfoPath,
+  isContentPaysUsPublicPath,
   reduceAuthSession,
   resolveAppScreen,
 } from "../src/lib/authContract";
@@ -167,8 +171,12 @@ async function mountTestApp(options: {
     const [currentPath, setCurrentPath] = useState<string>(() =>
       normalizeMarketingPath(window.location.pathname)
     );
-    const [authPortalMode, setAuthPortalMode] = useState<"signin" | "signup" | null>(null);
-    const [activeTab, setActiveTab] = useState<string>("engine");
+    const [authPortalMode, setAuthPortalMode] = useState<"signin" | "signup" | null>(() =>
+      getAuthPortalModeFromSearch(window.location.search)
+    );
+    const [activeTab, setActiveTab] = useState<string>(() =>
+      normalizeMarketingPath(window.location.pathname) === "/workspace" ? "apps" : "engine"
+    );
 
     const navigateTab = (tab: string) => {
       const map: Record<string, string> = {
@@ -190,20 +198,22 @@ async function mountTestApp(options: {
       const handlePopState = () => {
         const path = normalizeMarketingPath(window.location.pathname);
         setCurrentPath(path);
-        setAuthPortalMode(null);
+        setAuthPortalMode(getAuthPortalModeFromSearch(window.location.search));
       };
       window.addEventListener("popstate", handlePopState);
       return () => window.removeEventListener("popstate", handlePopState);
     }, []);
 
-    // Mirrors App.tsx authenticated root redirect without mutating unauthenticated '/'
+    // Mirrors App.tsx authenticated root redirect without mutating unauthenticated '/' or '/workspace'
     useEffect(() => {
       if (authStatus !== "authenticated" || !user) return;
       if (currentPath === "/" || currentPath === "") {
-        setCurrentPath("/create");
-        setActiveTab("engine");
-        if (window.location.pathname !== "/create") {
-          window.history.replaceState(null, "", "/create");
+        const safeNext = getSafePostAuthRedirectFromSearch(window.location.search);
+        const target = safeNext || "/create";
+        setCurrentPath(target);
+        setActiveTab(target === "/workspace" ? "apps" : "engine");
+        if (`${window.location.pathname}${window.location.search}` !== target) {
+          window.history.replaceState(null, "", target);
         }
       }
     }, [authStatus, user, currentPath]);
@@ -217,7 +227,7 @@ async function mountTestApp(options: {
       authStatus,
       user,
       handshakeStatus: null,
-      isPublicMarketingRoute: Boolean(publicMarketingRoute),
+      isPublicMarketingRoute: Boolean(publicMarketingRoute) || isContentPaysUsPublicPath(currentPath),
       authPortalMode,
     });
 
@@ -1330,5 +1340,262 @@ test("19. Preview handoff resume runner survives React StrictMode mount -> unmou
   assert.equal(mount2Errors.length, 0, "No errors should be emitted during StrictMode handoff recovery");
   assert.equal(pending, null, "Pending handoff must be cleared once sign-in completes");
 });
+
+test("20. Public website (/), /?auth=signin, /?auth=signup, and protected /workspace routing contract", async () => {
+  // Pure route classification checks
+  assert.equal(isContentPaysUsPublicPath("/"), true);
+  assert.equal(isContentPaysUsPublicPath("/learn"), true);
+  assert.equal(isContentPaysUsPublicPath("/applications"), true);
+  assert.equal(isContentPaysUsPublicPath("/applications/threadsworks"), true);
+  assert.equal(isContentPaysUsPublicPath("/about"), true);
+  assert.equal(isContentPaysUsPublicPath("/workspace"), false, "/workspace MUST be a protected route");
+  assert.equal(isContentPaysUsInfoPath("/workspace"), false);
+  assert.equal(isContentPaysUsInfoPath("/applications/productworks"), true);
+
+  // Query parsing & open-redirect protection
+  assert.equal(getAuthPortalModeFromSearch("?auth=signin"), "signin");
+  assert.equal(getAuthPortalModeFromSearch("?auth=signup"), "signup");
+  assert.equal(getAuthPortalModeFromSearch("?auth=invalid"), null);
+  assert.equal(getSafePostAuthRedirectFromSearch("?auth=signin&next=/workspace"), "/workspace");
+  assert.equal(getSafePostAuthRedirectFromSearch("?next=https://evil.example/phish"), null);
+  assert.equal(getSafePostAuthRedirectFromSearch("?next=//evil.example/phish"), null);
+  assert.equal(getSafePostAuthRedirectFromSearch("?next=/"), null);
+
+  // Part A: /?auth=signin opens AuthScreen (not public marketing page) and honors ?next=/workspace
+  {
+    const firebase = createMockFirebaseAuthHarness(null);
+    const signedInUser: AuthUserLike = { uid: "portal-uid-20", email: "creator@threadsworks.com" };
+    const app = await mountTestApp({
+      initialUrl: "https://threadsworks.com/?auth=signin&next=/workspace",
+      adapter: firebase.createAdapter(),
+      authActions: {
+        waitForPersistence: async () => ({ mode: "local" }),
+        signInWithGooglePopup: async () => {
+          firebase.currentUser = signedInUser;
+          return { user: signedInUser };
+        },
+        ensureGoogleProfile: async () => {},
+      },
+      onSignOut: firebase.signOut,
+    });
+    try {
+      // While initializing, /?auth=signin must wait cleanly on loading (never flash public site or wrong auth screen)
+      assert.ok(app.container.querySelector("#auth-loading-screen"));
+      await act(async () => {
+        firebase.emitUser(null);
+      });
+      assert.ok(app.container.querySelector("#auth-card"), "/?auth=signin must open AuthScreen");
+      assert.equal(app.container.querySelector("#marketing-screen"), null);
+
+      const googleBtn = app.container.querySelector("#auth-google-button") as HTMLButtonElement;
+      await act(async () => {
+        googleBtn.click();
+      });
+      await flushMicrotasks();
+
+      const dashboard = app.container.querySelector("#workspace-dashboard");
+      assert.ok(dashboard, "Signing in via /?auth=signin&next=/workspace must enter workspace");
+      assert.equal(app.window.location.pathname, "/workspace");
+      assert.equal(dashboard.getAttribute("data-tab"), "apps");
+    } finally {
+      await app.unmount();
+    }
+  }
+
+  // Part B: /workspace waits for authStateReady -> directs unauthenticated user to AuthScreen -> returns to /workspace after login
+  {
+    const firebase = createMockFirebaseAuthHarness(null);
+    const workspaceUser: AuthUserLike = { uid: "ws-uid-20", email: "ws@threadsworks.com" };
+    let resolveReady!: () => void;
+    const readyPromise = new Promise<void>((r) => {
+      resolveReady = r;
+    });
+
+    const app = await mountTestApp({
+      initialUrl: "https://threadsworks.com/workspace",
+      adapter: firebase.createAdapter({
+        waitForAuthStateReady: () => readyPromise,
+      }),
+      authActions: {
+        waitForPersistence: async () => ({ mode: "local" }),
+        signInWithEmail: async () => {
+          firebase.currentUser = workspaceUser;
+          return { user: workspaceUser };
+        },
+      },
+      onSignOut: firebase.signOut,
+    });
+    try {
+      assert.ok(app.container.querySelector("#auth-loading-screen"), "/workspace must show loading until authStateReady settles");
+      assert.equal(app.container.querySelector("#auth-card"), null);
+
+      await act(async () => {
+        resolveReady();
+        await readyPromise;
+        firebase.emitUser(null);
+      });
+      await flushMicrotasks();
+
+      assert.ok(app.container.querySelector("#auth-card"), "Unauthenticated /workspace must show AuthScreen");
+      assert.equal(app.window.location.pathname, "/workspace", "Intended /workspace destination must be preserved");
+
+      const emailInput = app.container.querySelector("#auth-email-input") as HTMLInputElement;
+      const passwordInput = app.container.querySelector("#auth-password-input") as HTMLInputElement;
+      const form = app.container.querySelector("form") as HTMLFormElement;
+      await act(async () => {
+        setReactInputValue(emailInput, "ws@threadsworks.com");
+        setReactInputValue(passwordInput, "ValidPass123!");
+      });
+      await act(async () => {
+        const DomEvent = (globalThis as any).window.Event;
+        form.dispatchEvent(new DomEvent("submit", { bubbles: true, cancelable: true }));
+      });
+      await flushMicrotasks();
+
+      const dashboard = app.container.querySelector("#workspace-dashboard");
+      assert.ok(dashboard, "Authenticating on /workspace must enter the unified workspace");
+      assert.equal(dashboard.getAttribute("data-uid"), "ws-uid-20");
+      assert.equal(dashboard.getAttribute("data-tab"), "apps");
+      assert.equal(app.window.location.pathname, "/workspace", "URL must remain /workspace with zero redirect loops");
+      assert.equal(app.historyCalls.length, 0);
+    } finally {
+      await app.unmount();
+    }
+  }
+});
+
+test("21. Email registration, signup validation recovery, password reset, and double-submit guard", async () => {
+  const firebase = createMockFirebaseAuthHarness(null);
+  const newUser: AuthUserLike = { uid: "signup-uid-21", email: "newcreator@threadsworks.com" };
+  let signUpCalls = 0;
+  let resetEmailSentTo = "";
+
+  const app = await mountTestApp({
+    initialUrl: "https://threadsworks.com/?auth=signup",
+    adapter: firebase.createAdapter(),
+    authActions: {
+      waitForPersistence: async () => ({ mode: "local" }),
+      signUpWithEmail: async (email) => {
+        signUpCalls += 1;
+        assert.equal(email, "newcreator@threadsworks.com");
+        await new Promise((r) => setTimeout(r, 25));
+        firebase.currentUser = newUser;
+        return { user: newUser };
+      },
+      initializeSignupProfile: async () => {},
+      sendPasswordReset: async (email) => {
+        resetEmailSentTo = email;
+      },
+    },
+    onSignOut: firebase.signOut,
+  });
+
+  try {
+    await act(async () => {
+      firebase.emitUser(null);
+    });
+
+    // Starts in signup mode from ?auth=signup
+    const offerInput = app.container.querySelector("#signup-offer-input") as HTMLInputElement;
+    assert.ok(offerInput, "?auth=signup must open AuthScreen directly in Sign Up mode");
+
+    // Incomplete signup validation must show error AND NOT strand buttons in disabled authenticating state
+    const emailInput = app.container.querySelector("#auth-email-input") as HTMLInputElement;
+    const passwordInput = app.container.querySelector("#auth-password-input") as HTMLInputElement;
+    const form = app.container.querySelector("form") as HTMLFormElement;
+    await act(async () => {
+      setReactInputValue(emailInput, "newcreator@threadsworks.com");
+      setReactInputValue(passwordInput, "StrongPass123!");
+    });
+    await act(async () => {
+      const DomEvent = (globalThis as any).window.Event;
+      form.dispatchEvent(new DomEvent("submit", { bubbles: true, cancelable: true }));
+    });
+    await flushMicrotasks();
+
+    assert.match(app.container.querySelector("#auth-error-banner")?.textContent || "", /complete the basic profile fields/i);
+    const submitBtnAfterValidation = app.container.querySelector("#auth-submit-button") as HTMLButtonElement;
+    assert.equal(submitBtnAfterValidation.disabled, false, "Validation failure must never leave submit button permanently disabled");
+
+    // Test Password Reset flow by toggling to Sign In -> Forgot Password
+    const toggleBtn = app.container.querySelector("#auth-toggle-view") as HTMLButtonElement;
+    await act(async () => {
+      toggleBtn.click();
+    });
+    const forgotLink = app.container.querySelector("#auth-forgot-password-link") as HTMLButtonElement;
+    assert.ok(forgotLink);
+    await act(async () => {
+      forgotLink.click();
+    });
+    const resetForm = app.container.querySelector("form") as HTMLFormElement;
+    await act(async () => {
+      const DomEvent = (globalThis as any).window.Event;
+      resetForm.dispatchEvent(new DomEvent("submit", { bubbles: true, cancelable: true }));
+    });
+    await flushMicrotasks();
+    assert.equal(resetEmailSentTo, "newcreator@threadsworks.com", "Password reset must invoke sendPasswordReset with trimmed email");
+
+    // Return to Sign In -> switch back to Sign Up, fill all fields, double-submit rapidly
+    const backBtn = app.container.querySelector("#forgot-password-back-button") as HTMLButtonElement;
+    await act(async () => {
+      backBtn.click();
+    });
+    const toggleBackToSignup = app.container.querySelector("#auth-toggle-view") as HTMLButtonElement;
+    await act(async () => {
+      toggleBackToSignup.click();
+    });
+
+    await act(async () => {
+      setReactInputValue(app.container.querySelector("#signup-offer-input") as HTMLInputElement, "Coaching");
+      setReactInputValue(app.container.querySelector("#signup-audience-input") as HTMLInputElement, "Founders");
+      setReactInputValue(app.container.querySelector("#signup-result-input") as HTMLInputElement, "Consistent leads");
+    });
+
+    const signupForm = app.container.querySelector("form") as HTMLFormElement;
+    await act(async () => {
+      const DomEvent = (globalThis as any).window.Event;
+      signupForm.dispatchEvent(new DomEvent("submit", { bubbles: true, cancelable: true }));
+      signupForm.dispatchEvent(new DomEvent("submit", { bubbles: true, cancelable: true }));
+      await new Promise((r) => setTimeout(r, 50));
+    });
+    await flushMicrotasks();
+
+    assert.equal(signUpCalls, 1, "Rapid double-submit must execute signUpWithEmail exactly once");
+    const dashboard = app.container.querySelector("#workspace-dashboard");
+    assert.ok(dashboard, "Completed registration must enter workspace");
+    assert.equal(dashboard.getAttribute("data-uid"), "signup-uid-21");
+  } finally {
+    await app.unmount();
+  }
+});
+
+test("22. Checkpoint B security & account-switch isolation invariants", () => {
+  const rootDir = process.cwd();
+  const appSrc = fs.readFileSync(path.join(rootDir, "src", "App.tsx"), "utf8");
+  const authScreenSrc = fs.readFileSync(path.join(rootDir, "src", "components", "AuthScreen.tsx"), "utf8");
+  const persistenceSrc = fs.readFileSync(path.join(rootDir, "src", "context", "ContentPersistenceContext.tsx"), "utf8");
+  const threadsConnSrc = fs.readFileSync(path.join(rootDir, "src", "context", "ThreadsConnectionContext.tsx"), "utf8");
+  const draftSrc = fs.readFileSync(path.join(rootDir, "src", "utils", "usePersistentDraft.ts"), "utf8");
+  const unifiedWsSrc = fs.readFileSync(path.join(rootDir, "src", "components", "contentpaysus", "ContentPaysUsUnifiedWorkspace.tsx"), "utf8");
+
+  // No mock/hardcoded auth bypass in AuthScreen
+  assert.doesNotMatch(authScreenSrc, /preview_test_creator_01/, "AuthScreen must not contain hardcoded fake preview user bypass");
+  assert.doesNotMatch(authScreenSrc, /handleInstantPreviewLogin/, "AuthScreen must not include instant fake login bypass");
+  assert.match(authScreenSrc, /isEmbeddedIframe/, "Open in New Tab helper must be gated to embedded iframe context");
+
+  // App.tsx routes /workspace to real unified workspace, never static ContentPaysUsWorkspace placeholder
+  assert.doesNotMatch(appSrc, /ContentPaysUsWorkspace/, "App.tsx must not trap /workspace on static Phase 1 placeholder");
+  assert.match(appSrc, /"\/workspace"\s*:\s*"apps"/, "App.tsx must map /workspace to the unified workspace tab");
+  assert.match(appSrc, /getPreviewGoogleBridgeHandoffId\(\)/, "App.tsx must check preview Google bridge before MainApp routing");
+  assert.match(appSrc, /key=\{`auth-workspace-\$\{user\.uid\}`\}/, "App.tsx must key workspace panel by user.uid for clean account switch resets");
+  assert.doesNotMatch(appSrc, /safeGetLocalStorage\("profile"\)/, "App.tsx must never read unscoped legacy profile key");
+
+  // Contexts & hooks enforce strict UID isolation and stale-async guards
+  assert.doesNotMatch(persistenceSrc, /localStorage\.setItem\("threads_custom_instruction",/, "ContentPersistenceContext must not write unscoped custom instruction");
+  assert.match(threadsConnSrc, /requestIdRef/, "ThreadsConnectionContext must discard stale async responses across account switches");
+  assert.doesNotMatch(draftSrc, /threadsworks:draft:anonymous:/, "usePersistentDraft must not copy anonymous drafts into signed-in accounts");
+  assert.match(unifiedWsSrc, /activeUidRef/, "ContentPaysUsUnifiedWorkspace must guard async project mutations by active UID");
+});
+
 
 

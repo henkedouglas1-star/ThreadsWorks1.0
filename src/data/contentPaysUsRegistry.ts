@@ -1,10 +1,21 @@
+export type AppAvailabilityStatus = "Available" | "In Development" | "Planned";
+
+export type EcosystemCategory =
+  | "Education"
+  | "Foundation"
+  | "Attention"
+  | "Monetization"
+  | "Customer Success"
+  | "Expansion";
+
 export interface EcosystemApp {
   id: string;
   name: string;
-  category: "Foundation" | "Attention" | "Monetization" | "Customer Success" | "Expansion";
+  category: EcosystemCategory;
+  journeyStage: "Learn" | "Identify" | "Build" | "Attract" | "Connect" | "Sell" | "Deliver" | "Grow";
   headline: string;
   shortDescription: string;
-  availability: "Available" | "In Development" | "Planned" | "Working Concept";
+  availability: AppAvailabilityStatus;
   badgeColor: string;
   purpose: string;
   problemSolved: string;
@@ -15,6 +26,7 @@ export interface EcosystemApp {
 
 export const ECOSYSTEM_CATEGORIES = [
   "All",
+  "Education",
   "Foundation",
   "Attention",
   "Monetization",
@@ -22,288 +34,488 @@ export const ECOSYSTEM_CATEGORIES = [
   "Expansion"
 ] as const;
 
+export const AVAILABILITY_FILTERS: ReadonlyArray<"All" | AppAvailabilityStatus> = [
+  "All",
+  "Available",
+  "In Development",
+  "Planned"
+];
+
+export function getAvailabilityTextClass(availability: AppAvailabilityStatus): string {
+  switch (availability) {
+    case "Available":
+      return "text-emerald-700 dark:text-emerald-400";
+    case "In Development":
+      return "text-indigo-700 dark:text-indigo-400";
+    case "Planned":
+      return "text-slate-600 dark:text-zinc-400";
+  }
+}
+
+export function getAvailabilityDotClass(availability: AppAvailabilityStatus): string {
+  switch (availability) {
+    case "Available":
+      return "bg-emerald-600 dark:bg-emerald-400";
+    case "In Development":
+      return "bg-indigo-600 dark:bg-indigo-400";
+    case "Planned":
+      return "bg-slate-400 dark:bg-zinc-500";
+  }
+}
+
 export const CONTENT_PAYS_US_APPS: EcosystemApp[] = [
-  // Foundation
+  // Education (1)
+  {
+    id: "academy",
+    name: "ContentPaysUs Academy",
+    category: "Education",
+    journeyStage: "Learn",
+    headline: "Free creator business education and practical courses.",
+    shortDescription:
+      "Planned free learning destination built around practical business skills, our flagship course 'How to Get Your First Sale', and future community-shared courses.",
+    availability: "Planned",
+    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+    purpose:
+      "Give creators free, practical training so they can build real business skills before investing in software or ad spend.",
+    problemSolved:
+      "Expensive, theory-heavy courses and fragmented advice that leave new creators unsure what concrete step to take next.",
+    intendedOutputs: [
+      "Flagship Free Course: How to Get Your First Sale (Planned)",
+      "Step-by-Step Creator Business Playbooks",
+      "Future Community-Created Free Courses"
+    ],
+    ecosystemRelationship:
+      "Serves as the free educational entry point to ContentPaysUs—helping creators learn for free, build with AI, and grow together.",
+    externalLink: "/learn"
+  },
+
+  // Foundation (2)
   {
     id: "creatorworks",
     name: "CreatorWorks",
     category: "Foundation",
-    headline: "Develop a creator’s brand and direction.",
-    shortDescription: "Establish your core positioning, audience focus, and brand voice before producing content.",
+    journeyStage: "Identify",
+    headline: "Develop your personal brand, positioning, and direction.",
+    shortDescription:
+      "Clarify your core expertise, audience focus, and consistent brand voice before publishing content or launching offers.",
     availability: "Planned",
-    badgeColor: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-    purpose: "Help creators define their unique expertise, target audience pillars, and brand identity with absolute clarity.",
-    problemSolved: "Creators often jump straight into content creation without a defined niche or messaging direction, leading to inconsistent brand perception.",
+    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+    purpose:
+      "Help creators define their unique perspective, target audience, and brand identity with practical clarity.",
+    problemSolved:
+      "Publishing scattered posts without a clear positioning statement or recognizable creator point of view.",
     intendedOutputs: [
       "Creator Brand Positioning Blueprint",
-      "Audience Persona & Core Pain Point Map",
-      "Tone of Voice & Messaging Guidelines"
+      "Target Audience & Core Value Map",
+      "Voice & Messaging Guidelines"
     ],
-    ecosystemRelationship: "Serves as the foundational starting point for all subsequent ContentPaysUs applications, feeding identity context into the shared intelligence layer."
+    ecosystemRelationship:
+      "Establishes the creator identity context that feeds into ThreadsWorks, OfferWorks, and every connected application via Shared Intelligence."
   },
   {
     id: "demandworks",
     name: "DemandWorks",
     category: "Foundation",
-    headline: "Find and validate buyer problems.",
-    shortDescription: "Discover what your target audience is actively struggling with and confirm real market demand.",
+    journeyStage: "Identify",
+    headline: "Discover what people actually want to buy.",
+    shortDescription:
+      "Find and validate real buyer problems your audience is actively trying to solve before spending weeks building.",
     availability: "Planned",
-    badgeColor: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-    purpose: "Analyze community discussions, search signals, and audience feedback to pinpoint high-value problems worth solving.",
-    problemSolved: "Building products or content around guessed assumptions rather than verified buyer pain points.",
+    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+    purpose:
+      "Surface real audience questions, recurring friction, and unmet needs so you build products people are ready to pay for.",
+    problemSolved:
+      "Guessing what product or content will resonate instead of validating genuine market demand first.",
     intendedOutputs: [
       "Buyer Problem Validation Report",
-      "Market Gap Analysis Matrix",
-      "Audience Question & Frustration Inventory"
+      "Audience Question & Friction Inventory",
+      "Demand-Backed Offer Angle Briefs"
     ],
-    ecosystemRelationship: "Feeds validated market problems directly into OfferWorks and ContentWorks to ensure everything you create targets genuine demand."
+    ecosystemRelationship:
+      "Feeds validated buyer problems directly into ContentWorks, OfferWorks, and ProductWorks so every project starts from real demand."
   },
 
-  // Attention
-  {
-    id: "contentworks",
-    name: "ContentWorks",
-    category: "Attention",
-    headline: "Build content strategies and roadmaps.",
-    shortDescription: "Plan multi-channel content pillars, editorial calendars, and recurring publication frameworks.",
-    availability: "Planned",
-    badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    purpose: "Design structured content systems that turn brand positioning into consistent, engaging audience touchpoints.",
-    problemSolved: "Inconsistent publishing schedules and disorganized content ideas that fail to compound over time.",
-    intendedOutputs: [
-      "Multi-Channel Content Strategy Blueprint",
-      "Recurring Editorial Calendar Framework",
-      "Content Pillar & Theme Mapping"
-    ],
-    ecosystemRelationship: "Acts as the strategic blueprint engine that feeds specific topics into publishing tools like ThreadsWorks."
-  },
+  // Attention (4)
   {
     id: "threadsworks",
     name: "ThreadsWorks",
     category: "Attention",
-    headline: "Create, organize and publish Threads content.",
-    shortDescription: "Draft AI-powered Meta Threads posts, develop stronger hooks, and schedule automated publishing.",
+    journeyStage: "Attract",
+    headline: "Write, organize, and schedule Meta Threads content.",
+    shortDescription:
+      "Draft voice-preserved Meta Threads posts and multi-part threads, strengthen opening hooks, manage your content library, and schedule publishing via official Meta OAuth.",
     availability: "Available",
-    badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    purpose: "Provide professional Meta Threads writing, hook generation, and scheduling tools for modern creators.",
-    problemSolved: "Staring at a blank page, crafting weak opening lines, and manually publishing content every day.",
+    badgeColor: "text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30",
+    purpose:
+      "Give Meta Threads creators a reliable AI writing workspace, hook studio, content library, and automated publishing calendar.",
+    problemSolved:
+      "Staring at a blank post, losing your natural voice to generic AI copy, and struggling to publish consistently every week.",
     intendedOutputs: [
-      "AI-Generated Meta Threads Posts & Multi-Part Threads",
-      "Optimized Opening Hooks (<140 chars)",
-      "Visual Content Calendar & Automated Meta Publisher"
+      "AI-Generated Meta Threads Single Posts & Multi-Part Threads",
+      "Strategic Angles & Locked Opening Hooks (<140 chars)",
+      "Private Content Library & Automated Meta Threads Calendar"
     ],
-    ecosystemRelationship: "The flagship operational publishing application within the ContentPaysUs Attention tier.",
+    ecosystemRelationship:
+      "The original, live application where ContentPaysUs started—actively serving creators today on ThreadsWorks.com.",
     externalLink: "/create"
+  },
+  {
+    id: "contentworks",
+    name: "ContentWorks",
+    category: "Attention",
+    journeyStage: "Attract",
+    headline: "Plan content strategies and editorial roadmaps.",
+    shortDescription:
+      "Map content pillars, recurring themes, and multi-week editorial calendars tied directly to your brand and commercial goals.",
+    availability: "Planned",
+    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+    purpose:
+      "Turn positioning and buyer research into a repeatable editorial plan that builds audience trust week after week.",
+    problemSolved:
+      "Disorganized content ideas and inconsistent publishing routines that stall audience growth.",
+    intendedOutputs: [
+      "Content Pillar & Theme Architecture",
+      "Recurring Editorial Calendar Plan",
+      "Topic-to-Offer Alignment Map"
+    ],
+    ecosystemRelationship:
+      "Connects DemandWorks insights into structured content queues for ThreadsWorks and EmailWorks."
   },
   {
     id: "communityworks",
     name: "CommunityWorks",
     category: "Attention",
-    headline: "Build audience relationships through conversation.",
-    shortDescription: "Manage replies, engage meaningfully with followers, and turn conversations into community loyalty.",
+    journeyStage: "Connect",
+    headline: "Connect with creators and build real audience relationships.",
+    shortDescription:
+      "Turn passive readers into engaged relationships through structured conversations, peer creator connections, and thoughtful follow-up.",
     availability: "Planned",
-    badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    purpose: "Help creators cultivate genuine two-way dialogues and transform passive viewers into active community members.",
-    problemSolved: "Treating social media as a broadcast megaphone instead of a relationship-building conversation.",
+    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+    purpose:
+      "Help creators build authentic two-way dialogue with their audience and connect with fellow builders across the ecosystem.",
+    problemSolved:
+      "Treating social platforms like a one-way broadcast channel and building in isolation without peer support.",
     intendedOutputs: [
-      "Audience Engagement & Relationship Playbook",
-      "Comment Strategy & Follow-up Workflows",
-      "Community Milestone Tracker"
+      "Audience Conversation & Reply Workflows",
+      "Creator Peer Network & Collaboration Spaces",
+      "Community Engagement Checklists"
     ],
-    ecosystemRelationship: "Amplifies the reach generated by ContentWorks and ThreadsWorks by building deep relational equity."
+    ecosystemRelationship:
+      "Turns the attention earned in ThreadsWorks into lasting trust, peer accountability, and warm buyer relationships."
+  },
+  {
+    id: "emailworks",
+    name: "EmailWorks",
+    category: "Attention",
+    journeyStage: "Connect",
+    headline: "Build direct email relationships you own.",
+    shortDescription:
+      "Write welcome sequences, weekly creator newsletters, and buyer follow-up emails grounded in your shared brand voice and offers.",
+    availability: "Planned",
+    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+    purpose:
+      "Give creators a direct, algorithm-independent channel to nurture subscribers and introduce offers clearly.",
+    problemSolved:
+      "Relying exclusively on social media reach without an owned list to stay connected with interested readers.",
+    intendedOutputs: [
+      "Subscriber Welcome Sequence",
+      "Weekly Creator Newsletter Drafts",
+      "Offer Launch & Follow-Up Emails"
+    ],
+    ecosystemRelationship:
+      "Pairs with ThreadsWorks and FunnelWorks to carry social readers into direct email conversations."
   },
 
-  // Monetization
+  // Monetization (5)
   {
     id: "offerworks",
     name: "OfferWorks",
     category: "Monetization",
-    headline: "Shape knowledge into a clear offer.",
-    shortDescription: "Design, package, and price high-value digital offers, workshops, and coaching programs.",
+    journeyStage: "Build",
+    headline: "Shape what you know into a clear, buyable offer.",
+    shortDescription:
+      "Define the promise, scope, deliverables, and transparent pricing of your digital product, workshop, or advisory service.",
     availability: "Planned",
-    badgeColor: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-    purpose: "Translate intangible expertise into structured, compelling commercial offers that buyers understand instantly.",
-    problemSolved: "Confusion around how to package knowledge into a clear productized service or digital offer.",
+    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+    purpose:
+      "Translate your practical knowledge into a concrete commercial offer that prospective buyers understand immediately.",
+    problemSolved:
+      "Knowing your topic deeply but struggling to package it into a focused offer people feel confident purchasing.",
     intendedOutputs: [
-      "Structured Offer Outline & Scope Document",
-      "Value Proposition & Transformation Promise",
-      "Pricing Strategy & Tier Breakdown"
+      "Structured Offer Promise & Scope Brief",
+      "Deliverables & Buyer Outcome Breakdown",
+      "Transparent Pricing & Packaging Options"
     ],
-    ecosystemRelationship: "Provides the core commercial offer structure that ProductWorks and SalesWorks bring to life."
+    ecosystemRelationship:
+      "Shapes validated ideas from DemandWorks into clear offers ready for ProductWorks and First Sale Engine."
   },
   {
     id: "productworks",
     name: "ProductWorks",
     category: "Monetization",
-    headline: "Create downloadable digital products behind offers.",
-    shortDescription: "Generate professional PDF playbooks, social carousels, and sales copy from a single idea.",
+    journeyStage: "Build",
+    headline: "Create downloadable digital product assets from your ideas.",
+    shortDescription:
+      "Generate downloadable 2-page PDF playbooks, 7-slide visual carousels (PNG & ZIP), companion posts, and storefront copy from a single idea or existing post.",
     availability: "In Development",
-    badgeColor: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
-    purpose: "Automate the creation of high-quality digital assets and downloadable resources that fulfill offers.",
-    problemSolved: "Spending weeks formatting PDFs, designing graphics, and writing promotional copy from scratch.",
+    badgeColor: "text-indigo-700 dark:text-indigo-400 border-indigo-300 dark:border-indigo-500/30",
+    purpose:
+      "Turn creator ideas and Threads posts into polished, downloadable digital product packages in minutes.",
+    problemSolved:
+      "Spending weeks formatting PDFs, designing slide carousels, and drafting storefront copy before testing a digital product.",
     intendedOutputs: [
-      "2-Page PDF Playbooks & Guides",
-      "7-Slide Social Media Carousels (PNG & ZIP)",
-      "Storefront Titles, Outcome Bullets & Sales Copy"
+      "Downloadable 2-Page PDF Playbooks & Guides",
+      "7-Slide Social Carousels (Individual PNGs & ZIP)",
+      "Companion Promotional Posts & Storefront Copy"
     ],
-    ecosystemRelationship: "Currently in development within ThreadsWorks, representing the premier asset creation engine in the Monetization tier.",
+    ecosystemRelationship:
+      "Currently in active development inside the ThreadsWorks workspace—bridging content creation directly into digital product assets.",
     externalLink: "/productworks"
+  },
+  {
+    id: "first-sale-engine",
+    name: "First Sale Engine",
+    category: "Monetization",
+    journeyStage: "Sell",
+    headline: "Follow a clear, practical path to your first verified sale.",
+    shortDescription:
+      "Step-by-step validation, direct buyer outreach guidance, and milestone tracking built specifically to help creators cross zero-to-one.",
+    availability: "Planned",
+    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+    purpose:
+      "Remove guesswork from getting your very first paying customer by focusing on simple offers, direct conversations, and verified outcomes.",
+    problemSolved:
+      "Overbuilding complex funnels and websites while delaying the real conversations that lead to a first sale.",
+    intendedOutputs: [
+      "Zero-to-One Offer Validation Checklist",
+      "Direct Buyer Outreach & Conversation Guide",
+      "First Verified Sale Milestone Tracker"
+    ],
+    ecosystemRelationship:
+      "Directly supports the ContentPaysUs mission—helping 1,000 creators achieve their first verified sale alongside ContentPaysUs Academy."
   },
   {
     id: "funnelworks",
     name: "FunnelWorks",
     category: "Monetization",
-    headline: "Connect content, offers and buying steps.",
-    shortDescription: "Map seamless customer journeys from social media discovery to checkout and delivery.",
+    journeyStage: "Sell",
+    headline: "Connect content, offers, and buying steps cleanly.",
+    shortDescription:
+      "Map straightforward paths from discovery posts and free resources to your paid offer without confusing detours.",
     availability: "Planned",
-    badgeColor: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-    purpose: "Design frictionless conversion paths that connect educational content to clear offers and transactions.",
-    problemSolved: "Disconnected marketing efforts where potential buyers get lost between reading content and buying an offer.",
+    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+    purpose:
+      "Design clear, respectful customer journeys so interested readers always know the logical next step.",
+    problemSolved:
+      "Disconnected posts and product links that leave interested followers unsure how to learn more or buy.",
     intendedOutputs: [
-      "Customer Journey & Conversion Flow Map",
-      "Touchpoint Sequencing Architecture",
-      "Funnel Blueprint & Milestone Guide"
+      "Content-to-Offer Pathway Blueprint",
+      "Lead Resource & Next-Step Mapping",
+      "Conversion Bottleneck Checklist"
     ],
-    ecosystemRelationship: "Bridges the gap between Attention applications (ThreadsWorks) and Monetization applications (OfferWorks, ProductWorks)."
+    ecosystemRelationship:
+      "Bridges Attention tools (ThreadsWorks, EmailWorks) with Monetization tools (OfferWorks, ProductWorks, SalesWorks)."
   },
   {
     id: "salesworks",
     name: "SalesWorks",
     category: "Monetization",
-    headline: "Help buyers understand and purchase offers.",
-    shortDescription: "Craft compelling sales pages, email sequences, and objection-handling copy.",
+    journeyStage: "Sell",
+    headline: "Help buyers understand your offer clearly and decide with confidence.",
+    shortDescription:
+      "Draft transparent sales pages, offer breakdowns, and honest objection-handling copy without high-pressure tactics.",
     availability: "Planned",
-    badgeColor: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-    purpose: "Communicate the true value of your offers through clear, persuasive copywriting and transparent positioning.",
-    problemSolved: "Struggling to articulate the value of digital offers or relying on aggressive, manipulative sales tactics.",
+    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+    purpose:
+      "Communicate what your offer delivers, who it helps, and what outcomes to expect using clear, evidence-based messaging.",
+    problemSolved:
+      "Struggling to explain the real value of your offer or defaulting to manipulative marketing scripts.",
     intendedOutputs: [
-      "Sales Page Copy & Value Breakdown",
-      "Email Launch Sequence Framework",
-      "Objection Handling & FAQ Playbook"
+      "Clear Offer & Sales Page Copy",
+      "Transparent FAQ & Objection Guide",
+      "Launch Messaging Framework"
     ],
-    ecosystemRelationship: "Converts the interest generated by FunnelWorks and content apps into successful transactions."
+    ecosystemRelationship:
+      "Works with OfferWorks and ProofWorks so every sales page reflects your authentic voice and verified customer feedback."
   },
 
-  // Customer Success
+  // Customer Success (3)
+  {
+    id: "meetingworks",
+    name: "MeetingWorks",
+    category: "Customer Success",
+    journeyStage: "Connect",
+    headline: "Run structured discovery calls, coaching sessions, and buyer conversations.",
+    shortDescription:
+      "Prepare conversation agendas, capture buyer questions, and turn live creator meetings into clear action items and offer insights.",
+    availability: "Planned",
+    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+    purpose:
+      "Make live discovery calls, customer interviews, and client sessions organized, productive, and connected to your projects.",
+    problemSolved:
+      "Unstructured calls and scattered meeting notes that lose valuable buyer insights and follow-up commitments.",
+    intendedOutputs: [
+      "Structured Discovery & Coaching Call Agendas",
+      "Buyer Insight & Objection Summaries",
+      "Post-Meeting Follow-Up Action Plans"
+    ],
+    ecosystemRelationship:
+      "Feeds real language and questions from live conversations back into DemandWorks, ThreadsWorks, and DeliveryWorks."
+  },
   {
     id: "deliveryworks",
     name: "DeliveryWorks",
     category: "Customer Success",
-    headline: "Fulfill offers and improve customer experiences.",
-    shortDescription: "Streamline client onboarding, product delivery, and customer success touchpoints.",
+    journeyStage: "Deliver",
+    headline: "Onboard buyers smoothly and deliver real customer value.",
+    shortDescription:
+      "Organize welcome checklists, product delivery steps, and client milestones so buyers get results from what they purchase.",
     availability: "Planned",
-    badgeColor: "bg-teal-500/10 text-teal-400 border-teal-500/20",
-    purpose: "Ensure every buyer receives a smooth onboarding experience and achieves their desired outcome successfully.",
-    problemSolved: "Chaotic fulfillment and poor onboarding that leads to buyer remorse or low completion rates.",
+    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+    purpose:
+      "Ensure every customer receives a clear, dependable experience from purchase to first practical win.",
+    problemSolved:
+      "Disorganized fulfillment and unclear onboarding that frustrate buyers and reduce repeat business.",
     intendedOutputs: [
-      "Customer Onboarding Welcome Sequence",
-      "Product Delivery Portal & Milestone Checklist",
-      "Client Success Feedback Loop"
+      "Customer Welcome & Quick-Start Sequence",
+      "Offer Fulfillment & Delivery Checklist",
+      "Customer Outcome Check-In Prompts"
     ],
-    ecosystemRelationship: "Protects and enhances customer lifetime value after SalesWorks and ProductWorks complete a transaction."
+    ecosystemRelationship:
+      "Follows SalesWorks and ProductWorks to turn completed sales into satisfied customers and long-term trust."
   },
   {
     id: "proofworks",
     name: "ProofWorks",
     category: "Customer Success",
-    headline: "Organize examples, feedback and evidence.",
-    shortDescription: "Collect, curate, and showcase customer testimonials, case studies, and success proof.",
+    journeyStage: "Deliver",
+    headline: "Organize genuine customer feedback, examples, and outcomes.",
+    shortDescription:
+      "Collect, verify, and structure authentic customer stories, case studies, and real work examples in one organized library.",
     availability: "Planned",
-    badgeColor: "bg-teal-500/10 text-teal-400 border-teal-500/20",
-    purpose: "Systematically gather authentic customer results to demonstrate credibility and build trust across all offers.",
-    problemSolved: "Forgetting to ask for testimonials or letting valuable customer success stories sit scattered across chats.",
+    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+    purpose:
+      "Help creators document real, verifiable customer outcomes without exaggerating claims.",
+    problemSolved:
+      "Letting valuable customer feedback stay buried in emails and direct messages instead of organizing it cleanly.",
     intendedOutputs: [
-      "Testimonial & Evidence Collection System",
-      "Case Study Framework & Story Arc",
-      "Social Proof Library"
+      "Customer Feedback Collection Prompts",
+      "Structured Case Study Outlines",
+      "Verified Social Proof Library"
     ],
-    ecosystemRelationship: "Feeds verified success evidence back into SalesWorks and ContentWorks to strengthen future marketing."
+    ecosystemRelationship:
+      "Connects real outcomes from DeliveryWorks back into SalesWorks and ThreadsWorks content."
   },
 
-  // Expansion
+  // Expansion (5)
   {
     id: "growthworks",
     name: "GrowthWorks",
     category: "Expansion",
-    headline: "Expand reach and improve what works.",
-    shortDescription: "Analyze performance analytics, identify top-performing content, and scale winning strategies.",
+    journeyStage: "Grow",
+    headline: "Measure what actually drives audience and business growth.",
+    shortDescription:
+      "Review cross-app performance signals, identify topics and offers that convert, and focus your effort on what works.",
     availability: "Planned",
-    badgeColor: "bg-rose-500/10 text-rose-400 border-rose-500/20",
-    purpose: "Provide data-driven insights that help creators double down on what resonates and expand their audience reach.",
-    problemSolved: "Guessing what content or offers drive growth without clear analytics or performance feedback.",
+    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+    purpose:
+      "Replace vanity-metric guesswork with clear visibility into which content and offers create real business progress.",
+    problemSolved:
+      "Tracking isolated likes and impressions without knowing which actions lead to subscribers and paying customers.",
     intendedOutputs: [
-      "Creator Analytics & Growth Dashboard",
-      "Performance Audit & Optimization Playbook",
-      "Scaling & Experimentation Plan"
+      "Unified Creator Outcome Dashboard",
+      "Content-to-Conversion Review Brief",
+      "Quarterly Focus & Experiment Plan"
     ],
-    ecosystemRelationship: "Aggregates data across the ContentPaysUs ecosystem to guide continuous business expansion."
+    ecosystemRelationship:
+      "Aggregates verified signals across ContentPaysUs so your next cycle is sharper than the last."
   },
   {
     id: "adsworks",
     name: "AdsWorks",
     category: "Expansion",
-    headline: "Support paid distribution.",
-    shortDescription: "Design, test, and manage paid acquisition campaigns to amplify proven content and offers.",
+    journeyStage: "Grow",
+    headline: "Amplify proven content and offers with paid distribution.",
+    shortDescription:
+      "Turn validated organic posts and tested offers into structured paid campaign briefs and creative angles.",
     availability: "Planned",
-    badgeColor: "bg-rose-500/10 text-rose-400 border-rose-500/20",
-    purpose: "Help creators amplify top-performing organic content and offers through targeted paid advertising.",
-    problemSolved: "Wasting ad spend on unproven messaging or struggling to scale organic momentum with paid traffic.",
+    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+    purpose:
+      "Help creators scale what already resonates organically instead of spending ad budget on untested messaging.",
+    problemSolved:
+      "Burning money on paid ads before validating which hooks, angles, and offers actually convert.",
     intendedOutputs: [
-      "Paid Ad Creative Brief & Angle Strategy",
-      "Campaign Structure & Targeting Playbook",
-      "ROAS & Conversion Tracking Setup"
+      "Paid Creative Briefs Built from Proven Posts",
+      "Campaign Angle & Audience Test Matrix",
+      "Budget & Conversion Review Checklist"
     ],
-    ecosystemRelationship: "Amplifies proven content from ThreadsWorks and proven offers from ProductWorks."
+    ecosystemRelationship:
+      "Takes top-performing organic messages from ThreadsWorks and validated offers from ProductWorks into paid reach."
   },
   {
     id: "teamworks",
     name: "TeamWorks",
     category: "Expansion",
-    headline: "Map growth through sharing and recommendations.",
-    shortDescription: "Collaborate with peers, manage creator networks, and build recommendation partnerships.",
+    journeyStage: "Grow",
+    headline: "Collaborate with peers, collaborators, and growing support teams.",
+    shortDescription:
+      "Coordinate shared projects, creator collaborations, and co-marketing recommendations as your business expands.",
     availability: "Planned",
-    badgeColor: "bg-rose-500/10 text-rose-400 border-rose-500/20",
-    purpose: "Facilitate strategic partnerships, guest collaborations, and creator network growth.",
-    problemSolved: "Operating in an isolated silo without leverage from peer networks or cross-promotion opportunities.",
+    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+    purpose:
+      "Enable creators to partner with peers and delegate recurring workflows without losing brand voice consistency.",
+    problemSolved:
+      "Hitting a solo bandwidth ceiling or losing consistency when collaborating with partners and assistants.",
     intendedOutputs: [
-      "Creator Collaboration & Partner Roadmap",
-      "Cross-Promotion Agreement Templates",
-      "Network Growth & Referral Plan"
+      "Creator Collaboration & Co-Marketing Plans",
+      "Shared Project Handoff Workflows",
+      "Brand Voice Guardrails for Collaborators"
     ],
-    ecosystemRelationship: "Connects creators across the broader ContentPaysUs ecosystem for mutual growth."
+    ecosystemRelationship:
+      "Extends Shared Projects across peers and support teams while keeping your core creator identity intact."
   },
   {
     id: "affiliateworks",
     name: "AffiliateWorks",
     category: "Expansion",
-    headline: "Create and manage affiliate programs.",
-    shortDescription: "Empower partners and customers to recommend your offers with transparent tracking and rewards.",
+    journeyStage: "Grow",
+    headline: "Grow through transparent partner and customer recommendations.",
+    shortDescription:
+      "Equip satisfied customers and creator partners with clear referral resources, swipe copy, and transparent commission tracking.",
     availability: "Planned",
-    badgeColor: "bg-rose-500/10 text-rose-400 border-rose-500/20",
-    purpose: "Enable creators to build scalable affiliate referral channels behind their products and offers.",
-    problemSolved: "Manual tracking of affiliate commissions and lack of tooling to run a referral program.",
+    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+    purpose:
+      "Turn genuine customer advocacy and creator partnerships into a structured referral channel.",
+    problemSolved:
+      "Managing word-of-mouth referrals manually without clear partner assets or reliable attribution.",
     intendedOutputs: [
-      "Affiliate Program Structure & Commission Terms",
-      "Partner Resource Kit & Swipe Copy",
-      "Tracking & Payout Workflow"
+      "Partner Program Terms & Structure",
+      "Partner Resource Kit & Honest Swipe Copy",
+      "Referral Attribution & Payout Workflow"
     ],
-    ecosystemRelationship: "Extends ProductWorks and SalesWorks with partner distribution networks."
+    ecosystemRelationship:
+      "Extends validated offers from ProductWorks and SalesWorks into partner-driven distribution."
   },
   {
     id: "projectz",
     name: "Project Z",
     category: "Expansion",
-    headline: "Future tools for audience momentum, monetization and influence.",
-    shortDescription: "Experimental next-generation capabilities exploring advanced AI leverage and creator autonomy.",
-    availability: "Working Concept",
-    badgeColor: "bg-violet-500/10 text-violet-400 border-violet-500/20",
-    purpose: "Explore cutting-edge workflows for future creator leverage, autonomous intelligence, and audience momentum.",
-    problemSolved: "Anticipating future shifts in creator economics and digital distribution technology.",
+    journeyStage: "Grow",
+    headline: "Next-generation AI workflows for creator leverage and momentum.",
+    shortDescription:
+      "Planned forward-looking research track exploring autonomous creator workflows, cross-channel intelligence, and deeper leverage.",
+    availability: "Planned",
+    badgeColor: "text-slate-700 dark:text-zinc-300 border-slate-300 dark:border-zinc-700",
+    purpose:
+      "Explore next-generation AI capabilities that save creators time while preserving authentic human judgment.",
+    problemSolved:
+      "Keeping independent creators ahead as AI workflows and digital distribution evolve.",
     intendedOutputs: [
-      "Experimental Prototyping & Concept Specs",
-      "Advanced AI Leverage Research",
-      "Next-Gen Creator Workflow Models"
+      "Next-Generation Creator Workflow Concepts",
+      "Cross-App Intelligence Prototypes",
+      "Creator Autonomy Research Notes"
     ],
-    ecosystemRelationship: "Represents the bleeding-edge R&D incubator for future ContentPaysUs ecosystem capabilities."
+    ecosystemRelationship:
+      "Represents the long-term innovation horizon for the ContentPaysUs ecosystem once core applications mature."
   }
 ];

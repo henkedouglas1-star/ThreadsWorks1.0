@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   auth,
   authPersistenceReady,
@@ -103,8 +103,15 @@ export default function AuthScreen({
   const [diagCopyState, setDiagCopyState] = useState<"idle" | "copied" | "fallback">("idle");
   const [diagReportText, setDiagReportText] = useState("");
   const [diagPanelOpen, setDiagPanelOpen] = useState(false);
+  const submitInFlightRef = useRef(false);
+
+  useEffect(() => {
+    setIsSignUp(initialMode === "signup");
+    setIsForgotPassword(false);
+  }, [initialMode]);
 
   const showDevDiagnostics = isAuthDiagnosticsEnabled();
+  const isEmbeddedIframe = detectEmbeddedPreviewContext().inIframe;
   const isBusy = loading || authStatus === "authenticating";
   const activeError = error || externalError || "";
 
@@ -165,15 +172,22 @@ export default function AuthScreen({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitInFlightRef.current || isBusy) return;
     setError("");
     setErrorCode("");
-    setLoading(true);
 
-    if (!email || !password) {
+    if (!email.trim() || !password) {
       setError("Please fill in email and password.");
-      setLoading(false);
       return;
     }
+
+    if (isSignUp && (!offer.trim() || !audience.trim() || !desiredResult.trim())) {
+      setError("Please complete the basic profile fields below to personalize your Content Engine.");
+      return;
+    }
+
+    submitInFlightRef.current = true;
+    setLoading(true);
 
     const authMethod = isSignUp ? "signup" : "email";
     onAuthStart?.(authMethod);
@@ -182,13 +196,6 @@ export default function AuthScreen({
       await waitBoundedPersistence(authActions?.waitForPersistence);
 
       if (isSignUp) {
-        // Validation check for sign up defaults
-        if (!offer || !audience || !desiredResult) {
-          setError("Please complete the basic profile fields below to personalize your Content Engine.");
-          setLoading(false);
-          return;
-        }
-
         // Create Firebase Authentication User
         const userCredential = authActions?.signUpWithEmail
           ? await authActions.signUpWithEmail(email.trim(), password)
@@ -263,11 +270,14 @@ export default function AuthScreen({
       setError(formatted.message);
       onAuthError?.(formatted.message);
     } finally {
+      submitInFlightRef.current = false;
       setLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
+    if (submitInFlightRef.current || isBusy) return;
+    submitInFlightRef.current = true;
     setError("");
     setErrorCode("");
     setResetSuccess("");
@@ -699,37 +709,30 @@ export default function AuthScreen({
       if (popupPendingTimer) {
         clearTimeout(popupPendingTimer);
       }
+      submitInFlightRef.current = false;
       setLoading(false);
     }
   };
 
-  const handleInstantPreviewLogin = () => {
-    const previewUser = {
-      uid: "preview_test_creator_01",
-      email: "henkedouglas1@gmail.com",
-      displayName: "Douglas Henke"
-    };
-    logAuthDiagnostic("auth_screen_callback", { callback: "onSuccess", uidHint: "preview_test_creator_01", via: "instant_preview_login" });
-    onSuccess(previewUser as any);
-  };
-
   const handleOpenNewTab = () => {
     if (typeof window !== "undefined") {
-      window.open(window.location.href, '_blank');
+      window.open(window.location.href, "_blank", "noopener,noreferrer");
     }
   };
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitInFlightRef.current || isBusy) return;
     setError("");
     setErrorCode("");
     setResetSuccess("");
 
-    if (!email) {
+    if (!email.trim()) {
       setError("Please enter your registered email address to receive a password reset link.");
       return;
     }
 
+    submitInFlightRef.current = true;
     setLoading(true);
     try {
       if (authActions?.sendPasswordReset) {
@@ -737,13 +740,14 @@ export default function AuthScreen({
       } else {
         await sendPasswordResetEmail(auth, email.trim());
       }
-      setResetSuccess(`Password reset email sent to ${email}. Please check your inbox and spam folder.`);
+      setResetSuccess(`Password reset email sent to ${email.trim()}. Please check your inbox and spam folder.`);
     } catch (err: any) {
       console.warn("Password reset note:", err?.code || err?.message || err);
       const formatted = formatFirebaseAuthError(err, "reset");
       setErrorCode(formatted.code);
       setError(formatted.message);
     } finally {
+      submitInFlightRef.current = false;
       setLoading(false);
     }
   };
@@ -1046,26 +1050,18 @@ export default function AuthScreen({
                 Sign in with Google
               </button>
 
-              <div className="mt-2.5 flex gap-2">
-                {showDevDiagnostics && (
+              {isEmbeddedIframe && (
+                <div className="mt-2.5 flex gap-2">
                   <button
-                    id="instant-preview-login-button"
+                    id="open-new-tab-button"
                     type="button"
-                    onClick={handleInstantPreviewLogin}
-                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-purple-500/30 bg-purple-950/40 hover:bg-purple-900/50 text-[11px] font-bold text-purple-200 py-2.5 transition cursor-pointer"
+                    onClick={handleOpenNewTab}
+                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 text-[11px] font-bold text-zinc-300 py-2.5 transition cursor-pointer"
                   >
-                    ⚡ Instant Preview Login
+                    Open in New Tab
                   </button>
-                )}
-                <button
-                  id="open-new-tab-button"
-                  type="button"
-                  onClick={handleOpenNewTab}
-                  className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 text-[11px] font-bold text-zinc-300 py-2.5 transition cursor-pointer"
-                >
-                  🔗 Open in New Tab
-                </button>
-              </div>
+                </div>
+              )}
 
               {/* Toggle link */}
               <div className="mt-6 text-center">

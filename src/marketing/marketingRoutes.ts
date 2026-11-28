@@ -81,7 +81,7 @@ export interface PublicMarketingRoute {
   /** Short navigation label */
   navLabel: string;
   /** Route template kind */
-  kind: "home" | "feature" | "pricing" | "legal";
+  kind: "home" | "ecosystem" | "feature" | "pricing" | "legal";
   /** SEO page title (30-60 chars) */
   title: string;
   /** SEO meta description (120-160 chars) */
@@ -131,7 +131,7 @@ export const PUBLIC_MARKETING_ROUTES: PublicMarketingRoute[] = [
     navLabel: "ProductWorks",
     kind: "feature",
     title: "AI Digital Product Creator | ProductWorks by ThreadsWorks",
-    description: "Turn your ideas and content into downloadable digital products with ProductWorks. Create PDF playbooks, social media carousels, promotional posts, and sales copy using AI.",
+    description: "Turn your ideas into downloadable digital products with ProductWorks. Build PDF playbooks, 7-slide carousels, and storefront copy using AI.",
     priority: "0.9",
     changefreq: "weekly",
     platformNote: "Built for creators and entrepreneurs.",
@@ -153,7 +153,8 @@ export const PUBLIC_MARKETING_ROUTES: PublicMarketingRoute[] = [
       { heading: "AI Carousel Creator", body: "Generate stunning 7-slide social media carousels tailored to your brand theme." }
     ],
     relatedLinks: [
-      { path: "/", label: "ThreadsWorks Home", description: "Return to the ThreadsWorks creator platform overview." },
+      { path: "/", label: "ThreadsWorks Home", description: "Return to the ContentPaysUs and ThreadsWorks creator platform overview." },
+      { path: "/applications", label: "Ecosystem Applications", description: "Explore all 20 applications on the ContentPaysUs roadmap." },
       { path: "/ai-threads-post-generator", label: "AI Post Generator", description: "Turn rough ideas into structured posts." },
       { path: "/pricing", label: "Pricing", description: "View free and Pro plan details." }
     ]
@@ -163,21 +164,21 @@ export const PUBLIC_MARKETING_ROUTES: PublicMarketingRoute[] = [
     outputFile: "index.html",
     navLabel: "Overview",
     kind: "home",
-    title: "ThreadsWorks | AI Threads Writer & Scheduler",
+    title: "ThreadsWorks & ContentPaysUs | AI Creator Business Ecosystem",
     description:
-      "AI Threads writer and post generator using structured persuasive writing techniques, stronger Threads hooks, and built-in Threads content scheduling for Meta Threads.",
+      "Build your creator business on ThreadsWorks.com. Write and schedule Meta Threads posts with ThreadsWorks inside the AI-powered ContentPaysUs ecosystem.",
     priority: "1.0",
     changefreq: "weekly",
-    platformNote: "Built for Meta Threads creators.",
-    h1: "STOP STARING AT A BLANK POST.",
-    heroSupportingHeadline: "TURN YOUR IDEAS INTO POSTS PEOPLE WANT TO READ.",
+    platformNote: "ContentPaysUs · Home of ThreadsWorks for Meta Threads creators.",
+    h1: "Turn what you know into what you earn.",
+    heroSupportingHeadline: "The AI-powered ecosystem for building your creator business.",
     lead:
-      "Use structured writing techniques to develop stronger hooks, clearer messages, and more engaging Threads posts. Then organize and schedule your content in one place.",
-    heroOfferLine: "60 FREE POSTS EVERY MONTH.",
-    primaryCtaLabel: "START CREATING FREE",
-    workflowHeading: "Idea → Hook → Post → Schedule",
+      "Learn the skills, create the content, build valuable products and connect with the people who need them.",
+    heroOfferLine: "60 FREE POSTS EVERY MONTH ON THREADSWORKS.",
+    primaryCtaLabel: "GET STARTED FREE",
+    workflowHeading: "Learn → Identify → Build → Attract → Connect → Sell → Deliver → Grow",
     workflowIntro:
-      "A clear Meta Threads writing and scheduling workflow—from rough creator note to scheduled thread.",
+      "It started with a thread. ThreadsWorks is evolving into ContentPaysUs — a connected ecosystem designed to support the entire creator journey, starting with our mission: 1,000 creators, 1,000 first sales.",
     workflowSteps: [
       {
         step: "01",
@@ -317,24 +318,185 @@ export const PUBLIC_MARKETING_ROUTES: PublicMarketingRoute[] = [
     },
     relatedLinks: [
       {
+        path: "/applications",
+        label: "ContentPaysUs Applications",
+        description: "Explore all 20 applications across the connected creator roadmap."
+      },
+      {
+        path: "/learn",
+        label: "ContentPaysUs Academy",
+        description: "Learn for free, build with AI, and grow together with practical creator education."
+      },
+      {
+        path: "/about",
+        label: "Our Story & Mission",
+        description: "It started with a thread. Learn about our mission: 1,000 creators, 1,000 first sales."
+      },
+      {
         path: "/ai-threads-post-generator",
         label: "AI Threads Post Generator",
         description: "Turn ideas into structured Meta Threads posts and threads in your voice."
+      }
+    ]
+  },
+  {
+    path: "/applications",
+    outputFile: "applications.html",
+    navLabel: "Applications",
+    kind: "ecosystem",
+    title: "ContentPaysUs Applications | 20-App Creator Roadmap",
+    description:
+      "Explore all 20 applications in the ContentPaysUs ecosystem on ThreadsWorks.com, starting with ThreadsWorks for Meta Threads and ProductWorks.",
+    priority: "0.9",
+    changefreq: "weekly",
+    platformNote: "ContentPaysUs Ecosystem · 20-Application Roadmap.",
+    h1: "Specialized applications connected around one creator business.",
+    lead:
+      "Every application in ContentPaysUs is classified honestly as Available, In Development, or Planned—starting with ThreadsWorks today.",
+    primaryCtaLabel: "GET STARTED FREE",
+    sectionsHeading: "Available Today, In Development, and Planned",
+    sectionsIntro:
+      "Start with ThreadsWorks for Meta Threads writing and scheduling, test ProductWorks for downloadable digital assets, and carry your creator profile forward as planned tools launch.",
+    features: [
+      {
+        heading: "ThreadsWorks (Available)",
+        body: "Write voice-preserved Meta Threads posts and multi-part threads, refine opening hooks, manage your content library, and schedule publishing via official Meta OAuth."
       },
       {
-        path: "/threads-hook-generator",
-        label: "Threads Hook Generator",
-        description: "Develop clearer angles, lock opening hooks, and refine first lines."
+        heading: "ProductWorks (In Development)",
+        body: "Turn an idea or existing post into downloadable 2-page PDF playbooks, 7-slide carousels, companion posts, and storefront sales copy."
       },
       {
-        path: "/threads-scheduler",
-        label: "Threads Scheduler",
-        description: "Organize your Meta Threads calendar and schedule automated publishing."
+        heading: "18 Planned Ecosystem Applications",
+        body: "Planned roadmap tools spanning ContentPaysUs Academy, CreatorWorks, DemandWorks, ContentWorks, CommunityWorks, EmailWorks, OfferWorks, First Sale Engine, FunnelWorks, SalesWorks, MeetingWorks, DeliveryWorks, ProofWorks, GrowthWorks, AdsWorks, TeamWorks, AffiliateWorks, and Project Z."
+      }
+    ],
+    relatedLinks: [
+      {
+        path: "/",
+        label: "ContentPaysUs Home",
+        description: "Return to the main ThreadsWorks.com and ContentPaysUs overview."
       },
       {
-        path: "/content-ideas",
-        label: "Threads Content Planning",
-        description: "Organize raw ideas, content pillars, and your saved Content Library."
+        path: "/learn",
+        label: "ContentPaysUs Academy",
+        description: "Explore our planned free creator education destination."
+      },
+      {
+        path: "/productworks",
+        label: "ProductWorks",
+        description: "See how ProductWorks generates downloadable digital product assets."
+      },
+      {
+        path: "/about",
+        label: "About ContentPaysUs",
+        description: "Read the story connecting ThreadsWorks and ContentPaysUs."
+      }
+    ]
+  },
+  {
+    path: "/learn",
+    outputFile: "learn.html",
+    navLabel: "Learn",
+    kind: "ecosystem",
+    title: "ContentPaysUs Academy | Free Creator Business Education",
+    description:
+      "Learn for free, build with AI, and grow together with ContentPaysUs Academy—featuring our planned flagship course, How to Get Your First Sale.",
+    priority: "0.8",
+    changefreq: "weekly",
+    platformNote: "ContentPaysUs Academy · Planned Free Learning Destination.",
+    h1: "Learn for free. Build with AI. Grow together.",
+    lead:
+      "ContentPaysUs Academy is our planned free creator learning destination featuring the upcoming flagship course How to Get Your First Sale and future community-created free courses.",
+    primaryCtaLabel: "GET STARTED FREE",
+    sectionsHeading: "Practical Creator Business Education",
+    sectionsIntro:
+      "Foundational creator skills should be accessible to everyone—paired directly with practical tools inside ThreadsWorks.com.",
+    features: [
+      {
+        heading: "Flagship Course: How to Get Your First Sale (Planned)",
+        body: "A planned free, step-by-step course covering buyer problem discovery, starter product packaging, helpful content, and earning your first verified customer."
+      },
+      {
+        heading: "Future Community-Created Free Courses",
+        body: "As the Academy grows, community members will be able to create and share their own free practical courses with fellow creators."
+      },
+      {
+        heading: "Nine-Topic Creator Reference Guide",
+        body: "Available today to study core principles across Brand Development, Buyer Demand, Content Creation, Audience Relationships, Offer Creation, Digital Products, Customer Acquisition, Customer Delivery, and Sustainable Growth."
+      }
+    ],
+    relatedLinks: [
+      {
+        path: "/",
+        label: "ContentPaysUs Home",
+        description: "Return to the main ThreadsWorks.com overview."
+      },
+      {
+        path: "/applications",
+        label: "20-App Roadmap",
+        description: "Browse Available, In Development, and Planned applications."
+      },
+      {
+        path: "/about",
+        label: "Our Story & Mission",
+        description: "Learn about our mission: 1,000 creators, 1,000 first sales."
+      },
+      {
+        path: "/ai-threads-post-generator",
+        label: "ThreadsWorks Writer",
+        description: "Start creating Meta Threads posts today."
+      }
+    ]
+  },
+  {
+    path: "/about",
+    outputFile: "about.html",
+    navLabel: "About",
+    kind: "ecosystem",
+    title: "About ContentPaysUs & ThreadsWorks | Our Story & Mission",
+    description:
+      "It started with a thread. Learn how ThreadsWorks is evolving into ContentPaysUs with one mission: helping 1,000 creators achieve their first verified sale.",
+    priority: "0.8",
+    changefreq: "monthly",
+    platformNote: "ThreadsWorks.com · Official Home of ThreadsWorks & ContentPaysUs.",
+    h1: "It started with a thread.",
+    lead:
+      "ThreadsWorks began with a simple purpose: helping creators turn their ideas into content. ThreadsWorks is where it started. ContentPaysUs is what we’re building together.",
+    primaryCtaLabel: "GET STARTED FREE",
+    sectionsHeading: "Our Story, Mission, and Transparent Roadmap",
+    sectionsIntro:
+      "One website at ThreadsWorks.com, one creator identity, and honest classification of every live and planned application.",
+    features: [
+      {
+        heading: "From ThreadsWorks to ContentPaysUs",
+        body: "Creating content is only part of building a successful creator business. Creators also need to understand their audience, discover demand, build valuable products, find customers and make sales."
+      },
+      {
+        heading: "Mission: 1,000 creators. 1,000 first sales.",
+        body: "Our goal is to help 1,000 creators achieve their first verified sale through ContentPaysUs. This is our guiding mission—not a claim of achieved results or guarantee of income."
+      }
+    ],
+    relatedLinks: [
+      {
+        path: "/",
+        label: "ContentPaysUs Home",
+        description: "Return to the main ThreadsWorks.com overview."
+      },
+      {
+        path: "/applications",
+        label: "20-App Roadmap",
+        description: "Inspect every application and its current availability."
+      },
+      {
+        path: "/learn",
+        label: "ContentPaysUs Academy",
+        description: "Explore our planned free creator education destination."
+      },
+      {
+        path: "/pricing",
+        label: "ThreadsWorks Pricing",
+        description: "Compare Free and Pro plans for ThreadsWorks."
       }
     ]
   },
@@ -930,6 +1092,7 @@ export const HEADER_NAV_ROUTES: PublicMarketingRoute[] = PUBLIC_MARKETING_ROUTES
  */
 export const DISALLOWED_APP_PATHS: string[] = [
   "/api/",
+  "/workspace",
   "/apps",
   "/dashboard",
   "/create",
@@ -983,7 +1146,8 @@ export function buildStructuredDataForRoute(route: PublicMarketingRoute): Record
     "@context": "https://schema.org",
     "@type": "Organization",
     "@id": `${SITE_ORIGIN}/#organization`,
-    name: SITE_NAME,
+    name: "ContentPaysUs & ThreadsWorks",
+    alternateName: ["ThreadsWorks", "ContentPaysUs"],
     url: `${SITE_ORIGIN}/`,
     logo: {
       "@type": "ImageObject",
@@ -995,10 +1159,10 @@ export function buildStructuredDataForRoute(route: PublicMarketingRoute): Record
     "@context": "https://schema.org",
     "@type": "WebSite",
     "@id": `${SITE_ORIGIN}/#website`,
-    name: SITE_NAME,
+    name: "ThreadsWorks & ContentPaysUs",
     url: `${SITE_ORIGIN}/`,
     description:
-      "AI Threads writer and post generator using structured persuasive writing techniques, stronger Threads hooks, and built-in Threads content scheduling for Meta Threads.",
+      "The AI-powered creator business ecosystem at ThreadsWorks.com—home of ThreadsWorks for Meta Threads writing and scheduling and the expanding ContentPaysUs platform.",
     publisher: {
       "@id": `${SITE_ORIGIN}/#organization`
     }

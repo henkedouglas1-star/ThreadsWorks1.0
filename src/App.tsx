@@ -14,7 +14,14 @@ import ContentEngineView from "./components/ContentEngineView";
 import { isEntitledAccount } from "./utils/contentLimit";
 import { clearThreadsLocalConnection, invalidateThreadsConnectionCache, checkThreadsConnection } from "./utils/threadsApi";
 import { useAuthSession } from "./hooks/useAuthSession";
-import { resolveAppScreen, type AppScreen } from "./lib/authContract";
+import {
+  resolveAppScreen,
+  type AppScreen,
+  isContentPaysUsPublicPath,
+  isContentPaysUsInfoPath,
+  getAuthPortalModeFromSearch,
+  getSafePostAuthRedirectFromSearch,
+} from "./lib/authContract";
 import { logAuthDiagnostic, maskUidForDiagnostics } from "./lib/authDiagnostics";
 import {
   attachPreviewHandoffResume,
@@ -85,7 +92,7 @@ import { ContentPaysUsLearn } from "./components/contentpaysus/ContentPaysUsLear
 import { ContentPaysUsApplications } from "./components/contentpaysus/ContentPaysUsApplications";
 import { ContentPaysUsAppDetail } from "./components/contentpaysus/ContentPaysUsAppDetail";
 import { ContentPaysUsAbout } from "./components/contentpaysus/ContentPaysUsAbout";
-import { ContentPaysUsWorkspace } from "./components/contentpaysus/ContentPaysUsWorkspace";
+import { CONTENT_PAYS_US_APPS } from "./data/contentPaysUsRegistry";
 import { trackReferralClick, attributeUserToReferral } from "./services/partnerService";
 import {
   DEFAULT_OG_IMAGE,
@@ -99,6 +106,7 @@ import {
 const urlToTab: Record<string, string> = {
   "/": "engine",
   "/create": "engine",
+  "/workspace": "apps",
   "/apps": "apps",
   "/dashboard": "apps",
   "/content-ideas": "engine",
@@ -225,8 +233,9 @@ function applyDocumentSeo(pathname: string, isAuthenticatedWorkspace: boolean, a
   const normalizedPath = normalizeMarketingPath(pathname);
   const publicRoute = getPublicMarketingRoute(normalizedPath);
   const isLegal = normalizedPath === "/privacy" || normalizedPath === "/terms";
+  const isPublicInfo = isContentPaysUsInfoPath(normalizedPath);
 
-  if (publicRoute && (!isAuthenticatedWorkspace || isLegal)) {
+  if (publicRoute && (!isAuthenticatedWorkspace || isLegal || isPublicInfo)) {
     const canonical = getCanonicalUrl(publicRoute.path);
     document.title = publicRoute.title;
     upsertMetaTag("name", "description", publicRoute.description);
@@ -265,6 +274,35 @@ function applyDocumentSeo(pathname: string, isAuthenticatedWorkspace: boolean, a
     return;
   }
 
+  // Dynamic public application detail pages (/applications/:id)
+  if (normalizedPath.startsWith("/applications/")) {
+    const appId = normalizedPath.replace("/applications/", "").trim();
+    const app = CONTENT_PAYS_US_APPS.find((entry) => entry.id === appId);
+    if (app) {
+      const canonical = getCanonicalUrl(normalizedPath);
+      const title = `${app.name} (${app.availability}) | ContentPaysUs on ThreadsWorks.com`;
+      const description = `${app.headline} ${app.shortDescription}`.slice(0, 160);
+      document.title = title;
+      upsertMetaTag("name", "description", description);
+      upsertMetaTag("name", "robots", "index, follow");
+      let canonicalLink = document.querySelector('link[rel="canonical"]');
+      if (!canonicalLink) {
+        canonicalLink = document.createElement("link");
+        canonicalLink.setAttribute("rel", "canonical");
+        document.head.appendChild(canonicalLink);
+      }
+      canonicalLink.setAttribute("href", canonical);
+      upsertMetaTag("property", "og:title", title);
+      upsertMetaTag("property", "og:description", description);
+      upsertMetaTag("property", "og:url", canonical);
+      upsertMetaTag("name", "twitter:title", title);
+      upsertMetaTag("name", "twitter:description", description);
+      upsertMetaTag("name", "twitter:url", canonical);
+      clearDynamicStructuredData();
+      return;
+    }
+  }
+
   // Private or authenticated workspace route: mark noindex and remove marketing JSON-LD
   const workspaceMeta = tabMetadata[activeTab] || {
     title: "ThreadsWorks Workspace",
@@ -284,7 +322,7 @@ function MainApp() {
   // Fetch full brand Profile from Firestore for the active user (non-blocking; never invalidates auth)
   const fetchProfileRecord = useCallback(async (uid: string, fallbackEmail: string): Promise<UserProfile | null> => {
     try {
-      const cached = safeGetLocalStorage(`profile_${uid}`) || safeGetLocalStorage("profile");
+      const cached = safeGetLocalStorage(`profile_${uid}`);
       const docRef = doc(db, "users", uid);
       let docSnap: any;
       try {
@@ -296,11 +334,11 @@ function MainApp() {
       if (docSnap && docSnap.exists && docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
         if (data.customInstruction === undefined || data.customInstruction === null) {
-          const localInst = safeGetLocalStorage(`threads_custom_instruction_${uid}`) ?? safeGetLocalStorage("threads_custom_instruction");
+          const localInst = safeGetLocalStorage(`threads_custom_instruction_${uid}`);
           if (localInst !== null) data.customInstruction = localInst;
         }
         if (data.rawVoice === undefined || data.rawVoice === null) {
-          const localVoice = safeGetLocalStorage(`threads_raw_voice_${uid}`) ?? safeGetLocalStorage("threads_raw_voice");
+          const localVoice = safeGetLocalStorage(`threads_raw_voice_${uid}`);
           if (localVoice !== null) data.rawVoice = localVoice;
         }
         safeSetLocalStorage(`profile_${uid}`, JSON.stringify(data));
@@ -308,8 +346,8 @@ function MainApp() {
       }
 
       if (!cached) {
-        const localInst = safeGetLocalStorage(`threads_custom_instruction_${uid}`) || safeGetLocalStorage("threads_custom_instruction") || "";
-        const localVoice = safeGetLocalStorage(`threads_raw_voice_${uid}`) || safeGetLocalStorage("threads_raw_voice") || "";
+        const localInst = safeGetLocalStorage(`threads_custom_instruction_${uid}`) || "";
+        const localVoice = safeGetLocalStorage(`threads_raw_voice_${uid}`) || "";
         const defaultProfile: UserProfile = {
           uid,
           email: fallbackEmail || auth.currentUser?.email || "",
@@ -385,19 +423,37 @@ function MainApp() {
   );
   const [authPortalMode, setAuthPortalMode] = useState<"signin" | "signup" | null>(() => {
     if (typeof window === "undefined") return null;
-    const params = new URLSearchParams(window.location.search);
-    const requestedAuth = params.get("auth");
-    if (requestedAuth === "signup" || requestedAuth === "signin") {
-      return requestedAuth;
-    }
-    return null;
+    return getAuthPortalModeFromSearch(window.location.search);
   });
+  const pendingPostAuthRedirectRef = useRef<string | null>(
+    typeof window !== "undefined" ? getSafePostAuthRedirectFromSearch(window.location.search) : null
+  );
+  const authPortalInitiatedFromPublicInfoRef = useRef<boolean>(false);
 
   const [activeTab, setActiveTabState] = useState<string>(() => {
     const path = normalizeMarketingPath(window.location.pathname);
     return urlToTab[path] || "dashboard";
   });
   const [workspaceResetKey, setWorkspaceResetKey] = useState<number>(0);
+
+  const openAuthPortal = useCallback((mode: "signin" | "signup", targetNext?: string | null) => {
+    authPortalInitiatedFromPublicInfoRef.current = isContentPaysUsInfoPath(
+      typeof window !== "undefined" ? window.location.pathname : currentPath
+    );
+    if (targetNext) {
+      pendingPostAuthRedirectRef.current = targetNext;
+    }
+    setAuthPortalMode(mode);
+    if (typeof window !== "undefined") {
+      const nextUrl = targetNext
+        ? `/?auth=${mode}&next=${encodeURIComponent(targetNext)}`
+        : `/?auth=${mode}`;
+      if (`${window.location.pathname}${window.location.search}` !== nextUrl) {
+        window.history.pushState(null, "", nextUrl);
+      }
+      setCurrentPath("/");
+    }
+  }, [currentPath]);
 
   const setActiveTab = (tab: string) => {
     if (tab === "apps" || tab === "dashboard") {
@@ -415,16 +471,26 @@ function MainApp() {
   };
 
   const handlePublicNavigate = useCallback((targetPath: string) => {
-    const normalized = normalizeMarketingPath(targetPath);
-    setAuthPortalMode(null);
+    const [rawPathPart, rawQueryPart] = (targetPath || "/").split("?");
+    const search = rawQueryPart ? `?${rawQueryPart}` : "";
+    const requestedAuthMode = getAuthPortalModeFromSearch(search);
+    const requestedNext = getSafePostAuthRedirectFromSearch(search);
+    const normalized = normalizeMarketingPath(rawPathPart || "/");
+
+    if (requestedNext) {
+      pendingPostAuthRedirectRef.current = requestedNext;
+    }
+    authPortalInitiatedFromPublicInfoRef.current = false;
+    setAuthPortalMode(requestedAuthMode);
     setCurrentPath(normalized);
     const mappedTab = urlToTab[normalized];
     if (mappedTab) {
       setActiveTabState(mappedTab);
     }
     if (typeof window !== "undefined") {
-      if (window.location.pathname !== normalized) {
-        window.history.pushState(null, "", normalized);
+      const targetUrl = search ? `${normalized}${search}` : normalized;
+      if (`${window.location.pathname}${window.location.search}` !== targetUrl) {
+        window.history.pushState(null, "", targetUrl);
       }
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -435,6 +501,25 @@ function MainApp() {
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const processedCodesRef = useRef(new Set<string>());
+  const lastActiveUidRef = useRef<string | null>(user?.uid || null);
+
+  // Isolate per-account state whenever the authenticated UID changes or signs out
+  useEffect(() => {
+    const nextUid = user?.uid || null;
+    if (lastActiveUidRef.current !== nextUid) {
+      processedCodesRef.current.clear();
+      setHandshakeStatus(null);
+      setSubscriptionStatus("free");
+      // Remove legacy unscoped keys so they can never leak across accounts
+      safeRemoveLocalStorage("profile");
+      safeRemoveLocalStorage("threads_custom_instruction");
+      safeRemoveLocalStorage("threads_raw_voice");
+      if (!nextUid) {
+        safeRemoveLocalStorage("threads_last_known_uid");
+      }
+      lastActiveUidRef.current = nextUid;
+    }
+  }, [user?.uid]);
 
   // Synchronize document SEO metadata cleanly for public routes vs authenticated workspace
   useEffect(() => {
@@ -446,12 +531,17 @@ function MainApp() {
   useEffect(() => {
     const handlePopState = () => {
       const path = normalizeMarketingPath(window.location.pathname);
+      const portalFromSearch = getAuthPortalModeFromSearch(window.location.search);
+      const nextFromSearch = getSafePostAuthRedirectFromSearch(window.location.search);
       logAuthDiagnostic("popstate_navigation", {
         windowPathname: window.location.pathname,
         normalizedPath: path,
       });
       setCurrentPath(path);
-      setAuthPortalMode(null);
+      setAuthPortalMode(portalFromSearch);
+      if (nextFromSearch) {
+        pendingPostAuthRedirectRef.current = nextFromSearch;
+      }
       const tab = urlToTab[path];
       if (tab) {
         setActiveTabState(tab);
@@ -525,16 +615,43 @@ function MainApp() {
     }
   };
 
-  // Once authenticated on '/', transition cleanly to '/create' while preserving any intended protected destination
+  // Once authenticated, transition cleanly to intended destination while preserving protected routes like '/workspace'
   useEffect(() => {
     if (authStatus !== "authenticated" || !user) return;
     setAuthPortalMode(null);
-    if (currentPath === "/" || currentPath === "") {
-      setCurrentPath("/create");
-      setActiveTabState("engine");
-      if (typeof window !== "undefined" && window.location.pathname !== "/create") {
-        window.history.replaceState(null, "", "/create");
+
+    const requestedNext = pendingPostAuthRedirectRef.current;
+    if (requestedNext) {
+      pendingPostAuthRedirectRef.current = null;
+      authPortalInitiatedFromPublicInfoRef.current = false;
+      const mappedTab = urlToTab[requestedNext] || "apps";
+      setCurrentPath(requestedNext);
+      setActiveTabState(mappedTab);
+      if (typeof window !== "undefined" && `${window.location.pathname}${window.location.search}` !== requestedNext) {
+        window.history.replaceState(null, "", requestedNext);
       }
+      return;
+    }
+
+    if (currentPath === "/" || currentPath === "" || currentPath === "/home") {
+      const targetPath = authPortalInitiatedFromPublicInfoRef.current ? "/workspace" : "/create";
+      const targetTab = targetPath === "/workspace" ? "apps" : "engine";
+      authPortalInitiatedFromPublicInfoRef.current = false;
+      setCurrentPath(targetPath);
+      setActiveTabState(targetTab);
+      if (typeof window !== "undefined" && `${window.location.pathname}${window.location.search}` !== targetPath) {
+        window.history.replaceState(null, "", targetPath);
+      }
+      return;
+    }
+
+    // Preserve intended protected destination (e.g. /workspace, /apps, /calendar, /analytics, /profile)
+    const mappedTab = urlToTab[currentPath];
+    if (mappedTab) {
+      setActiveTabState(mappedTab);
+    }
+    if (typeof window !== "undefined" && getAuthPortalModeFromSearch(window.location.search)) {
+      window.history.replaceState(null, "", currentPath);
     }
   }, [authStatus, user, currentPath]);
 
@@ -836,26 +953,29 @@ function MainApp() {
     };
   }, [user]);
 
-  // Listen for real-time profile update events across views
+  // Listen for real-time profile update events across views (strictly scoped to active UID)
   useEffect(() => {
+    const activeUid = user?.uid;
     const handleProfileUpdated = (event: any) => {
-      if (event?.detail) {
+      if (event?.detail && (!event.detail.uid || !activeUid || event.detail.uid === activeUid)) {
         setProfile(event.detail);
       }
     };
     const handleCreatorContextUpdated = (event: any) => {
+      if (!activeUid) return;
       const newContext = typeof event?.detail === "string" ? event.detail : "";
       if (typeof event?.detail === "string") {
         setProfile(prev => {
           if (!prev) {
             return {
-              uid: user?.uid || "anonymous",
+              uid: activeUid,
               email: user?.email || "",
               customInstruction: newContext,
               rawVoice: newContext,
               writingStyle: "Direct, practical, conversational"
             } as UserProfile;
           }
+          if (prev.uid && prev.uid !== activeUid) return prev;
           return {
             ...prev,
             customInstruction: newContext,
@@ -870,7 +990,7 @@ function MainApp() {
       window.removeEventListener("profile-updated", handleProfileUpdated as EventListener);
       window.removeEventListener("creator-context-updated", handleCreatorContextUpdated as EventListener);
     };
-  }, []);
+  }, [user?.uid, user?.email, setProfile]);
 
   // Auth state, profile hydration, and sign-out lifecycle are managed by useAuthSession above.
 
@@ -891,11 +1011,13 @@ function MainApp() {
   }, [currentPath]);
 
   const publicMarketingRoute = getPublicMarketingRoute(currentPath);
+  const isContentPaysUsPublicRoute = isContentPaysUsPublicPath(currentPath);
+  const isContentPaysUsInfoRoute = isContentPaysUsInfoPath(currentPath);
   const activeScreen = resolveAppScreen({
     authStatus,
     user,
     handshakeStatus,
-    isPublicMarketingRoute: Boolean(publicMarketingRoute),
+    isPublicMarketingRoute: Boolean(publicMarketingRoute) || isContentPaysUsPublicRoute,
     authPortalMode,
   });
 
@@ -911,7 +1033,7 @@ function MainApp() {
         windowPathname: typeof window !== "undefined" ? window.location.pathname : currentPath,
         activeTab,
         authPortalMode,
-        isPublicMarketingRoute: Boolean(publicMarketingRoute),
+        isPublicMarketingRoute: Boolean(publicMarketingRoute) || isContentPaysUsPublicRoute,
         hasUser: Boolean(user?.uid),
         uidHint: maskUidForDiagnostics(user?.uid),
         hasAuthError: Boolean(authError),
@@ -945,6 +1067,7 @@ function MainApp() {
     authPortalMode,
     authStatus,
     currentPath,
+    isContentPaysUsPublicRoute,
     lastTransitionReason,
     publicMarketingRoute,
     user?.uid,
@@ -963,33 +1086,49 @@ function MainApp() {
     );
   }
 
-  // ContentPaysUs Public Website Routes (Home, Learn, Applications, About, Workspace)
-  const isContentPaysUsRoute =
-    currentPath === "/" ||
-    currentPath === "/home" ||
-    currentPath === "/learn" ||
-    currentPath === "/applications" ||
-    currentPath.startsWith("/applications/") ||
-    currentPath === "/about" ||
-    currentPath === "/workspace";
+  // ContentPaysUs Public Website Routes (Home, Learn, Applications, About — NEVER /workspace or ?auth=signin)
+  const shouldRenderContentPaysUsPublic =
+    (activeScreen === "marketing" && isContentPaysUsPublicRoute) ||
+    (activeScreen === "workspace" && isContentPaysUsInfoRoute && authPortalMode === null);
 
-  if (isContentPaysUsRoute) {
-    let content = <ContentPaysUsHome onNavigate={handlePublicNavigate} />;
+  if (shouldRenderContentPaysUsPublic) {
+    let content = (
+      <ContentPaysUsHome
+        onNavigate={handlePublicNavigate}
+        onOpenAuth={(mode) => openAuthPortal(mode)}
+        isAuthenticated={Boolean(user)}
+      />
+    );
     if (currentPath === "/learn") {
-      content = <ContentPaysUsLearn onNavigate={handlePublicNavigate} />;
+      content = (
+        <ContentPaysUsLearn
+          onNavigate={handlePublicNavigate}
+          onOpenAuth={(mode) => openAuthPortal(mode)}
+          isAuthenticated={Boolean(user)}
+        />
+      );
     } else if (currentPath === "/applications") {
       content = <ContentPaysUsApplications onNavigate={handlePublicNavigate} />;
     } else if (currentPath.startsWith("/applications/")) {
       const appId = currentPath.replace("/applications/", "").trim();
       content = <ContentPaysUsAppDetail appId={appId} onNavigate={handlePublicNavigate} />;
     } else if (currentPath === "/about") {
-      content = <ContentPaysUsAbout onNavigate={handlePublicNavigate} />;
-    } else if (currentPath === "/workspace") {
-      content = <ContentPaysUsWorkspace onNavigate={handlePublicNavigate} />;
+      content = (
+        <ContentPaysUsAbout
+          onNavigate={handlePublicNavigate}
+          onOpenAuth={(mode) => openAuthPortal(mode)}
+          isAuthenticated={Boolean(user)}
+        />
+      );
     }
 
     return (
-      <ContentPaysUsLayout currentRoute={currentPath} onNavigate={handlePublicNavigate}>
+      <ContentPaysUsLayout
+        currentRoute={currentPath}
+        onNavigate={handlePublicNavigate}
+        isAuthenticated={Boolean(user)}
+        onOpenAuth={(mode) => openAuthPortal(mode)}
+      >
         {content}
       </ContentPaysUsLayout>
     );
@@ -1001,12 +1140,12 @@ function MainApp() {
       <PublicMarketingPage
         route={publicMarketingRoute}
         onNavigate={handlePublicNavigate}
-        onOpenAuth={(mode) => setAuthPortalMode(mode)}
+        onOpenAuth={(mode) => openAuthPortal(mode)}
       />
     );
   }
 
-  // Loading Screen (for protected app routes while resolving auth)
+  // Loading Screen (for protected app routes like /workspace while resolving authStateReady)
   if (activeScreen === "loading") {
     return (
       <div className={`flex min-h-screen flex-col items-center justify-center bg-bg-app text-text-primary ${theme}`}>
@@ -1020,6 +1159,7 @@ function MainApp() {
 
   // Not authenticated? Show the existing Sign In / Sign Up portal
   if (activeScreen === "auth" || !user) {
+    const canReturnToPublic = Boolean(publicMarketingRoute) || isContentPaysUsPublicRoute;
     return (
       <Suspense fallback={
         <div className={`flex min-h-screen flex-col items-center justify-center bg-bg-app text-text-primary ${theme}`}>
@@ -1035,7 +1175,16 @@ function MainApp() {
           authStatus={authStatus}
           onAuthStart={beginAuthenticating}
           onAuthError={failAuthenticating}
-          onBackToMarketing={publicMarketingRoute ? () => setAuthPortalMode(null) : undefined}
+          onBackToMarketing={
+            canReturnToPublic
+              ? () => {
+                  setAuthPortalMode(null);
+                  if (typeof window !== "undefined" && window.location.search) {
+                    window.history.replaceState(null, "", currentPath || "/");
+                  }
+                }
+              : () => handlePublicNavigate("/")
+          }
           onSuccess={(authenticatedUser) => {
             notifyLoginSuccess(authenticatedUser);
             setAuthPortalMode(null);
@@ -1080,9 +1229,9 @@ function MainApp() {
         </div>
       )}
 
-      {/* Primary Workspace Panel */}
+      {/* Primary Workspace Panel (keyed by user.uid so account switches cleanly reset all view state) */}
       <main className="flex-1 overflow-y-auto px-4 pt-6 pb-[calc(2rem+env(safe-area-inset-bottom))] md:px-8 lg:px-10">
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div key={`auth-workspace-${user.uid}`} className="max-w-7xl mx-auto space-y-6">
           
           {/* Active render view conditional matching */}
           <Suspense fallback={
@@ -1105,9 +1254,10 @@ function MainApp() {
             )}
 
             {(activeTab === "apps" || activeTab === "dashboard") && (
-              <div className="animate-fade-in" key={`workspace-view-${workspaceResetKey}`}>
+              <div className="animate-fade-in" key={`workspace-view-${user.uid}-${workspaceResetKey}`}>
                 <DashboardView 
-                  key={`workspace-dashboard-${workspaceResetKey}`}
+                  key={`workspace-dashboard-${user.uid}-${workspaceResetKey}`}
+                  user={user}
                   profile={profile} 
                   onRefreshProfile={handleRefreshProfile}
                   onNavigateToTab={setActiveTab}

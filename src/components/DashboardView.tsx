@@ -42,6 +42,7 @@ import { downloadCarouselZip, downloadCompanionPostsTxt, downloadStorefrontTxt, 
 import { ContentPaysUsUnifiedWorkspace } from "./contentpaysus/ContentPaysUsUnifiedWorkspace";
 
 interface DashboardViewProps {
+  user?: { uid: string; email?: string | null; displayName?: string | null } | null;
   profile: UserProfile | null;
   onRefreshProfile: () => void;
   onNavigateToTab?: (tab: string) => void;
@@ -49,11 +50,15 @@ interface DashboardViewProps {
 }
 
 export default function DashboardView({
+  user: sessionUser,
   profile,
   onRefreshProfile,
   onNavigateToTab,
   subscriptionStatus
 }: DashboardViewProps) {
+  const effectiveUser = sessionUser || auth.currentUser;
+  const activeUidRef = useRef<string | null>(effectiveUser?.uid || null);
+  activeUidRef.current = effectiveUser?.uid || null;
   const { theme, toggleTheme } = useTheme();
   const { 
     activeIdea, 
@@ -72,19 +77,24 @@ export default function DashboardView({
   const [funnelError, setFunnelError] = useState<string | null>(null);
 
   const loadSavedFunnels = async () => {
-    if (!auth.currentUser) return;
+    const requestUid = auth.currentUser?.uid;
+    if (!auth.currentUser || !requestUid) return;
     try {
       const token = await auth.currentUser.getIdToken();
       const response = await fetch("/api/funnelworks/projects", { headers: { Authorization: `Bearer ${token}` } });
       const data = await response.json();
+      if (activeUidRef.current !== requestUid) return;
       if (!response.ok) throw new Error(data.error || "Could not load projects.");
       setSavedFunnels(data.projects || []);
-    } catch (error: any) { setFunnelError(error.message); }
+    } catch (error: any) {
+      if (activeUidRef.current === requestUid) setFunnelError(error.message);
+    }
   };
 
   const generateFunnel = async () => {
     if (!approvedFunnelConcept || funnelLoading) return;
-    if (!auth.currentUser) {
+    const requestUid = auth.currentUser?.uid;
+    if (!auth.currentUser || !requestUid) {
       setFunnelError("Please sign in to generate a product package.");
       return;
     }
@@ -98,12 +108,17 @@ export default function DashboardView({
         body: JSON.stringify({ concept: approvedFunnelConcept })
       });
       const data = await response.json();
+      if (activeUidRef.current !== requestUid) return;
       if (!response.ok || !data.funnel) throw new Error(data.error || "Generation failed");
       setGeneratedFunnel(data.funnel);
       setSavedFunnels(previous => [data.funnel, ...previous]);
     } catch (error: any) {
-      setFunnelError(error?.message || "Generation failed. Please try again.");
-    } finally { setFunnelLoading(false); }
+      if (activeUidRef.current === requestUid) {
+        setFunnelError(error?.message || "Generation failed. Please try again.");
+      }
+    } finally {
+      if (activeUidRef.current === requestUid) setFunnelLoading(false);
+    }
   };
 
 
@@ -121,8 +136,8 @@ export default function DashboardView({
   const [ideaInput, setIdeaInput] = useState("");
 
   // Compute REAL application state metrics
-  const uid = auth.currentUser?.uid;
-  const userEmail = auth.currentUser?.email || "";
+  const uid = effectiveUser?.uid;
+  const userEmail = effectiveUser?.email || "";
 
   // 1. Voice setup state
   const isVoiceSetup = !!(profile?.writingStyle || profile?.creatorIdentity?.personality || profile?.creatorIdentity?.howYouThink);
@@ -498,7 +513,7 @@ export default function DashboardView({
 
       {/* ContentPaysUs Unified Ecosystem Workspace */}
       <ContentPaysUsUnifiedWorkspace
-        user={auth.currentUser}
+        user={effectiveUser}
         profile={profile}
         subscriptionStatus={subscriptionStatus || "free"}
         onNavigateToTab={handleNavigate}

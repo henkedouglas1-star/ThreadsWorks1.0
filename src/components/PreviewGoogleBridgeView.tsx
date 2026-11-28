@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import { auth } from "../firebase";
@@ -24,8 +24,11 @@ interface PreviewGoogleBridgeViewProps {
 export default function PreviewGoogleBridgeView({ handoffId }: PreviewGoogleBridgeViewProps) {
   const [status, setStatus] = useState<"idle" | "signing_in" | "completing" | "done" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const inFlightRef = useRef(false);
 
   const handleContinueWithGoogle = async () => {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
     setErrorMessage("");
     setStatus("signing_in");
     try {
@@ -86,6 +89,8 @@ export default function PreviewGoogleBridgeView({ handoffId }: PreviewGoogleBrid
           // Ignore postMessage errors
         }
       }
+    } finally {
+      inFlightRef.current = false;
     }
   };
 

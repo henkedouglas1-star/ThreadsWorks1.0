@@ -1,369 +1,725 @@
 import React, { useState } from "react";
-import { Sparkles, ArrowRight, Layers, BookOpen, Compass, CheckCircle2, Shield, Zap, Users, Target, BarChart3, ExternalLink } from "lucide-react";
-import { CONTENT_PAYS_US_APPS } from "../../data/contentPaysUsRegistry";
+import { ArrowRight, BookOpen, Check, Layers, ExternalLink } from "lucide-react";
+import {
+  AppAvailabilityStatus,
+  getAvailabilityDotClass,
+  getAvailabilityTextClass
+} from "../../data/contentPaysUsRegistry";
 
 interface ContentPaysUsHomeProps {
   onNavigate: (route: string) => void;
+  onOpenAuth?: (mode: "signin" | "signup") => void;
+  isAuthenticated?: boolean;
 }
 
-export function ContentPaysUsHome({ onNavigate }: ContentPaysUsHomeProps) {
-  const [activeJourneyStep, setActiveJourneyStep] = useState(0);
+interface CustomerGoal {
+  number: string;
+  goal: string;
+  outcome: string;
+  destinationLabel: string;
+  path: string;
+  availability: AppAvailabilityStatus;
+}
 
-  const journeyStages = [
-    {
-      number: "01",
-      title: "Build your brand",
-      category: "Foundation",
-      description: "Establish your core positioning, audience focus, and brand voice before producing content.",
-      connection: "Feeds clear positioning into content strategy and offer design.",
-      apps: ["CreatorWorks"]
-    },
-    {
-      number: "02",
-      title: "Discover buyer demand",
-      category: "Foundation",
-      description: "Find and validate real problems your audience is actively struggling with.",
-      connection: "Ensures what you build solves verified market pain points rather than guesswork.",
-      apps: ["DemandWorks"]
-    },
-    {
-      number: "03",
-      title: "Earn attention",
-      category: "Attention",
-      description: "Build content strategies, draft posts, and cultivate two-way audience relationships.",
-      connection: "Drives consistent audience engagement and trust across social channels.",
-      apps: ["ContentWorks", "ThreadsWorks", "CommunityWorks"]
-    },
-    {
-      number: "04",
-      title: "Create an offer",
-      category: "Monetization",
-      description: "Shape your knowledge into clear offers and generate downloadable digital products behind them.",
-      connection: "Translates audience attention into structured commercial value and revenue.",
-      apps: ["OfferWorks", "ProductWorks", "FunnelWorks", "SalesWorks"]
-    },
-    {
-      number: "05",
-      title: "Deliver customer value",
-      category: "Customer Success",
-      description: "Fulfill offers, onboard customers smoothly, and organize authentic proof and testimonials.",
-      connection: "Builds long-term customer satisfaction and brand reputation.",
-      apps: ["DeliveryWorks", "ProofWorks"]
-    },
-    {
-      number: "06",
-      title: "Grow your business",
-      category: "Expansion",
-      description: "Analyze performance data, support paid distribution, and scale through affiliate networks.",
-      connection: "Compounds success into a sustainable, growing creator enterprise.",
-      apps: ["GrowthWorks", "AdsWorks", "TeamWorks", "AffiliateWorks", "Project Z"]
+interface JourneyStage {
+  number: string;
+  name: string;
+  summary: string;
+  howItConnects: string;
+  primaryPath: string;
+  primaryActionLabel: string;
+  status: AppAvailabilityStatus;
+  capabilities: string[];
+}
+
+const CUSTOMER_GOALS: CustomerGoal[] = [
+  {
+    number: "01",
+    goal: "Grow my audience.",
+    outcome: "Turn everyday observations into sharper Meta Threads posts and hooks people reply to.",
+    destinationLabel: "ThreadsWorks AI Post Generator",
+    path: "/ai-threads-post-generator",
+    availability: "Available"
+  },
+  {
+    number: "02",
+    goal: "Create content consistently.",
+    outcome: "Draft ahead in your own voice, organize your library, and schedule posts automatically.",
+    destinationLabel: "ThreadsWorks Scheduler",
+    path: "/threads-scheduler",
+    availability: "Available"
+  },
+  {
+    number: "03",
+    goal: "Discover what people will buy.",
+    outcome: "Research real audience friction and validate buyer demand before investing weeks building.",
+    destinationLabel: "DemandWorks Roadmap",
+    path: "/applications/demandworks",
+    availability: "Planned"
+  },
+  {
+    number: "04",
+    goal: "Build my personal brand.",
+    outcome: "Clarify your positioning, audience focus, and voice guidelines across every project.",
+    destinationLabel: "CreatorWorks Roadmap",
+    path: "/applications/creatorworks",
+    availability: "Planned"
+  },
+  {
+    number: "05",
+    goal: "Create a digital product.",
+    outcome: "Turn an idea or post into a downloadable PDF playbook, 7-slide carousel, and storefront copy.",
+    destinationLabel: "ProductWorks",
+    path: "/productworks",
+    availability: "In Development"
+  },
+  {
+    number: "06",
+    goal: "Find paying customers.",
+    outcome: "Connect helpful public content directly to clear, transparent buying steps.",
+    destinationLabel: "FunnelWorks Roadmap",
+    path: "/applications/funnelworks",
+    availability: "Planned"
+  },
+  {
+    number: "07",
+    goal: "Make my first sale.",
+    outcome: "Follow a focused zero-to-one path from offer validation to your first verified customer.",
+    destinationLabel: "First Sale Engine Roadmap",
+    path: "/applications/first-sale-engine",
+    availability: "Planned"
+  },
+  {
+    number: "08",
+    goal: "Learn new business skills.",
+    outcome: "Study practical creator fundamentals for free with our planned flagship first-sale curriculum.",
+    destinationLabel: "ContentPaysUs Academy",
+    path: "/learn",
+    availability: "Planned"
+  },
+  {
+    number: "09",
+    goal: "Connect with other creators.",
+    outcome: "Build peer relationships, share feedback, and turn social replies into lasting community.",
+    destinationLabel: "CommunityWorks Roadmap",
+    path: "/applications/communityworks",
+    availability: "Planned"
+  },
+  {
+    number: "10",
+    goal: "Save time with AI.",
+    outcome: "Write faster in your authentic voice with 60 free monthly Threads posts and reusable context.",
+    destinationLabel: "Open ThreadsWorks",
+    path: "/create",
+    availability: "Available"
+  }
+];
+
+const CREATOR_JOURNEY_STAGES: JourneyStage[] = [
+  {
+    number: "01",
+    name: "Learn",
+    summary: "Build practical business skills without paying for theory-heavy courses before you earn.",
+    howItConnects:
+      "Free lessons and frameworks in ContentPaysUs Academy establish clear mental models that feed straight into your creator projects.",
+    primaryPath: "/learn",
+    primaryActionLabel: "Explore ContentPaysUs Academy",
+    status: "Planned",
+    capabilities: ["ContentPaysUs Academy", "How to Get Your First Sale (Planned)"]
+  },
+  {
+    number: "02",
+    name: "Identify",
+    summary: "Clarify your positioning and pinpoint concrete problems your audience is willing to pay to solve.",
+    howItConnects:
+      "Your shared creator profile and validated audience questions carry automatically into your writing and offer planning.",
+    primaryPath: "/applications/demandworks",
+    primaryActionLabel: "View Identify Roadmap",
+    status: "Planned",
+    capabilities: ["CreatorWorks", "DemandWorks"]
+  },
+  {
+    number: "03",
+    name: "Build",
+    summary: "Package what you know into a clear offer and downloadable digital assets customers can use right away.",
+    howItConnects:
+      "ProductWorks turns existing ideas and Threads posts into downloadable PDF playbooks, carousels, and storefront copy inside one workspace.",
+    primaryPath: "/productworks",
+    primaryActionLabel: "Explore ProductWorks",
+    status: "In Development",
+    capabilities: ["OfferWorks", "ProductWorks"]
+  },
+  {
+    number: "04",
+    name: "Attract",
+    summary: "Publish clear, voice-preserved content consistently so the right people discover your expertise.",
+    howItConnects:
+      "ThreadsWorks is live today—helping you draft posts, lock stronger hooks, organize your library, and schedule directly to Meta Threads.",
+    primaryPath: "/ai-threads-post-generator",
+    primaryActionLabel: "Explore ThreadsWorks",
+    status: "Available",
+    capabilities: ["ThreadsWorks (Available)", "ContentWorks"]
+  },
+  {
+    number: "05",
+    name: "Connect",
+    summary: "Move beyond one-way broadcasting into real conversations, peer creator networks, and direct relationships.",
+    howItConnects:
+      "Shared context links your public posts with community dialogues, email follow-ups, and structured discovery meetings.",
+    primaryPath: "/applications/communityworks",
+    primaryActionLabel: "View Connect Roadmap",
+    status: "Planned",
+    capabilities: ["CommunityWorks", "EmailWorks", "MeetingWorks"]
+  },
+  {
+    number: "06",
+    name: "Sell",
+    summary: "Present your offer transparently, answer honest questions, and help buyers make confident decisions.",
+    howItConnects:
+      "Your validated audience language and product assets flow into clear buying paths without hype or manipulative scripts.",
+    primaryPath: "/applications/first-sale-engine",
+    primaryActionLabel: "View First Sale Engine Roadmap",
+    status: "Planned",
+    capabilities: ["First Sale Engine", "FunnelWorks", "SalesWorks"]
+  },
+  {
+    number: "07",
+    name: "Deliver",
+    summary: "Onboard every customer smoothly, fulfill what you promised, and document genuine outcomes.",
+    howItConnects:
+      "Organized fulfillment and verified customer feedback strengthen your future content, offers, and reputation.",
+    primaryPath: "/applications/deliveryworks",
+    primaryActionLabel: "View Deliver Roadmap",
+    status: "Planned",
+    capabilities: ["DeliveryWorks", "ProofWorks"]
+  },
+  {
+    number: "08",
+    name: "Grow",
+    summary: "Double down on what drives real customer outcomes through analytics, partnerships, and focused leverage.",
+    howItConnects:
+      "Shared intelligence across projects highlights what actually converts so growth compounds over time.",
+    primaryPath: "/applications/growthworks",
+    primaryActionLabel: "View Growth Roadmap",
+    status: "Planned",
+    capabilities: ["GrowthWorks", "AdsWorks", "TeamWorks", "AffiliateWorks", "Project Z"]
+  }
+];
+
+export function ContentPaysUsHome({
+  onNavigate,
+  onOpenAuth,
+  isAuthenticated = false
+}: ContentPaysUsHomeProps) {
+  const [activeStageIndex, setActiveStageIndex] = useState(3); // Default highlight on Attract (live ThreadsWorks) or Learn? Let's start on 0 (Learn) for exact 1->8 narrative flow.
+  const [selectedStage, setSelectedStage] = useState(0);
+
+  const currentStage = CREATOR_JOURNEY_STAGES[selectedStage] || CREATOR_JOURNEY_STAGES[activeStageIndex];
+
+  const handleLink = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    onNavigate(path);
+  };
+
+  const handlePrimaryCta = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    if (isAuthenticated) {
+      onNavigate("/workspace");
+    } else if (onOpenAuth) {
+      onOpenAuth("signup");
+    } else {
+      onNavigate("/?auth=signup");
     }
-  ];
+  };
 
   return (
-    <div className="space-y-24 pb-20">
-      
-      {/* Hero Section */}
-      <section className="relative pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-        {/* Background glow effects */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-indigo-600/15 blur-[120px] rounded-full pointer-events-none -z-10"></div>
-        <div className="absolute top-1/3 left-1/4 w-[300px] h-[200px] bg-purple-600/10 blur-[100px] rounded-full pointer-events-none -z-10"></div>
+    <div className="divide-y divide-slate-200/80 dark:divide-zinc-800/80">
+      {/* 1. HERO SECTION — Customer Outcome First */}
+      <section className="relative overflow-hidden">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(ellipse_75%_60%_at_50%_-10%,rgba(79,70,229,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_75%_60%_at_50%_-10%,rgba(99,102,241,0.22),transparent_70%)]"
+        />
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 sm:pt-24 sm:pb-28">
+          <div className="max-w-3xl">
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700 dark:text-indigo-400">
+              ContentPaysUs · Home of ThreadsWorks
+            </p>
 
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-xs font-semibold mb-8 shadow-sm">
-          <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
-          <span>The Unified Creator Ecosystem</span>
-        </div>
+            <h1 className="mt-5 text-[clamp(2.5rem,5.2vw,4.25rem)] font-extrabold tracking-tight text-slate-950 dark:text-white leading-[1.06]">
+              Turn what you know into what you earn.
+            </h1>
 
-        <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight max-w-4xl mx-auto leading-[1.1] mb-6">
-          Turn what you know into a <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">business.</span>
-        </h1>
+            <p className="mt-6 text-lg sm:text-xl leading-relaxed text-slate-700 dark:text-zinc-300 max-w-2xl">
+              Learn the skills, create the content, build valuable products and connect with the people who need them.
+            </p>
 
-        <p className="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed mb-10">
-          Learn, create, monetize and grow with one connected ecosystem of AI-powered tools and creator education.
-        </p>
+            <p className="mt-3 text-sm sm:text-base font-medium text-slate-500 dark:text-zinc-400">
+              The AI-powered ecosystem for building your creator business.
+            </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 max-w-md mx-auto">
-          <button
-            onClick={() => onNavigate("/applications")}
-            className="w-full sm:w-auto px-8 py-4 rounded-xl text-sm font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white shadow-xl shadow-indigo-600/30 hover:shadow-indigo-600/50 hover:scale-[1.02] transition-all flex items-center justify-center gap-2 cursor-pointer"
-          >
-            Explore Applications <ArrowRight className="h-4 w-4" />
-          </button>
-          <button
-            onClick={() => onNavigate("/learn")}
-            className="w-full sm:w-auto px-8 py-4 rounded-xl text-sm font-bold bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-200 transition-all cursor-pointer shadow-sm flex items-center justify-center gap-2"
-          >
-            Learn How It Works
-          </button>
-        </div>
+            <div className="mt-9 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
+              <a
+                href={isAuthenticated ? "/workspace" : "/?auth=signup"}
+                onClick={handlePrimaryCta}
+                id="hero-get-started-cta"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400 text-white transition-colors"
+              >
+                {isAuthenticated ? "Open Your Workspace" : "Get Started Free"}
+                <ArrowRight className="h-4 w-4" />
+              </a>
+              <a
+                href="/applications"
+                onClick={(e) => handleLink(e, "/applications")}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg text-sm font-semibold border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
+              >
+                Explore the Ecosystem
+              </a>
+            </div>
 
-        {/* Quick Ecosystem Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mt-20 pt-12 border-t border-slate-900">
-          <div className="text-center">
-            <div className="text-2xl sm:text-3xl font-extrabold text-white mb-1">16</div>
-            <div className="text-xs font-medium text-slate-400">Specialized Applications</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl sm:text-3xl font-extrabold text-indigo-400 mb-1">6 Stages</div>
-            <div className="text-xs font-medium text-slate-400">Connected Creator Journey</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl sm:text-3xl font-extrabold text-purple-400 mb-1">1 Identity</div>
-            <div className="text-xs font-medium text-slate-400">Shared Intelligence Layer</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl sm:text-3xl font-extrabold text-emerald-400 mb-1">Active</div>
-            <div className="text-xs font-medium text-slate-400">ThreadsWorks & ProductWorks</div>
+            <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-600 dark:text-zinc-400">
+              <span className="inline-flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" aria-hidden="true" />
+                <strong className="font-semibold text-slate-900 dark:text-zinc-200">ThreadsWorks:</strong> Available today (60 free posts/month)
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400" aria-hidden="true" />
+                <strong className="font-semibold text-slate-900 dark:text-zinc-200">ProductWorks:</strong> In Development
+              </span>
+              <a
+                href="/create"
+                onClick={(e) => handleLink(e, "/create")}
+                className="font-semibold text-indigo-700 dark:text-indigo-400 hover:underline underline-offset-4 inline-flex items-center gap-1"
+              >
+                Existing ThreadsWorks user? Launch Workspace <ArrowRight className="h-3 w-3" />
+              </a>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Ecosystem Architecture Principle */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="rounded-3xl border border-slate-800 bg-gradient-to-b from-slate-900/80 to-slate-950 p-8 sm:p-12 relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-          
-          <div className="max-w-3xl mb-12">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-semibold mb-4">
-              Governing Principles
-            </div>
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight mb-4">
-              One connected ecosystem. Zero fragmented tools.
+      {/* 2. CUSTOMER-CENTERED GOALS — "What are you trying to accomplish?" */}
+      <section id="goals" className="bg-white dark:bg-[#0c0c0f]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-18 sm:py-24">
+          <div className="max-w-2xl">
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700 dark:text-indigo-400">
+              Start with your goal
+            </p>
+            <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+              What are you trying to accomplish?
             </h2>
-            <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-              ContentPaysUs brings together creator education, specialized AI applications, and a shared intelligence layer so your brand voice, audience insights, and commercial offers flow seamlessly from one app to the next.
+            <p className="mt-3 text-base leading-relaxed text-slate-600 dark:text-zinc-400">
+              Choose the outcome that matters most right now. Every goal connects directly to live tools available today or an honestly labeled capability on our roadmap.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-              <div className="h-10 w-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center mb-4 font-bold">
-                01
-              </div>
-              <h3 className="text-base font-bold text-white mb-2">One Creator Identity</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Your voice settings, audience pillars, and business offers remain synchronized across every specialized application in the ecosystem.
-              </p>
-            </div>
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {CUSTOMER_GOALS.map((item) => (
+              <a
+                key={item.number}
+                href={item.path}
+                onClick={(e) => handleLink(e, item.path)}
+                className="group rounded-xl border border-slate-200 dark:border-zinc-800 bg-[#fafaf9] dark:bg-[#111115] p-5 sm:p-6 hover:border-indigo-400 dark:hover:border-indigo-500/60 transition-colors flex flex-col justify-between gap-4"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="font-mono text-xs font-semibold text-slate-400 dark:text-zinc-500">
+                      {item.number}
+                    </span>
+                    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${getAvailabilityTextClass(item.availability)}`}>
+                      <span
+                        className={`h-1.5 w-1.5 rounded-full ${getAvailabilityDotClass(item.availability)}`}
+                        aria-hidden="true"
+                      />
+                      {item.availability}
+                    </span>
+                  </div>
+                  <h3 className="mt-2.5 text-lg font-bold text-slate-950 dark:text-white group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors">
+                    {item.goal}
+                  </h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-zinc-400">
+                    {item.outcome}
+                  </p>
+                </div>
 
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-              <div className="h-10 w-10 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center mb-4 font-bold">
-                02
-              </div>
-              <h3 className="text-base font-bold text-white mb-2">Shared Creator Projects</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Move insights from demand discovery directly into content creation, digital products, and storefront sales copy without starting from scratch.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-              <div className="h-10 w-10 rounded-xl bg-pink-600/20 text-pink-400 flex items-center justify-center mb-4 font-bold">
-                03
-              </div>
-              <h3 className="text-base font-bold text-white mb-2">Measurable Outcomes</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Every application is engineered around tangible creator milestones—from drafting posts to launching monetized digital products.
-              </p>
-            </div>
+                <div className="pt-3 border-t border-slate-200/80 dark:border-zinc-800/80 flex items-center justify-between text-xs font-semibold">
+                  <span className="text-slate-700 dark:text-zinc-300">{item.destinationLabel}</span>
+                  <span className="inline-flex items-center gap-1 text-indigo-700 dark:text-indigo-400 group-hover:translate-x-0.5 transition-transform">
+                    {item.availability === "Available"
+                      ? "Start now"
+                      : item.availability === "In Development"
+                      ? "Explore"
+                      : "View plan"}
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </span>
+                </div>
+              </a>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Interactive Creator Journey Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs font-semibold mb-4">
-            The Creator Journey
+      {/* 3. CONNECTED CREATOR JOURNEY — 8 Stages */}
+      <section id="journey" className="bg-[#fafaf9] dark:bg-[#09090b]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-18 sm:py-24">
+          <div className="max-w-3xl">
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700 dark:text-indigo-400">
+              The Connected Creator Journey
+            </p>
+            <h2 className="mt-3 text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+              Learn → Identify → Build → Attract → Connect → Sell → Deliver → Grow
+            </h2>
+            <p className="mt-3 text-base leading-relaxed text-slate-600 dark:text-zinc-400">
+              You shouldn’t have to memorize twenty app names or repeat your brand story across disconnected tools. ContentPaysUs connects education, community, shared projects, and AI intelligence across eight clear stages.
+            </p>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-4">
-            How creators build sustainable businesses
-          </h2>
-          <p className="text-sm sm:text-base text-slate-300">
-            Explore the six interconnected stages of the creator journey. Enter at any relevant stage and let ContentPaysUs guide your progress.
-          </p>
-        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* Stage Selector List */}
-          <div className="lg:col-span-5 space-y-3">
-            {journeyStages.map((stage, idx) => {
-              const isSelected = activeJourneyStep === idx;
+          {/* 8-Stage Interactive Flow Strip */}
+          <div
+            role="tablist"
+            aria-label="Creator journey stages"
+            className="mt-10 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2"
+          >
+            {CREATOR_JOURNEY_STAGES.map((stage, index) => {
+              const isSelected = selectedStage === index;
               return (
                 <button
-                  key={stage.number}
-                  onClick={() => setActiveJourneyStep(idx)}
-                  className={`w-full text-left p-5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${
+                  key={stage.name}
+                  type="button"
+                  role="tab"
+                  aria-selected={isSelected}
+                  onClick={() => {
+                    setSelectedStage(index);
+                    setActiveStageIndex(index);
+                  }}
+                  className={`p-3.5 rounded-lg border text-left transition-colors cursor-pointer ${
                     isSelected
-                      ? "bg-indigo-600/15 border-indigo-500/50 text-white shadow-lg shadow-indigo-500/10"
-                      : "bg-slate-900/60 border-slate-800/80 text-slate-400 hover:bg-slate-900 hover:text-slate-200"
+                      ? "border-indigo-600 dark:border-indigo-400 bg-indigo-600 text-white"
+                      : "border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] text-slate-800 dark:text-zinc-200 hover:border-slate-300 dark:hover:border-zinc-700"
                   }`}
                 >
-                  <div className="flex items-center gap-4">
-                    <span className={`text-xs font-extrabold px-2.5 py-1 rounded-lg ${
-                      isSelected ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-300"
-                    }`}>
-                      {stage.number}
-                    </span>
-                    <div>
-                      <h3 className="text-sm font-bold text-white group-hover:text-indigo-300 transition-colors">
-                        {stage.title}
-                      </h3>
-                      <span className="text-[11px] text-slate-400 font-medium">Stage category: {stage.category}</span>
-                    </div>
-                  </div>
-                  <ArrowRight className={`h-4 w-4 transition-transform ${isSelected ? "text-indigo-400 translate-x-1" : "text-slate-600"}`} />
+                  <span
+                    className={`block font-mono text-[11px] font-semibold ${
+                      isSelected ? "text-indigo-100" : "text-slate-400 dark:text-zinc-500"
+                    }`}
+                  >
+                    {stage.number}
+                  </span>
+                  <span className="mt-1 block text-sm font-bold">{stage.name}</span>
                 </button>
               );
             })}
           </div>
 
-          {/* Active Stage Details Card */}
-          <div className="lg:col-span-7">
-            <div className="rounded-3xl border border-indigo-500/30 bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/40 p-8 sm:p-10 shadow-2xl relative">
-              
-              <div className="absolute top-6 right-6 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-bold uppercase tracking-wider">
-                Stage {journeyStages[activeJourneyStep].number} of 06
-              </div>
+          {/* Active Stage Breakdown */}
+          <div className="mt-5 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-6 sm:p-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              <div className="lg:col-span-7 space-y-4">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                  <span className="font-mono text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-400">
+                    Stage {currentStage.number} of 08
+                  </span>
+                  <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${getAvailabilityTextClass(currentStage.status)}`}>
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${getAvailabilityDotClass(currentStage.status)}`}
+                      aria-hidden="true"
+                    />
+                    {currentStage.status}
+                  </span>
+                </div>
 
-              <div className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2">
-                {journeyStages[activeJourneyStep].category} Tier
-              </div>
+                <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+                  {currentStage.name}
+                </h3>
 
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-white mb-4">
-                {journeyStages[activeJourneyStep].title}
-              </h3>
+                <p className="text-base leading-relaxed text-slate-700 dark:text-zinc-300">
+                  {currentStage.summary}
+                </p>
 
-              <p className="text-sm sm:text-base text-slate-300 leading-relaxed mb-8">
-                {journeyStages[activeJourneyStep].description}
-              </p>
-
-              <div className="space-y-4 pt-6 border-t border-slate-800/80 mb-8">
-                <div className="text-xs font-bold uppercase tracking-wider text-slate-400">Ecosystem Connection</div>
-                <p className="text-xs text-indigo-200 bg-indigo-950/60 border border-indigo-500/20 p-3.5 rounded-xl leading-relaxed">
-                  {journeyStages[activeJourneyStep].connection}
+                <p className="text-sm leading-relaxed text-slate-600 dark:text-zinc-400 pt-3 border-t border-slate-200/80 dark:border-zinc-800/80">
+                  <strong className="font-semibold text-slate-900 dark:text-zinc-200">How ContentPaysUs connects it: </strong>
+                  {currentStage.howItConnects}
                 </p>
               </div>
 
-              <div className="space-y-3">
-                <div className="text-xs font-bold uppercase tracking-wider text-slate-400">Associated Specialized Applications</div>
-                <div className="flex flex-wrap gap-2">
-                  {journeyStages[activeJourneyStep].apps.map((appName) => (
-                    <span 
-                      key={appName}
-                      className="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold"
-                    >
-                      {appName}
-                    </span>
-                  ))}
+              <div className="lg:col-span-5 lg:border-l lg:border-slate-200 lg:dark:border-zinc-800 lg:pl-8 space-y-5">
+                <div>
+                  <p className="font-mono text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+                    Supporting capabilities
+                  </p>
+                  <ul className="mt-3 space-y-2 text-sm text-slate-800 dark:text-zinc-200">
+                    {currentStage.capabilities.map((cap) => (
+                      <li key={cap} className="flex items-center gap-2">
+                        <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                        <span>{cap}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="pt-2">
+                  <a
+                    href={currentStage.primaryPath}
+                    onClick={(e) => handleLink(e, currentStage.primaryPath)}
+                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-indigo-700 dark:text-indigo-400 hover:underline underline-offset-4"
+                  >
+                    {currentStage.primaryActionLabel} <ArrowRight className="h-4 w-4" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. BRAND RELATIONSHIP & ORIGIN STORY — "It started with a thread." */}
+      <section id="story" className="bg-white dark:bg-[#0c0c0f]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-18 sm:py-24">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+            {/* Exact Narrative Story */}
+            <div className="lg:col-span-7 space-y-5">
+              <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700 dark:text-indigo-400">
+                Why ThreadsWorks &amp; ContentPaysUs belong together
+              </p>
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+                It started with a thread.
+              </h2>
+
+              <div className="space-y-4 text-base sm:text-lg leading-relaxed text-slate-700 dark:text-zinc-300">
+                <p>
+                  ThreadsWorks began with a simple purpose: helping creators turn their ideas into content.
+                </p>
+                <p>
+                  But creating content is only part of building a successful creator business.
+                </p>
+                <p>
+                  Creators also need to understand their audience, discover demand, build valuable products, find customers and make sales.
+                </p>
+                <p>
+                  That is why ThreadsWorks is evolving into ContentPaysUs — a connected ecosystem designed to support the entire creator journey.
+                </p>
+                <p className="font-semibold text-slate-950 dark:text-white pt-1">
+                  ThreadsWorks is where it started. ContentPaysUs is what we’re building together.
+                </p>
+              </div>
+
+              <p className="text-sm text-slate-500 dark:text-zinc-400 pt-2">
+                ThreadsWorks.com remains our official website—one home, one creator account, and one connected workspace as the ecosystem grows.
+              </p>
+            </div>
+
+            {/* Live & Active Today Cards for Existing & New Customers */}
+            <div className="lg:col-span-5 space-y-4">
+              <div className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-[#fafaf9] dark:bg-[#111115] p-6">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+                    Original Application
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" aria-hidden="true" />
+                    Available
+                  </span>
+                </div>
+                <h3 className="mt-2.5 text-xl font-bold text-slate-950 dark:text-white">ThreadsWorks</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-zinc-400">
+                  Write voice-preserved Meta Threads posts and multi-part threads, lock stronger hooks, organize your library, and schedule publishing via official Meta OAuth.
+                </p>
+                <div className="mt-5 flex items-center gap-4">
+                  <a
+                    href="/create"
+                    onClick={(e) => handleLink(e, "/create")}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-slate-950 dark:bg-white text-white dark:text-slate-950 hover:opacity-90 transition-opacity"
+                  >
+                    Launch ThreadsWorks <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                  <a
+                    href="/pricing"
+                    onClick={(e) => handleLink(e, "/pricing")}
+                    className="text-xs font-semibold text-slate-600 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white"
+                  >
+                    View Free &amp; Pro Plans
+                  </a>
                 </div>
               </div>
 
-              <div className="mt-10 pt-6 border-t border-slate-800 flex items-center justify-between">
-                <button
-                  onClick={() => onNavigate("/applications")}
-                  className="text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1.5 cursor-pointer"
-                >
-                  View applications in this tier <ArrowRight className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  onClick={() => onNavigate("/learn")}
-                  className="text-xs font-bold text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer"
-                >
-                  Read educational guide <BookOpen className="h-3.5 w-3.5" />
-                </button>
+              <div className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-[#fafaf9] dark:bg-[#111115] p-6">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+                    Digital Product Assets
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400" aria-hidden="true" />
+                    In Development
+                  </span>
+                </div>
+                <h3 className="mt-2.5 text-xl font-bold text-slate-950 dark:text-white">ProductWorks</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-zinc-400">
+                  Turn an idea or existing post into downloadable 2-page PDF playbooks, 7-slide carousels, companion posts, and storefront sales copy.
+                </p>
+                <div className="mt-5 flex items-center gap-4">
+                  <a
+                    href="/productworks"
+                    onClick={(e) => handleLink(e, "/productworks")}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-400 hover:underline underline-offset-4"
+                  >
+                    Explore ProductWorks <ArrowRight className="h-3.5 w-3.5" />
+                  </a>
+                  <a
+                    href="/applications"
+                    onClick={(e) => handleLink(e, "/applications")}
+                    className="text-xs font-semibold text-slate-600 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white"
+                  >
+                    View all 20 roadmap apps
+                  </a>
+                </div>
               </div>
-
             </div>
           </div>
-
         </div>
       </section>
 
-      {/* Featured Applications Highlight Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold mb-3">
-              Operational & In Development
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Flagship ecosystem applications
-            </h2>
-          </div>
-          <button
-            onClick={() => onNavigate("/applications")}
-            className="mt-4 md:mt-0 text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1.5 cursor-pointer"
-          >
-            Browse all 16 applications <ArrowRight className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          
-          {/* ThreadsWorks Card */}
-          <div className="rounded-3xl border border-emerald-500/30 bg-gradient-to-br from-slate-900 to-emerald-950/20 p-8 flex flex-col justify-between shadow-xl">
-            <div>
-              <div className="flex items-center justify-between mb-6">
-                <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold border border-emerald-500/20">
-                  Available (Operational)
-                </span>
-                <span className="text-xs font-semibold text-slate-400">Attention Tier</span>
-              </div>
-              <h3 className="text-2xl font-extrabold text-white mb-3">ThreadsWorks</h3>
-              <p className="text-sm text-slate-300 leading-relaxed mb-6">
-                Draft AI-powered Meta Threads posts, develop stronger hooks, manage your content library, and schedule automated publishing through official Meta OAuth.
+      {/* 5. MISSION SECTION — "1,000 creators. 1,000 first sales." */}
+      <section id="mission" className="bg-[#fafaf9] dark:bg-[#09090b]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-18 sm:py-24">
+          <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-8 sm:p-12 lg:p-14">
+            <div className="max-w-3xl">
+              <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700 dark:text-indigo-400">
+                Our Mission
+              </p>
+              <h2 className="mt-3 text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-950 dark:text-white leading-[1.08]">
+                1,000 creators. 1,000 first sales.
+              </h2>
+              <p className="mt-5 text-lg sm:text-xl leading-relaxed text-slate-700 dark:text-zinc-300">
+                Our goal is to help 1,000 creators achieve their first verified sale through ContentPaysUs.
+              </p>
+              <p className="mt-4 text-base leading-relaxed text-slate-600 dark:text-zinc-400">
+                Creator success should be measured by meaningful business outcomes—helping real people solve real problems and earning real revenue—not just chasing follower counts, vanity impressions, or collecting more software subscriptions.
+              </p>
+              <p className="mt-6 pt-5 border-t border-slate-200 dark:border-zinc-800 text-xs leading-relaxed text-slate-500 dark:text-zinc-400">
+                Transparency note: This is our guiding mission and long-term goal—not a claim of achieved results or a guarantee of income. Individual outcomes depend on each creator’s work, audience, and offer.
               </p>
             </div>
-            <div className="pt-6 border-t border-slate-800 flex items-center justify-between">
-              <button
-                onClick={() => onNavigate("/applications/threadsworks")}
-                className="text-xs font-bold text-slate-300 hover:text-white cursor-pointer"
-              >
-                Learn details
-              </button>
-              <button
-                onClick={() => onNavigate("/create")}
-                className="px-4 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-1.5 shadow-lg shadow-emerald-600/25 cursor-pointer"
-              >
-                Launch ThreadsWorks <ExternalLink className="h-3.5 w-3.5" />
-              </button>
-            </div>
           </div>
-
-          {/* ProductWorks Card */}
-          <div className="rounded-3xl border border-indigo-500/30 bg-gradient-to-br from-slate-900 to-indigo-950/20 p-8 flex flex-col justify-between shadow-xl">
-            <div>
-              <div className="flex items-center justify-between mb-6">
-                <span className="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-bold border border-indigo-500/20">
-                  In Development
-                </span>
-                <span className="text-xs font-semibold text-slate-400">Monetization Tier</span>
-              </div>
-              <h3 className="text-2xl font-extrabold text-white mb-3">ProductWorks</h3>
-              <p className="text-sm text-slate-300 leading-relaxed mb-6">
-                Create downloadable digital products behind offers. Generate professional PDF playbooks, 7-slide social carousels, and storefront sales copy from a single idea using AI.
-              </p>
-            </div>
-            <div className="pt-6 border-t border-slate-800 flex items-center justify-between">
-              <button
-                onClick={() => onNavigate("/applications/productworks")}
-                className="text-xs font-bold text-slate-300 hover:text-white cursor-pointer"
-              >
-                Learn details
-              </button>
-              <button
-                onClick={() => onNavigate("/productworks")}
-                className="px-4 py-2.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white flex items-center gap-1.5 shadow-lg shadow-indigo-600/25 cursor-pointer"
-              >
-                Explore ProductWorks <ExternalLink className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </div>
-
         </div>
       </section>
 
+      {/* 6. CONTENTPAYSUS ACADEMY SECTION */}
+      <section id="academy" className="bg-white dark:bg-[#0c0c0f]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-18 sm:py-24">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+            <div className="lg:col-span-6 space-y-4">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700 dark:text-indigo-400">
+                  ContentPaysUs Academy
+                </p>
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-zinc-400">
+                  <span className="h-1.5 w-1.5 rounded-full bg-slate-400 dark:bg-zinc-500" aria-hidden="true" />
+                  Planned
+                </span>
+              </div>
+
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+                Learn for free. Build with AI. Grow together.
+              </h2>
+
+              <p className="text-base leading-relaxed text-slate-600 dark:text-zinc-400">
+                ContentPaysUs Academy is our planned free learning destination designed to teach the practical fundamentals of audience building, offer creation, and earning your first sale—without locking foundational education behind expensive paywalls.
+              </p>
+
+              <p className="text-base leading-relaxed text-slate-600 dark:text-zinc-400">
+                As the ecosystem grows, community members will also be able to create and share free educational courses so creators can learn directly from peers solving real problems.
+              </p>
+
+              <div className="pt-2">
+                <a
+                  href="/learn"
+                  onClick={(e) => handleLink(e, "/learn")}
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-700 dark:text-indigo-400 hover:underline underline-offset-4"
+                >
+                  <BookOpen className="h-4 w-4" />
+                  Explore ContentPaysUs Academy Curriculum
+                  <ArrowRight className="h-4 w-4" />
+                </a>
+              </div>
+            </div>
+
+            <div className="lg:col-span-6">
+              <div className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-[#fafaf9] dark:bg-[#111115] p-6 sm:p-8 space-y-5">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-mono text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+                    Planned Flagship Course
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 dark:text-zinc-400">
+                    <span className="h-1.5 w-1.5 rounded-full bg-slate-400 dark:bg-zinc-500" aria-hidden="true" />
+                    Planned · Free
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-2xl font-bold text-slate-950 dark:text-white">
+                    How to Get Your First Sale
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-zinc-400">
+                    A practical, zero-fluff roadmap covering how to identify a real buyer problem, build a focused starter product, communicate its value clearly, and earn your first verified customer.
+                  </p>
+                </div>
+
+                <ul className="space-y-2.5 pt-4 border-t border-slate-200 dark:border-zinc-800 text-sm text-slate-700 dark:text-zinc-300">
+                  <li className="flex items-start gap-2.5">
+                    <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+                    <span>Free to access once launched—no paywall for core business skills.</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+                    <span>Designed to pair directly with live tools like ThreadsWorks and ProductWorks.</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+                    <span>Future open library for community-created free creator courses.</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. CLOSING CTA SECTION */}
+      <section className="bg-[#fafaf9] dark:bg-[#09090b]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-18 sm:py-24">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-8 sm:p-12">
+            <div className="max-w-2xl">
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+                Start creating today with ThreadsWorks. Grow into ContentPaysUs.
+              </h2>
+              <p className="mt-3 text-base leading-relaxed text-slate-600 dark:text-zinc-400">
+                Create your free account to write and schedule Meta Threads posts today, test ProductWorks as it develops, and carry your creator profile forward as new applications launch.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+              <a
+                href={isAuthenticated ? "/workspace" : "/?auth=signup"}
+                onClick={handlePrimaryCta}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400 text-white transition-colors"
+              >
+                {isAuthenticated ? "Open Workspace" : "Get Started Free"}
+                <ArrowRight className="h-4 w-4" />
+              </a>
+              <a
+                href="/applications"
+                onClick={(e) => handleLink(e, "/applications")}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg text-sm font-semibold border border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-zinc-100 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
+              >
+                <Layers className="h-4 w-4" />
+                View 20-App Roadmap
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

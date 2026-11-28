@@ -29,12 +29,6 @@ export function usePersistentDraft<T>(
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved !== null) return JSON.parse(saved);
-      // Fallback: if authenticated user has no draft, check if anonymous draft exists and adopt it
-      if (userId !== "anonymous") {
-        const anonKey = `threadsworks:draft:anonymous:${featureKey}:${fieldKey}`;
-        const anonSaved = localStorage.getItem(anonKey);
-        if (anonSaved !== null) return JSON.parse(anonSaved);
-      }
       return defaultValue;
     } catch (e) {
       console.warn(`[PersistentDraft] Error reading key "${storageKey}":`, e);
@@ -47,33 +41,22 @@ export function usePersistentDraft<T>(
   const defaultValueRef = useRef(defaultValue);
   defaultValueRef.current = defaultValue;
 
-  // Re-hydrate the state if the user changes (logout/login/account switch)
+  // Re-hydrate the state strictly for the active user (logout/login/account switch)
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      let saved = localStorage.getItem(storageKey);
-      if (saved === null && userId !== "anonymous") {
-        const anonKey = `threadsworks:draft:anonymous:${featureKey}:${fieldKey}`;
-        const anonSaved = localStorage.getItem(anonKey);
-        if (anonSaved !== null) {
-          saved = anonSaved;
-          try {
-            localStorage.setItem(storageKey, anonSaved);
-          } catch (_) {}
-        }
-      }
+      const saved = localStorage.getItem(storageKey);
       if (saved !== null) {
         const targetVal = JSON.parse(saved);
         if (JSON.stringify(stateRef.current) !== JSON.stringify(targetVal)) {
           setStateState(targetVal);
         }
-      } else if (defaultValueRef.current !== undefined && defaultValueRef.current !== null && (typeof defaultValueRef.current !== "string" || (defaultValueRef.current as string).trim().length > 0)) {
-        if (!stateRef.current || (typeof stateRef.current === "string" && (stateRef.current as string).trim().length === 0)) {
-          setStateState(defaultValueRef.current);
-        }
+      } else if (JSON.stringify(stateRef.current) !== JSON.stringify(defaultValueRef.current)) {
+        setStateState(defaultValueRef.current);
       }
     } catch (e) {
       console.warn(`[PersistentDraft] Error re-hydrating key "${storageKey}":`, e);
+      setStateState(defaultValueRef.current);
     }
   }, [userId, storageKey]);
 

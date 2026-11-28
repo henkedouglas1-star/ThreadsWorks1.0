@@ -1,6 +1,10 @@
 import React from "react";
-import { ArrowLeft, ExternalLink, Sparkles, CheckCircle2, Layers, Compass } from "lucide-react";
-import { CONTENT_PAYS_US_APPS, EcosystemApp } from "../../data/contentPaysUsRegistry";
+import { ArrowLeft, Check, ExternalLink } from "lucide-react";
+import {
+  CONTENT_PAYS_US_APPS,
+  getAvailabilityDotClass,
+  getAvailabilityTextClass
+} from "../../data/contentPaysUsRegistry";
 
 interface ContentPaysUsAppDetailProps {
   appId: string;
@@ -10,126 +14,168 @@ interface ContentPaysUsAppDetailProps {
 export function ContentPaysUsAppDetail({ appId, onNavigate }: ContentPaysUsAppDetailProps) {
   const app = CONTENT_PAYS_US_APPS.find((a) => a.id === appId);
 
+  const handleLink = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    onNavigate(path);
+  };
+
   if (!app) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-24 text-center space-y-6">
-        <h1 className="text-2xl font-bold text-white">Application Not Found</h1>
-        <p className="text-sm text-slate-400">The requested application does not exist in the ContentPaysUs registry.</p>
-        <button
-          onClick={() => onNavigate("/applications")}
-          className="px-6 py-3 rounded-xl text-xs font-bold bg-indigo-600 text-white cursor-pointer"
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-20 space-y-5">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-950 dark:text-white">
+          Application Not Found
+        </h1>
+        <p className="text-sm text-slate-600 dark:text-zinc-400">
+          The requested application could not be found in the ContentPaysUs 20-application roadmap.
+        </p>
+        <a
+          href="/applications"
+          onClick={(e) => handleLink(e, "/applications")}
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white"
         >
+          <ArrowLeft className="h-3.5 w-3.5" />
           Back to Applications Directory
-        </button>
+        </a>
       </div>
     );
   }
 
+  const isPlanned = app.availability === "Planned";
+
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-12">
-      
-      {/* Back Button */}
-      <button
-        onClick={() => onNavigate("/applications")}
-        className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors cursor-pointer"
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 space-y-10">
+      {/* Back Link */}
+      <a
+        href="/applications"
+        onClick={(e) => handleLink(e, "/applications")}
+        className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-zinc-400 hover:text-slate-950 dark:hover:text-white transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to Applications Directory
-      </button>
+        Back to Applications Directory ({CONTENT_PAYS_US_APPS.length} Apps)
+      </a>
 
-      {/* Hero Header */}
-      <div className="rounded-3xl border border-slate-800 bg-gradient-to-b from-slate-900 to-slate-950 p-8 sm:p-12 shadow-2xl relative overflow-hidden">
-        
-        <div className="flex flex-wrap items-center gap-3 mb-6">
-          <span className={`px-3 py-1 rounded-full text-xs font-bold border ${app.badgeColor}`}>
+      {/* Header Card */}
+      <section className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-7 sm:p-10 space-y-5">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
+          <span className={`inline-flex items-center gap-1.5 font-semibold ${getAvailabilityTextClass(app.availability)}`}>
+            <span
+              className={`h-2 w-2 rounded-full ${getAvailabilityDotClass(app.availability)}`}
+              aria-hidden="true"
+            />
             {app.availability}
           </span>
-          <span className="px-3 py-1 rounded-full bg-slate-800 text-slate-300 text-xs font-semibold">
-            {app.category} Tier
+          <span className="font-mono uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+            {app.category}
+          </span>
+          <span className="font-mono uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+            Journey Stage: {app.journeyStage}
           </span>
         </div>
 
-        <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-4">
+        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-950 dark:text-white">
           {app.name}
         </h1>
 
-        <p className="text-lg font-medium text-indigo-300 mb-6">
+        <p className="text-lg font-semibold text-indigo-700 dark:text-indigo-400">
           {app.headline}
         </p>
 
-        <p className="text-sm sm:text-base text-slate-300 leading-relaxed mb-8">
+        <p className="text-base leading-relaxed text-slate-600 dark:text-zinc-300">
           {app.shortDescription}
         </p>
 
-        {app.externalLink && (
-          <div className="pt-6 border-t border-slate-800/80 flex items-center gap-4">
-            <button
-              onClick={() => onNavigate(app.externalLink!)}
-              className="px-6 py-3.5 rounded-xl text-xs font-bold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-lg shadow-indigo-600/30 flex items-center gap-2 cursor-pointer"
-            >
-              Launch {app.name} <ExternalLink className="h-4 w-4" />
-            </button>
+        {isPlanned && (
+          <div className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-[#fafaf9] dark:bg-[#0c0c10] p-4 text-xs leading-relaxed text-slate-600 dark:text-zinc-400">
+            <strong className="font-semibold text-slate-900 dark:text-zinc-200">Roadmap status: </strong>
+            {app.name} is currently <strong className="font-semibold">Planned</strong> and not yet live. While it is on the roadmap, you can start today with <strong className="font-semibold text-slate-900 dark:text-zinc-200">ThreadsWorks</strong> (Available) or explore <strong className="font-semibold text-slate-900 dark:text-zinc-200">ProductWorks</strong> (In Development).
           </div>
         )}
-      </div>
+
+        <div className="pt-4 border-t border-slate-200 dark:border-zinc-800 flex flex-wrap items-center gap-3">
+          {app.externalLink ? (
+            <a
+              href={app.externalLink}
+              onClick={(e) => handleLink(e, app.externalLink!)}
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400 text-white transition-colors"
+            >
+              {app.availability === "Available"
+                ? `Launch ${app.name}`
+                : app.availability === "In Development"
+                ? `Explore ${app.name}`
+                : `View ${app.name}`}
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          ) : (
+            <a
+              href="/create"
+              onClick={(e) => handleLink(e, "/create")}
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400 text-white transition-colors"
+            >
+              Start with ThreadsWorks Today <ExternalLink className="h-4 w-4" />
+            </a>
+          )}
+          <a
+            href="/applications"
+            onClick={(e) => handleLink(e, "/applications")}
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-lg text-sm font-semibold border border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-zinc-100 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
+          >
+            Browse All {CONTENT_PAYS_US_APPS.length} Applications
+          </a>
+        </div>
+      </section>
 
       {/* Purpose & Problem Solved */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8">
-          <div className="text-xs font-bold uppercase tracking-wider text-indigo-400 mb-3">Core Purpose</div>
-          <p className="text-sm text-slate-200 leading-relaxed">
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-6 sm:p-7 space-y-2.5">
+          <p className="font-mono text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-400">
+            Core Purpose
+          </p>
+          <p className="text-sm leading-relaxed text-slate-700 dark:text-zinc-300">
             {app.purpose}
           </p>
         </div>
 
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8">
-          <div className="text-xs font-bold uppercase tracking-wider text-purple-400 mb-3">Problem Solved</div>
-          <p className="text-sm text-slate-200 leading-relaxed">
+        <div className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-6 sm:p-7 space-y-2.5">
+          <p className="font-mono text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-400">
+            Customer Problem Solved
+          </p>
+          <p className="text-sm leading-relaxed text-slate-700 dark:text-zinc-300">
             {app.problemSolved}
           </p>
         </div>
-
-      </div>
+      </section>
 
       {/* Intended Outputs */}
-      <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 sm:p-10 space-y-6">
-        <h3 className="text-lg font-bold text-white">Intended Outputs & Deliverables</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <section className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-6 sm:p-8 space-y-5">
+        <h2 className="text-lg font-bold text-slate-950 dark:text-white">
+          Intended Deliverables &amp; Outputs
+        </h2>
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           {app.intendedOutputs.map((output, idx) => (
-            <div key={idx} className="flex items-start gap-3 bg-slate-950/60 border border-slate-800 p-4 rounded-2xl">
-              <CheckCircle2 className="h-5 w-5 text-indigo-400 shrink-0 mt-0.5" />
-              <span className="text-xs sm:text-sm text-slate-200 font-medium">{output}</span>
-            </div>
+            <li
+              key={idx}
+              className="flex items-start gap-2.5 rounded-lg border border-slate-200 dark:border-zinc-800 bg-[#fafaf9] dark:bg-[#0d0d11] p-4 text-sm text-slate-800 dark:text-zinc-200"
+            >
+              <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+              <span>{output}</span>
+            </li>
           ))}
-        </div>
-      </div>
+        </ul>
+      </section>
 
       {/* Ecosystem Relationship */}
-      <div className="rounded-3xl border border-indigo-500/30 bg-gradient-to-r from-indigo-950/50 via-slate-900 to-slate-950 p-8 sm:p-10 space-y-4">
-        <div className="text-xs font-bold uppercase tracking-wider text-indigo-300">Ecosystem Integration</div>
-        <h3 className="text-xl font-bold text-white">Relationship to ContentPaysUs</h3>
-        <p className="text-sm text-slate-300 leading-relaxed">
+      <section className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-6 sm:p-8 space-y-3">
+        <p className="font-mono text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-400">
+          Ecosystem Integration
+        </p>
+        <h2 className="text-xl font-bold text-slate-950 dark:text-white">
+          How {app.name} connects to ContentPaysUs
+        </h2>
+        <p className="text-sm sm:text-base leading-relaxed text-slate-600 dark:text-zinc-300">
           {app.ecosystemRelationship}
         </p>
-      </div>
-
-      {/* Navigation Footer */}
-      <div className="pt-8 border-t border-slate-800 flex items-center justify-between">
-        <button
-          onClick={() => onNavigate("/applications")}
-          className="text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1.5 cursor-pointer"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to all 16 applications
-        </button>
-        <button
-          onClick={() => onNavigate("/")}
-          className="text-xs font-bold text-slate-400 hover:text-slate-200 flex items-center gap-1.5 cursor-pointer"
-        >
-          Return to Ecosystem Home <Compass className="h-3.5 w-3.5" />
-        </button>
-      </div>
-
+      </section>
     </div>
   );
 }

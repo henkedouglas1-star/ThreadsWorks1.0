@@ -55,15 +55,11 @@ function hydrateProfileFromStorage(uid: string, email: string): UserProfile {
       const parsed = JSON.parse(cached);
       if (parsed && typeof parsed === "object") {
         if (parsed.customInstruction === undefined || parsed.customInstruction === null) {
-          const localInst =
-            safeGetLocalStorage(`threads_custom_instruction_${uid}`) ??
-            safeGetLocalStorage("threads_custom_instruction");
+          const localInst = safeGetLocalStorage(`threads_custom_instruction_${uid}`);
           if (localInst !== null) parsed.customInstruction = localInst;
         }
         if (parsed.rawVoice === undefined || parsed.rawVoice === null) {
-          const localVoice =
-            safeGetLocalStorage(`threads_raw_voice_${uid}`) ??
-            safeGetLocalStorage("threads_raw_voice");
+          const localVoice = safeGetLocalStorage(`threads_raw_voice_${uid}`);
           if (localVoice !== null) parsed.rawVoice = localVoice;
         }
         return parsed as UserProfile;

@@ -301,3 +301,40 @@ button {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Scoped editorial alignment for the ContentPaysUs public website (preserves workspace defaults) */
+.cpu-public-site {
+  text-align: left;
+  font-family: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+.cpu-public-site h1,
+.cpu-public-site h2,
+.cpu-public-site h3,
+.cpu-public-site h4,
+.cpu-public-site h5,
+.cpu-public-site h6,
+.cpu-public-site p,
+.cpu-public-site label,
+.cpu-public-site li {
+  text-align: inherit !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  list-style-position: outside !important;
+}
+
+.cpu-public-site .cpu-center,
+.cpu-public-site .cpu-center h1,
+.cpu-public-site .cpu-center h2,
+.cpu-public-site .cpu-center h3,
+.cpu-public-site .cpu-center p {
+  text-align: center !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.cpu-public-site .cpu-mx-auto {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+

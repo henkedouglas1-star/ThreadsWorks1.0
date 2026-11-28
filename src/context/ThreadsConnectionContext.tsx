@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { auth } from "../firebase";
 import { 
   checkThreadsConnection, 
@@ -28,9 +28,12 @@ const ThreadsConnectionContext = createContext<ThreadsConnectionState | undefine
 export const ThreadsConnectionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [connectionDetails, setConnectionDetails] = useState<ThreadsConnectionInfo | null>(null);
+  const activeUidRef = useRef<string | null>(auth.currentUser?.uid || null);
+  const requestIdRef = useRef(0);
 
   const refreshConnection = useCallback(async (forceServer = false) => {
-    const uid = auth.currentUser?.uid;
+    const uid = auth.currentUser?.uid || null;
+    const reqId = ++requestIdRef.current;
     if (!uid) {
       setConnectionDetails(null);
       setLoading(false);
@@ -39,19 +42,34 @@ export const ThreadsConnectionProvider: React.FC<{ children: React.ReactNode }> 
     setLoading(true);
     try {
       const info = await checkThreadsConnection(uid, forceServer);
+      if (requestIdRef.current !== reqId || activeUidRef.current !== uid) {
+        return null;
+      }
       setConnectionDetails(info);
       return info;
     } catch (err) {
+      if (requestIdRef.current !== reqId || activeUidRef.current !== uid) {
+        return null;
+      }
       console.warn("Could not load Threads connection info:", err);
       setConnectionDetails({ connected: false });
       return null;
     } finally {
-      setLoading(false);
+      if (requestIdRef.current === reqId && activeUidRef.current === uid) {
+        setLoading(false);
+      }
     }
   }, []);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
+      const nextUid = user?.uid || null;
+      const uidChanged = activeUidRef.current !== nextUid;
+      activeUidRef.current = nextUid;
+      if (uidChanged) {
+        requestIdRef.current += 1;
+        setConnectionDetails(null);
+      }
       if (user) {
         refreshConnection();
       } else {

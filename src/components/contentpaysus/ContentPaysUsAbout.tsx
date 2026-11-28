@@ -1,79 +1,147 @@
 import React from "react";
-import { Info, Sparkles, Layers, Shield, CheckCircle2, ArrowRight, ExternalLink } from "lucide-react";
+import { ArrowRight, Check, ExternalLink } from "lucide-react";
+import { CONTENT_PAYS_US_APPS } from "../../data/contentPaysUsRegistry";
 
 interface ContentPaysUsAboutProps {
   onNavigate: (route: string) => void;
+  onOpenAuth?: (mode: "signin" | "signup") => void;
+  isAuthenticated?: boolean;
 }
 
-export function ContentPaysUsAbout({ onNavigate }: ContentPaysUsAboutProps) {
+const GOVERNING_PRINCIPLES = [
+  "One unified ecosystem at ThreadsWorks.com.",
+  "One creator identity carried across every tool.",
+  "One shared intelligence layer so you never repeat yourself.",
+  "Shared creator projects connecting content, offers, and products.",
+  "Specialized applications built around clear customer jobs.",
+  "Real business outcomes prioritized over vanity metrics."
+];
+
+export function ContentPaysUsAbout({
+  onNavigate,
+  onOpenAuth,
+  isAuthenticated = false
+}: ContentPaysUsAboutProps) {
+  const handleLink = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    onNavigate(path);
+  };
+
+  const handlePrimaryCta = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    if (isAuthenticated) {
+      onNavigate("/workspace");
+    } else if (onOpenAuth) {
+      onOpenAuth("signup");
+    } else {
+      onNavigate("/?auth=signup");
+    }
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-20">
-      
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 space-y-16">
       {/* Header */}
-      <div className="text-center max-w-3xl mx-auto">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-semibold mb-4">
-          <Info className="h-3.5 w-3.5" />
-          <span>About ContentPaysUs</span>
-        </div>
-        <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-6">
-          Empowering Creators to Build Sustainable Businesses
-        </h1>
-        <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-          ContentPaysUs is a unified ecosystem of creator education and AI-powered specialized applications built to help you turn knowledge into useful content, valuable offers, and lasting enterprises.
+      <header className="max-w-3xl space-y-4">
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700 dark:text-indigo-400">
+          About ContentPaysUs &amp; ThreadsWorks
         </p>
-      </div>
+        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-slate-950 dark:text-white leading-[1.08]">
+          It started with a thread.
+        </h1>
+        <p className="text-base sm:text-lg leading-relaxed text-slate-600 dark:text-zinc-400">
+          ThreadsWorks is the original application where our work began, and ThreadsWorks.com remains our official home as we build the connected ContentPaysUs ecosystem.
+        </p>
+      </header>
 
-      {/* Mission Statement Card */}
-      <div className="rounded-3xl border border-indigo-500/30 bg-gradient-to-br from-indigo-950/60 via-slate-900 to-slate-950 p-8 sm:p-14 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-80 h-80 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none"></div>
-        
-        <div className="max-w-3xl space-y-6">
-          <div className="text-xs font-bold uppercase tracking-widest text-indigo-400">Our Core Mission</div>
-          <h2 className="text-2xl sm:text-4xl font-extrabold text-white leading-tight">
-            Help creators turn knowledge into useful content, valuable offers and sustainable businesses through education and practical technology.
+      {/* Origin Story Section */}
+      <section className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-7 sm:p-11 space-y-5">
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700 dark:text-indigo-400">
+          Our Story
+        </p>
+        <div className="max-w-3xl space-y-4 text-base sm:text-lg leading-relaxed text-slate-700 dark:text-zinc-300">
+          <p>
+            ThreadsWorks began with a simple purpose: helping creators turn their ideas into content.
+          </p>
+          <p>
+            But creating content is only part of building a successful creator business.
+          </p>
+          <p>
+            Creators also need to understand their audience, discover demand, build valuable products, find customers and make sales.
+          </p>
+          <p>
+            That is why ThreadsWorks is evolving into ContentPaysUs — a connected ecosystem designed to support the entire creator journey.
+          </p>
+          <p className="font-semibold text-slate-950 dark:text-white pt-1">
+            ThreadsWorks is where it started. ContentPaysUs is what we’re building together.
+          </p>
+        </div>
+      </section>
+
+      {/* Mission Section */}
+      <section className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-7 sm:p-11 space-y-5">
+        <p className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700 dark:text-indigo-400">
+          Our Mission
+        </p>
+        <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-950 dark:text-white">
+          1,000 creators. 1,000 first sales.
+        </h2>
+        <p className="text-base sm:text-lg leading-relaxed text-slate-700 dark:text-zinc-300 max-w-3xl">
+          Our goal is to help 1,000 creators achieve their first verified sale through ContentPaysUs.
+        </p>
+        <p className="text-sm sm:text-base leading-relaxed text-slate-600 dark:text-zinc-400 max-w-3xl">
+          We believe creator success should be measured by meaningful business outcomes—building useful work and serving real paying customers—not just follower counts, impressions, or software subscriptions.
+        </p>
+        <p className="pt-4 border-t border-slate-200 dark:border-zinc-800 text-xs leading-relaxed text-slate-500 dark:text-zinc-400 max-w-3xl">
+          Transparency note: This is our guiding mission and long-term objective—not an achieved milestone or guarantee of earnings.
+        </p>
+      </section>
+
+      {/* Architecture & Honest Roadmap */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-7 space-y-5">
+          <h2 className="text-lg font-bold text-slate-950 dark:text-white">
+            How the ecosystem is designed
           </h2>
-          <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-            For too long, creators have been forced to stitch together dozens of disconnected subscriptions, manual spreadsheets, and brittle tools. ContentPaysUs was founded on a simpler premise: one connected ecosystem, one persistent creator identity, and specialized applications that work together seamlessly.
-          </p>
+          <ul className="space-y-3 text-sm text-slate-700 dark:text-zinc-300">
+            {GOVERNING_PRINCIPLES.map((principle) => (
+              <li key={principle} className="flex items-start gap-2.5">
+                <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+                <span>{principle}</span>
+              </li>
+            ))}
+          </ul>
         </div>
-      </div>
 
-      {/* Ecosystem & Applications Model */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-        
-        <div className="space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs font-semibold">
-            Umbrella Architecture
+        <div className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-7 flex flex-col justify-between gap-6">
+          <div className="space-y-3">
+            <h2 className="text-lg font-bold text-slate-950 dark:text-white">
+              Transparent progressive delivery
+            </h2>
+            <p className="text-sm leading-relaxed text-slate-600 dark:text-zinc-400">
+              We label every application across our {CONTENT_PAYS_US_APPS.length}-application roadmap honestly. <strong className="font-semibold text-slate-900 dark:text-zinc-200">ThreadsWorks</strong> is Available today for Meta Threads writing and scheduling. <strong className="font-semibold text-slate-900 dark:text-zinc-200">ProductWorks</strong> is In Development for downloadable product assets. All other roadmap applications—including ContentPaysUs Academy, CommunityWorks, MeetingWorks, and First Sale Engine—are clearly marked Planned until built and verified.
+            </p>
           </div>
-          <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            ContentPaysUs is the umbrella brand. ThreadsWorks is one application within its broader ecosystem.
-          </h3>
-          <p className="text-sm text-slate-300 leading-relaxed">
-            While ThreadsWorks powers professional Meta Threads creation and scheduling, it operates alongside 15 other specialized applications spanning foundation, attention, monetization, customer success, and expansion.
-          </p>
-          <div className="pt-2">
-            <button
-              onClick={() => onNavigate("/applications")}
-              className="px-6 py-3 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 flex items-center gap-2 cursor-pointer"
+
+          <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-slate-200 dark:border-zinc-800">
+            <a
+              href={isAuthenticated ? "/workspace" : "/?auth=signup"}
+              onClick={handlePrimaryCta}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-400 text-white transition-colors"
             >
-              Explore All 16 Applications <ArrowRight className="h-4 w-4" />
-            </button>
+              {isAuthenticated ? "Open Workspace" : "Get Started Free"} <ArrowRight className="h-3.5 w-3.5" />
+            </a>
+            <a
+              href="/applications"
+              onClick={(e) => handleLink(e, "/applications")}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-semibold border border-slate-300 dark:border-zinc-700 text-slate-900 dark:text-zinc-100 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
+            >
+              Explore {CONTENT_PAYS_US_APPS.length} Applications <ExternalLink className="h-3.5 w-3.5" />
+            </a>
           </div>
         </div>
-
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 space-y-4">
-          <h4 className="text-sm font-bold text-white uppercase tracking-wider">Progressive Development Commitment</h4>
-          <p className="text-xs text-slate-300 leading-relaxed">
-            We believe in transparency. This public website establishes the foundational architecture and roadmap for ContentPaysUs. While flagship tools like ThreadsWorks and ProductWorks are operational or in active development, planned applications are explicitly labeled as such.
-          </p>
-          <div className="pt-4 border-t border-slate-800/80 flex items-center gap-3">
-            <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
-            <span className="text-xs text-slate-200 font-medium">No inflated claims, fake functionality, or unverified software.</span>
-          </div>
-        </div>
-
-      </div>
-
+      </section>
     </div>
   );
 }

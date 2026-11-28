@@ -637,3 +637,72 @@ export function formatFirebaseAuthError(
     message: "An authentication error occurred. Please check your credentials.",
   };
 }
+
+function normalizeRoutePath(pathname: string): string {
+  const clean = (pathname || "/").split("?")[0].split("#")[0].trim();
+  if (!clean || clean === "/") return "/";
+  return clean.endsWith("/") ? clean.slice(0, -1) : clean;
+}
+
+/**
+ * Informational ContentPaysUs public ecosystem routes (excluding '/' and '/home' and '/workspace').
+ * Authenticated visitors may view these pages (e.g. app details) without losing their session.
+ */
+export function isContentPaysUsInfoPath(pathname: string): boolean {
+  const path = normalizeRoutePath(pathname);
+  return (
+    path === "/learn" ||
+    path === "/applications" ||
+    path.startsWith("/applications/") ||
+    path === "/about"
+  );
+}
+
+/**
+ * Public ContentPaysUs website routes visible to unauthenticated visitors when no auth portal is requested.
+ * '/workspace' is explicitly excluded because it is a protected route requiring authentication.
+ */
+export function isContentPaysUsPublicPath(pathname: string): boolean {
+  const path = normalizeRoutePath(pathname);
+  return path === "/" || path === "/home" || isContentPaysUsInfoPath(path);
+}
+
+/**
+ * Parses ?auth=signin or ?auth=signup from a URL query string.
+ */
+export function getAuthPortalModeFromSearch(search: string): "signin" | "signup" | null {
+  if (!search) return null;
+  try {
+    const params = new URLSearchParams(search);
+    const requested = params.get("auth");
+    if (requested === "signin" || requested === "signup") {
+      return requested;
+    }
+  } catch {
+    // Ignore malformed query strings
+  }
+  return null;
+}
+
+/**
+ * Validates an optional ?next=/... post-auth destination, strictly restricting to safe same-origin
+ * internal paths (rejecting protocol-relative URLs, external origins, or public root loops).
+ */
+export function getSafePostAuthRedirectFromSearch(search: string): string | null {
+  if (!search) return null;
+  try {
+    const params = new URLSearchParams(search);
+    const raw = (params.get("next") || "").trim();
+    if (!raw || !raw.startsWith("/") || raw.startsWith("//") || raw.includes("://")) {
+      return null;
+    }
+    const normalized = normalizeRoutePath(raw);
+    if (normalized === "/" || normalized === "/home") {
+      return null;
+    }
+    return normalized;
+  } catch {
+    return null;
+  }
+}
+

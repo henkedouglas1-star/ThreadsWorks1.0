@@ -49,7 +49,10 @@ test("all public marketing routes have unique SEO titles, descriptions, and cano
   const descriptions = new Set<string>();
   const paths = new Set<string>();
 
-  assert.equal(PUBLIC_MARKETING_ROUTES.length, 8);
+  // 12 intended public indexable routes:
+  // /, /applications, /learn, /about, /productworks, /ai-threads-post-generator,
+  // /threads-hook-generator, /threads-scheduler, /content-ideas, /pricing, /privacy, /terms
+  assert.equal(PUBLIC_MARKETING_ROUTES.length, 12);
 
   for (const route of PUBLIC_MARKETING_ROUTES) {
     assert.ok(!paths.has(route.path), `Duplicate route path: ${route.path}`);
@@ -74,25 +77,27 @@ test("all public marketing routes have unique SEO titles, descriptions, and cano
   }
 });
 
-test("homepage renders exact required persuasive writing hero, frameworks, tutorial, and free-plan copy", () => {
+test("homepage renders customer-outcome hero, connected journey, ThreadsWorks frameworks, tutorial, and free-plan copy", () => {
   const home = getPublicMarketingRoute("/");
   assert.ok(home, "Homepage route must exist");
 
   const html = renderPublicRouteHtml(BASE_TEMPLATE, home);
 
-  // Exact hero requirements
-  assert.match(html, /Built for Meta Threads creators\./);
-  assert.match(html, /<h1[^>]*>STOP STARING AT A BLANK POST\.<\/h1>/);
-  assert.match(html, /TURN YOUR IDEAS INTO POSTS PEOPLE WANT TO READ\./);
+  // Customer-outcome ContentPaysUs + ThreadsWorks hero
+  assert.match(html, /ContentPaysUs · Home of ThreadsWorks for Meta Threads creators\./);
+  assert.match(html, /<h1[^>]*>Turn what you know into what you earn\.<\/h1>/);
+  assert.match(html, /The AI-powered ecosystem for building your creator business\./);
   assert.match(
     html,
-    /Use structured writing techniques to develop stronger hooks, clearer messages, and more engaging Threads posts\. Then organize and schedule your content in one place\./
+    /Learn the skills, create the content, build valuable products and connect with the people who need them\./
   );
-  assert.match(html, /60 FREE POSTS EVERY MONTH\./);
-  assert.match(html, /START CREATING FREE/);
+  assert.match(html, /60 FREE POSTS EVERY MONTH ON THREADSWORKS\./);
+  assert.match(html, /GET STARTED FREE/);
 
-  // Workflow strip
-  assert.match(html, /Idea → Hook → Post → Schedule/);
+  // 8-stage connected journey + origin story + mission
+  assert.match(html, /Learn → Identify → Build → Attract → Connect → Sell → Deliver → Grow/);
+  assert.match(html, /It started with a thread\./);
+  assert.match(html, /1,000 creators, 1,000 first sales\./);
 
   // Framework explanations section grounded in actual codebase
   assert.match(html, /BETTER WRITING STARTS WITH BETTER STRUCTURE\./);
@@ -127,6 +132,26 @@ test("homepage renders exact required persuasive writing hero, frameworks, tutor
   assert.match(html, /60 FREE POSTS\. EVERY MONTH\./);
   assert.match(html, /150 free AI generations every month/);
   assert.match(html, /Up to 5 scheduled Meta Threads posts per day/);
+});
+
+test("ContentPaysUs public ecosystem routes (/applications, /learn, /about) prerender with exact positioning", () => {
+  const applications = getPublicMarketingRoute("/applications");
+  const learn = getPublicMarketingRoute("/learn");
+  const about = getPublicMarketingRoute("/about");
+  assert.ok(applications && learn && about, "All three ContentPaysUs public routes must exist");
+
+  const appsHtml = renderPublicRouteHtml(BASE_TEMPLATE, applications);
+  assert.match(appsHtml, /20-Application Roadmap/);
+  assert.match(appsHtml, /ThreadsWorks \(Available\)/);
+  assert.match(appsHtml, /ProductWorks \(In Development\)/);
+
+  const learnHtml = renderPublicRouteHtml(BASE_TEMPLATE, learn);
+  assert.match(learnHtml, /Learn for free\. Build with AI\. Grow together\./);
+  assert.match(learnHtml, /How to Get Your First Sale/);
+
+  const aboutHtml = renderPublicRouteHtml(BASE_TEMPLATE, about);
+  assert.match(aboutHtml, /It started with a thread\./);
+  assert.match(aboutHtml, /1,000 creators\. 1,000 first sales\./);
 });
 
 test("no public marketing route uses banned vague phrases, unimplemented frameworks, or unsupported platforms", () => {
@@ -189,16 +214,27 @@ test("protected app shell renders noindex/nofollow with empty root and zero mark
   const html = renderNoIndexAppShellHtml(BASE_TEMPLATE);
   assert.match(html, /<meta name="robots" content="noindex, nofollow" \/>/);
   assert.match(html, /<div id="root"><\/div>/);
-  assert.ok(!html.includes("STOP STARING AT A BLANK POST."));
+  assert.ok(!html.includes("Turn what you know into what you earn."));
   assert.ok(!html.includes("application/ld+json"));
 });
 
 test("sitemap.xml and robots.txt include only public indexable routes and disallow private app routes", () => {
-  const sitemap = buildSitemapXml("2026-11-21");
+  const sitemap = buildSitemapXml("2026-11-27");
   for (const route of PUBLIC_MARKETING_ROUTES) {
     assert.ok(sitemap.includes(`<loc>${getCanonicalUrl(route.path)}</loc>`), `Missing ${route.path} in sitemap`);
   }
-  for (const forbidden of ["/saved-content", "/creator-profile", "/todays-plan", "/apps", "/create", "/calendar", "/analytics", "/profile", "/settings"]) {
+  for (const forbidden of [
+    "/workspace",
+    "/saved-content",
+    "/creator-profile",
+    "/todays-plan",
+    "/apps",
+    "/create",
+    "/calendar",
+    "/analytics",
+    "/profile",
+    "/settings"
+  ]) {
     assert.ok(!sitemap.includes(forbidden), `Private route ${forbidden} must not appear in sitemap.xml`);
   }
 
@@ -206,6 +242,7 @@ test("sitemap.xml and robots.txt include only public indexable routes and disall
   assert.match(robots, /User-agent: \*/);
   assert.match(robots, /Allow: \//);
   assert.match(robots, /Disallow: \/api\//);
+  assert.match(robots, /Disallow: \/workspace/);
   assert.match(robots, /Disallow: \/calendar/);
   assert.match(robots, /Disallow: \/saved-content/);
   assert.match(robots, /Sitemap: https:\/\/threadsworks\.com\/sitemap\.xml/);
@@ -215,7 +252,7 @@ test("all internal navigation and related links resolve to valid public marketin
   const validPaths = new Set(PUBLIC_MARKETING_ROUTES.map((r) => r.path));
   assert.deepEqual(
     HEADER_NAV_ROUTES.map((r) => r.path),
-    ["/ai-threads-post-generator", "/threads-scheduler", "/content-ideas", "/pricing"]
+    ["/productworks", "/ai-threads-post-generator", "/threads-scheduler", "/content-ideas", "/pricing"]
   );
   for (const navItem of HEADER_NAV_ROUTES) {
     assert.ok(validPaths.has(navItem.path));
@@ -237,10 +274,14 @@ test("all internal navigation and related links resolve to valid public marketin
   }
 });
 
-test("index.html does not duplicate 'ThreadsWorks - Content Creation Engine' title", () => {
+test("index.html maintains ThreadsWorks & ContentPaysUs SEO title without legacy slogan", () => {
   const indexHtml = fs.readFileSync(path.resolve(process.cwd(), "index.html"), "utf-8");
   assert.ok(!indexHtml.includes("ThreadsWorks - Content Creation Engine"));
-  assert.match(indexHtml, /<title>ThreadsWorks \| AI Threads Writer &amp; Scheduler<\/title>/);
+  assert.match(
+    indexHtml,
+    /<title>ThreadsWorks &amp; ContentPaysUs \| AI Creator Business Ecosystem<\/title>/
+  );
+  assert.match(indexHtml, /<link rel="canonical" href="https:\/\/threadsworks\.com\/" \/>/);
 });
 
 test("shared public footer displays updated description and excludes Hook Generator from Product links", () => {

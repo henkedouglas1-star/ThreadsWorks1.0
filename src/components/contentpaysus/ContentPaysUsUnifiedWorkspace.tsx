@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { 
   Compass, 
   FolderKanban, 
@@ -55,11 +55,26 @@ export function ContentPaysUsUnifiedWorkspace({
   const [projectStatus, setProjectStatus] = useState<"active" | "archived" | "completed">("active");
   const [selectedAppId, setSelectedAppId] = useState("threadsworks");
   const [submittingProject, setSubmittingProject] = useState(false);
+  const activeUidRef = useRef<string | null>(user?.uid || null);
+  activeUidRef.current = user?.uid || null;
 
-  // Clear project state immediately when authenticated account changes (prevent stale async leakage)
+  // Clear ALL project, modal, notification, and tab state immediately when authenticated account changes
   useEffect(() => {
-    if (!user || !user.uid) {
-      setProjects([]);
+    const requestUid = user?.uid || null;
+    setProjects([]);
+    setProjectError(null);
+    setProjectSuccessMessage(null);
+    setShowProjectModal(false);
+    setEditingProjectId(null);
+    setProjectName("");
+    setProjectObjective("");
+    setProjectDescription("");
+    setProjectStatus("active");
+    setSelectedAppId("threadsworks");
+    setSubmittingProject(false);
+    setActiveSubTab("home");
+
+    if (!requestUid) {
       setLoadingProjects(false);
       return;
     }
@@ -69,9 +84,9 @@ export function ContentPaysUsUnifiedWorkspace({
       setLoadingProjects(true);
       setProjectError(null);
       try {
-        const q = query(collection(db, "projects"), where("userId", "==", user.uid));
+        const q = query(collection(db, "projects"), where("userId", "==", requestUid));
         const snapshot = await withTimeout(getDocs(q), 5000, true);
-        if (!isMounted) return; // Ignore stale asynchronous results if user changed
+        if (!isMounted || activeUidRef.current !== requestUid) return; // Ignore stale asynchronous results if user changed
         
         const list: EcosystemProject[] = [];
         snapshot.forEach((docSnap) => {
@@ -80,11 +95,11 @@ export function ContentPaysUsUnifiedWorkspace({
         list.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
         setProjects(list);
       } catch (err: any) {
-        if (!isMounted) return;
+        if (!isMounted || activeUidRef.current !== requestUid) return;
         console.warn("Failed to load ecosystem projects:", err);
         setProjectError("Could not load projects. Please check your connection.");
       } finally {
-        if (isMounted) setLoadingProjects(false);
+        if (isMounted && activeUidRef.current === requestUid) setLoadingProjects(false);
       }
     };
 
@@ -119,7 +134,8 @@ export function ContentPaysUsUnifiedWorkspace({
 
   const handleSaveProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !projectName.trim()) return;
+    const requestUid = user?.uid;
+    if (!requestUid || !projectName.trim()) return;
     setSubmittingProject(true);
     setProjectError(null);
     setProjectSuccessMessage(null);
@@ -128,7 +144,8 @@ export function ContentPaysUsUnifiedWorkspace({
       const now = new Date().toISOString();
       if (editingProjectId) {
         // Edit existing project
-        const projRef = doc(db, "projects", editingProjectId);
+        const targetId = editingProjectId;
+        const projRef = doc(db, "projects", targetId);
         const payload = {
           name: projectName.trim(),
           objective: projectObjective.trim() || "Grow creator brand and monetize knowledge",
@@ -138,12 +155,13 @@ export function ContentPaysUsUnifiedWorkspace({
           updatedAt: now
         };
         await withTimeout(updateDoc(projRef, payload), 4000, true);
-        setProjects(projects.map(p => p.id === editingProjectId ? { ...p, ...payload } : p));
+        if (activeUidRef.current !== requestUid) return;
+        setProjects(prev => prev.map(p => p.id === targetId ? { ...p, ...payload } : p));
         setProjectSuccessMessage("Project updated successfully.");
       } else {
         // Create new project
         const payload = {
-          userId: user.uid,
+          userId: requestUid,
           name: projectName.trim(),
           objective: projectObjective.trim() || "Grow creator brand and monetize knowledge",
           description: projectDescription.trim(),
@@ -153,31 +171,41 @@ export function ContentPaysUsUnifiedWorkspace({
           updatedAt: now
         };
         const docRef = await withTimeout(addDoc(collection(db, "projects"), payload), 4000, true);
+        if (activeUidRef.current !== requestUid) return;
         const newProj = { id: docRef.id, ...payload };
-        setProjects([newProj, ...projects]);
+        setProjects(prev => [newProj, ...prev]);
         setProjectSuccessMessage("Project created successfully.");
       }
       setShowProjectModal(false);
-      setTimeout(() => setProjectSuccessMessage(null), 4000);
+      setTimeout(() => {
+        if (activeUidRef.current === requestUid) setProjectSuccessMessage(null);
+      }, 4000);
     } catch (err: any) {
+      if (activeUidRef.current !== requestUid) return;
       console.error("Error saving project:", err);
       setProjectError(err?.message || "Failed to save project due to security rules or network error.");
     } finally {
-      setSubmittingProject(false);
+      if (activeUidRef.current === requestUid) setSubmittingProject(false);
     }
   };
 
   const handleToggleArchive = async (projectId: string, currentStatus: string) => {
+    const requestUid = user?.uid;
+    if (!requestUid) return;
     const nextStatus = currentStatus === "archived" ? "active" : "archived";
     setProjectError(null);
     try {
       const projRef = doc(db, "projects", projectId);
       const now = new Date().toISOString();
       await withTimeout(updateDoc(projRef, { status: nextStatus, updatedAt: now }), 4000, true);
-      setProjects(projects.map(p => p.id === projectId ? { ...p, status: nextStatus, updatedAt: now } : p));
+      if (activeUidRef.current !== requestUid) return;
+      setProjects(prev => prev.map(p => p.id === projectId ? { ...p, status: nextStatus, updatedAt: now } : p));
       setProjectSuccessMessage(nextStatus === "active" ? "Project restored to active." : "Project archived.");
-      setTimeout(() => setProjectSuccessMessage(null), 3000);
+      setTimeout(() => {
+        if (activeUidRef.current === requestUid) setProjectSuccessMessage(null);
+      }, 3000);
     } catch (err: any) {
+      if (activeUidRef.current !== requestUid) return;
       console.warn("Failed to update project status:", err);
       setProjectError("Failed to update project status.");
     }
@@ -523,12 +551,12 @@ export function ContentPaysUsUnifiedWorkspace({
         </div>
       )}
 
-      {/* Tab 3: Applications Directory (All 16 Apps) */}
+      {/* Tab 3: Applications Directory */}
       {activeSubTab === "applications" && (
         <div className="space-y-6 animate-fade-in">
           <div>
             <h2 className="text-xl font-bold text-white">Ecosystem Applications Directory</h2>
-            <p className="text-xs text-slate-400">All 16 specialized applications across foundation, attention, monetization, success, and expansion.</p>
+            <p className="text-xs text-slate-400">All {CONTENT_PAYS_US_APPS.length} roadmap applications across education, foundation, attention, monetization, customer success, and expansion.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

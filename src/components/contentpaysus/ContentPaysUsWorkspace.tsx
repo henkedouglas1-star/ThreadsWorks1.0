@@ -39,11 +39,11 @@ export function ContentPaysUsWorkspace({ onNavigate }: ContentPaysUsWorkspacePro
           >
             Launch ThreadsWorks Workspace <ExternalLink className="h-4 w-4" />
           </button>
-          <button
+            <button
             onClick={() => onNavigate("/applications")}
             className="w-full sm:w-auto px-8 py-4 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 flex items-center justify-center gap-2 cursor-pointer"
           >
-            Explore All 16 Applications <ArrowRight className="h-4 w-4" />
+            Explore All 20 Applications <ArrowRight className="h-4 w-4" />
           </button>
         </div>
 
@@ -57,7 +57,7 @@ export function ContentPaysUsWorkspace({ onNavigate }: ContentPaysUsWorkspacePro
             <CheckCircle2 className="h-5 w-5 text-indigo-400 shrink-0 mt-0.5" />
             <div>
               <h4 className="text-xs sm:text-sm font-bold text-white mb-1">Single Sign-On & Creator Identity</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">Unified authentication across all 16 ContentPaysUs specialized applications with synchronized voice and brand context.</p>
+              <p className="text-xs text-slate-400 leading-relaxed">Unified authentication across all 20 ContentPaysUs specialized applications with synchronized voice and brand context.</p>
             </div>
           </div>
 
