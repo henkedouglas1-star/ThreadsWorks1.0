@@ -5878,41 +5878,15 @@ app.post("/api/generate-posts-batch", async (req, res) => {
       return reviewResults;
     };
 
-    for (let offset = 0; offset < postCount; offset += chunkSize) {
-      ensureTime();
-      const expected = Math.min(chunkSize, postCount - offset);
-      const slotNumbers = Array.from({ length: expected }, (_, i) => offset + i + 1);
-      const chunkPlannedParts = slotNumbers.reduce(
-        (sum, slotNum) => sum + (slotPlan[slotNum - 1]?.targetParts ?? writingPlan.recommendedParts),
-        0
-      );
-
-      const chunkResult = await writeValidatedChunk({
-        slotNumbers,
-        priorAcceptedDrafts: generatedPosts,
-        allowPartialChunk: allowPartialResults,
-        validation: {
-          characterLimit,
-          partCount,
-          minParts: writingPlan.minParts,
-          maxParts: writingPlan.maxParts,
-          exactSentencesPerPart: writingPlan.sentencesMode === "explicit" ? writingPlan.recommendedSentencesPerPart : undefined,
-          maxSentencesPerPart: writingPlan.sentencesMode === "auto" ? writingPlan.maxSentencesPerPart : undefined,
-          checkInternalRepetition: true,
-          allowedUrls,
-          sourceTexts: gated.groundingSourceTexts,
-          lockedHook: offset === 0 ? (gated.directives.lockedOpeningHook || undefined) : undefined,
-          ctaOff,
-          enforceGroundedness: true,
-          enforceNovelty: true,
-          diversityLedger,
-          topicText: contentRequest
-        },
-        generateChunk: async schemaRetryFeedback => {
+    // Parallelize only the initial writer calls. Acceptance, review, repairs and
+    // replacement remain ordered against the complete accepted-draft ledger.
+    // Opt-in rollout: preserve sequential behavior unless explicitly enabled.
+    const writerConcurrency = postCount >= 16 && process.env.CONTENT_BATCH_PARALLEL_ENABLED === "true" ? 2 : 1;
+    const generateRawChunk = async (slotNumbers: number[], expected: number, chunkPlannedParts: number, priorDrafts: any[], schemaRetryFeedback?: string) => {
           ensureTime();
           const tGen = Date.now();
           diagModelCalls++;
-          const assignment = buildAssignment(slotNumbers, generatedPosts);
+          const assignment = buildAssignment(slotNumbers, priorDrafts);
           const response = await callGenerateContentWithRetry(ai, {
             model: THREADSWORKS_MODELS.FLASH_36,
             optimizationTaskId: "GENERATE_POSTS_BATCH",
@@ -5945,6 +5919,63 @@ app.post("/api/generate-posts-batch", async (req, res) => {
             });
           }
           return parseModelJsonOrThrow(response.text, "Batch writer");
+    };
+    type PrefetchedChunk = { ok: true; raw: unknown } | { ok: false; error: unknown };
+    const prefetched = new Map<number, PrefetchedChunk>();
+    async function prefetchWave(offset: number) {
+      const priorDrafts = [...generatedPosts];
+      const offsets = Array.from({length: writerConcurrency}, (_, i) => offset + i * chunkSize).filter(n => n < postCount);
+      await Promise.all(offsets.map(async n => {
+        const expected = Math.min(chunkSize, postCount - n);
+        const slots = Array.from({length: expected}, (_, i) => n + i + 1);
+        const parts = slots.reduce((sum, slot) => sum + (slotPlan[slot - 1]?.targetParts ?? writingPlan.recommendedParts), 0);
+        try {
+          prefetched.set(n, {ok: true, raw: await generateRawChunk(slots, expected, parts, priorDrafts)});
+        } catch (error) {
+          prefetched.set(n, {ok: false, error});
+        }
+      }));
+    }
+
+    for (let offset = 0; offset < postCount; offset += chunkSize) {
+      if (writerConcurrency > 1 && !prefetched.has(offset)) await prefetchWave(offset);
+      ensureTime();
+      const expected = Math.min(chunkSize, postCount - offset);
+      const slotNumbers = Array.from({ length: expected }, (_, i) => offset + i + 1);
+      const chunkPlannedParts = slotNumbers.reduce(
+        (sum, slotNum) => sum + (slotPlan[slotNum - 1]?.targetParts ?? writingPlan.recommendedParts),
+        0
+      );
+
+      const chunkResult = await writeValidatedChunk({
+        slotNumbers,
+        priorAcceptedDrafts: generatedPosts,
+        allowPartialChunk: allowPartialResults,
+        validation: {
+          characterLimit,
+          partCount,
+          minParts: writingPlan.minParts,
+          maxParts: writingPlan.maxParts,
+          exactSentencesPerPart: writingPlan.sentencesMode === "explicit" ? writingPlan.recommendedSentencesPerPart : undefined,
+          maxSentencesPerPart: writingPlan.sentencesMode === "auto" ? writingPlan.maxSentencesPerPart : undefined,
+          checkInternalRepetition: true,
+          allowedUrls,
+          sourceTexts: gated.groundingSourceTexts,
+          lockedHook: offset === 0 ? (gated.directives.lockedOpeningHook || undefined) : undefined,
+          ctaOff,
+          enforceGroundedness: true,
+          enforceNovelty: true,
+          diversityLedger,
+          topicText: contentRequest
+        },
+        generateChunk: async schemaRetryFeedback => {
+          const result = prefetched.get(offset);
+          if (result) {
+            prefetched.delete(offset);
+            if (result.ok === false) throw result.error;
+            return result.raw;
+          }
+          return generateRawChunk(slotNumbers, expected, chunkPlannedParts, generatedPosts, schemaRetryFeedback);
         },
         reviewDrafts: reviewCandidateDrafts,
         repairDraft: async ({ slotNumber, draft, defects, acceptedDrafts }) => {
