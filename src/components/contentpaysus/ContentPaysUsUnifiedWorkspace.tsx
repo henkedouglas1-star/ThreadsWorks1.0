@@ -47,6 +47,7 @@ import { PermanentCategoryBar } from "./PermanentCategoryBar";
 import { ContentPaysUsAcademyView } from "./ContentPaysUsAcademyView";
 import { FirstSaleEnginePanel } from "../ecosystem/FirstSaleEnginePanel";
 import { ProductWorksEnhancedPanel } from "../ecosystem/ProductWorksEnhancedPanel";
+import { DemandResearchPanel } from "../ecosystem/DemandResearchPanel";
 import {
   ToolTransferPayload,
   UniversalToolWorkspace
@@ -559,6 +560,8 @@ export function ContentPaysUsUnifiedWorkspace({
                   })}
                 </div>
               </div>
+
+              {activeAppObj.id === "demandworks" && <DemandResearchPanel projects={projects} />}
 
               {/* ProductWorks Special Full Studio */}
               {activeAppObj.id === "productworks" && (
