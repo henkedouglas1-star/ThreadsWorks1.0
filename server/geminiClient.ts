@@ -116,16 +116,17 @@ export async function callGenerateContentWithRetry(
   }
 
   const executionPromise = (async () => {
-    // 4. Concurrency Control (Phase 14)
+    // 4. Concurrency Control (Phase 14) with low-overhead queue wakeup + measurement
+    const queueStartTime = Date.now();
     while (activeGeminiRequests >= AI_QUOTA_CONFIG.MAX_CONCURRENCY) {
-      await new Promise(resolve => setTimeout(resolve, 150 + Math.random() * 200));
+      await new Promise(resolve => setTimeout(resolve, 35 + Math.random() * 25));
     }
+    const queueDurationMs = Date.now() - queueStartTime;
     activeGeminiRequests++;
 
-    const startTime = Date.now();
+    let sawRateLimit = false;
 
     try {
-      // 5. Circuit Breaker Check (Phase 4 & 7)
       // 5. Circuit Breaker Check (Phase 4 & 7)
       if (isQuotaCircuitActive()) {
         if (strictContentGeneration) throw new Error("AI generation is temporarily unavailable. Please try again later.");
@@ -185,6 +186,7 @@ export async function callGenerateContentWithRetry(
           const usage = response?.usageMetadata || {};
           const inTokens = usage.promptTokenCount || 0;
           const outTokens = usage.candidatesTokenCount || 0;
+          const thoughtsTok = usage.thoughtsTokenCount || 0;
           const cachedTok = usage.cachedContentTokenCount || 0;
 
           // Record telemetry
@@ -199,6 +201,28 @@ export async function callGenerateContentWithRetry(
             latencyMs
           );
 
+          if (response && typeof response === "object") {
+            try {
+              Object.defineProperty(response, "_telemetry", {
+                value: {
+                  modelUsed: currentModel,
+                  fallbackUsed: isFallback,
+                  queueDurationMs,
+                  providerDurationMs: latencyMs,
+                  rateLimited: sawRateLimit,
+                  inputTokens: inTokens,
+                  outputTokens: outTokens,
+                  thoughtsTokens: thoughtsTok,
+                  cachedTokens: cachedTok
+                },
+                enumerable: false,
+                configurable: true
+              });
+            } catch {
+              // Ignore non-extensible mock responses
+            }
+          }
+
           // Cache deterministic result
           if (isTaskCachable(taskId)) {
             setCachedResult(cacheKey, response);
@@ -208,11 +232,26 @@ export async function callGenerateContentWithRetry(
         } catch (err: any) {
           lastError = err;
           const classification = classifyGeminiError(err);
+          const isTransientRateLimit =
+            classification.type === "RATE_LIMIT" ||
+            classification.type === "TOKEN_RATE_LIMIT";
+          if (isTransientRateLimit) {
+            sawRateLimit = true;
+          }
 
-          // Fail fast or quota exhaustion on errors
-          if (!classification.retryable || classification.type === "DAILY_QUOTA" || classification.type === "AUTH_CONFIGURATION" || err?.message?.includes("402") || err?.message?.includes("RESOURCE_EXHAUSTED")) {
-            console.warn(`[GEMINI_CLIENT] Quota exhaustion or non-retryable error (${classification.type}) on ${currentModel}. Activating offline synthesis engine.`);
-            tripQuotaCircuitBreaker(classification.message, AI_QUOTA_CONFIG.CIRCUIT_BREAKER_DURATION_MS);
+          // Trip global circuit breaker ONLY on non-retryable daily quota, billing (402), or auth failures.
+          // Transient RPM/TPM 429s must back off and fail over cleanly without killing concurrent healthy workers.
+          const isHardTerminalFailure =
+            !classification.retryable ||
+            classification.type === "DAILY_QUOTA" ||
+            classification.type === "AUTH_CONFIGURATION" ||
+            err?.message?.includes("402");
+
+          if (isHardTerminalFailure) {
+            console.warn(`[GEMINI_CLIENT] Hard quota or non-retryable error (${classification.type}) on ${currentModel}.`);
+            if (classification.type === "DAILY_QUOTA" || classification.type === "AUTH_CONFIGURATION" || err?.message?.includes("402")) {
+              tripQuotaCircuitBreaker(classification.message, AI_QUOTA_CONFIG.CIRCUIT_BREAKER_DURATION_MS);
+            }
             if (strictContentGeneration) throw err;
             return {
               text: JSON.stringify({
@@ -230,9 +269,10 @@ export async function callGenerateContentWithRetry(
             };
           }
 
-          // If rate limit (429), back off before fallback (Phase 3 & 4)
+          // Transient failure (RPM/TPM 429, 503, 5xx, network): bounded jittered backoff before fallback model
           if (mIdx < modelsToTry.length - 1 && attemptsCount < MAX_TOTAL_BUDGET) {
-            const delay = Math.min(AI_QUOTA_CONFIG.BASE_RETRY_DELAY_MS * (mIdx + 1), AI_QUOTA_CONFIG.MAX_RETRY_DELAY_MS) + (Math.random() * 200);
+            const baseDelay = isTransientRateLimit ? 450 : 350;
+            const delay = Math.min(baseDelay * (mIdx + 1), AI_QUOTA_CONFIG.MAX_RETRY_DELAY_MS) + (Math.random() * 200);
             console.warn(`[GEMINI_CLIENT] Transient failure (${classification.type}) on ${currentModel}. Failing over to ${modelsToTry[mIdx + 1]} in ${Math.round(delay)}ms...`);
             await new Promise(r => setTimeout(r, delay));
             continue;
