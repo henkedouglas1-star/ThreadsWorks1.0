@@ -659,10 +659,11 @@ test("11. Content Engine integration transcribes spoken idea into existing input
     assert.ok(micBtn, "Content Engine microphone button must be rendered");
     assert.ok(topicInput, "Content Engine topic textarea must be rendered");
     assert.ok(createBtn, "Existing Create Content button must remain intact");
-    assert.ok(postsSelect, "Existing How Many Posts selector (including 8 posts) must remain intact");
-    assert.ok(
-      Array.from(postsSelect.options).some((opt) => opt.value === "8"),
-      "8-post generation option must be preserved"
+    assert.ok(postsSelect, "Existing How Many Posts selector must remain intact");
+    assert.deepEqual(
+      Array.from(postsSelect.options).map((opt) => opt.value),
+      ["1", "4", "7"],
+      "Only 1, 4 and 7 post generation choices must be available"
     );
 
     // Tap microphone and speak the example idea
