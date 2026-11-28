@@ -5700,7 +5700,7 @@ app.post("/api/generate-posts-batch", async (req, res) => {
     const ctaOff = gated.directives.ctaOff;
     const destinations = gated.directives.destinations;
     const allowedUrls = gated.allowedUrls;
-    const allowPartialResults = body.allowPartialResults === true;
+    const allowPartialResults = body.allowPartialResults === true || (postCount >= 16 && body.allowPartialResults !== false && process.env.CONTENT_BATCH_PARALLEL_ENABLED === "true");
     const diversityLedger = buildRollingLedger(
       snapshot,
       Array.isArray(body.recentLibraryPosts) ? body.recentLibraryPosts : [],
@@ -5878,41 +5878,19 @@ app.post("/api/generate-posts-batch", async (req, res) => {
       return reviewResults;
     };
 
-    for (let offset = 0; offset < postCount; offset += chunkSize) {
-      ensureTime();
-      const expected = Math.min(chunkSize, postCount - offset);
-      const slotNumbers = Array.from({ length: expected }, (_, i) => offset + i + 1);
-      const chunkPlannedParts = slotNumbers.reduce(
-        (sum, slotNum) => sum + (slotPlan[slotNum - 1]?.targetParts ?? writingPlan.recommendedParts),
-        0
-      );
-
-      const chunkResult = await writeValidatedChunk({
-        slotNumbers,
-        priorAcceptedDrafts: generatedPosts,
-        allowPartialChunk: allowPartialResults,
-        validation: {
-          characterLimit,
-          partCount,
-          minParts: writingPlan.minParts,
-          maxParts: writingPlan.maxParts,
-          exactSentencesPerPart: writingPlan.sentencesMode === "explicit" ? writingPlan.recommendedSentencesPerPart : undefined,
-          maxSentencesPerPart: writingPlan.sentencesMode === "auto" ? writingPlan.maxSentencesPerPart : undefined,
-          checkInternalRepetition: true,
-          allowedUrls,
-          sourceTexts: gated.groundingSourceTexts,
-          lockedHook: offset === 0 ? (gated.directives.lockedOpeningHook || undefined) : undefined,
-          ctaOff,
-          enforceGroundedness: true,
-          enforceNovelty: true,
-          diversityLedger,
-          topicText: contentRequest
-        },
-        generateChunk: async schemaRetryFeedback => {
+    // Parallelize only the initial writer calls. Acceptance, review, repairs and
+    // replacement remain ordered against the complete accepted-draft ledger.
+    // Opt-in rollout: preserve sequential behavior unless explicitly enabled.
+    const parallelEnabled = postCount >= 16 && process.env.CONTENT_BATCH_PARALLEL_ENABLED === "true";
+    // Four writers is an opt-in benchmark profile, not a production default.
+    const writerConcurrency = parallelEnabled ? (process.env.CONTENT_BATCH_FAST_PROFILE === "true" ? 4 : 2) : 1;
+    timings.writerConcurrency = writerConcurrency;
+    timings.targetMs = 20000;
+    const generateRawChunk = async (slotNumbers: number[], expected: number, chunkPlannedParts: number, priorDrafts: any[], schemaRetryFeedback?: string) => {
           ensureTime();
           const tGen = Date.now();
           diagModelCalls++;
-          const assignment = buildAssignment(slotNumbers, generatedPosts);
+          const assignment = buildAssignment(slotNumbers, priorDrafts);
           const response = await callGenerateContentWithRetry(ai, {
             model: THREADSWORKS_MODELS.FLASH_36,
             optimizationTaskId: "GENERATE_POSTS_BATCH",
@@ -5945,6 +5923,65 @@ app.post("/api/generate-posts-batch", async (req, res) => {
             });
           }
           return parseModelJsonOrThrow(response.text, "Batch writer");
+    };
+    type PrefetchedChunk = { ok: true; raw: unknown } | { ok: false; error: unknown };
+    const prefetched = new Map<number, PrefetchedChunk>();
+    async function prefetchWave(offset: number) {
+      const priorDrafts = [...generatedPosts];
+      const offsets = Array.from({length: writerConcurrency}, (_, i) => offset + i * chunkSize).filter(n => n < postCount);
+      await Promise.all(offsets.map(async n => {
+        const expected = Math.min(chunkSize, postCount - n);
+        const slots = Array.from({length: expected}, (_, i) => n + i + 1);
+        const parts = slots.reduce((sum, slot) => sum + (slotPlan[slot - 1]?.targetParts ?? writingPlan.recommendedParts), 0);
+        try {
+          prefetched.set(n, {ok: true, raw: await generateRawChunk(slots, expected, parts, priorDrafts)});
+        } catch (error) {
+          prefetched.set(n, {ok: false, error});
+        }
+      }));
+    }
+
+    for (let offset = 0; offset < postCount; offset += chunkSize) {
+      try {
+      ensureTime();
+      if (writerConcurrency > 1 && !prefetched.has(offset)) await prefetchWave(offset);
+      ensureTime();
+      const expected = Math.min(chunkSize, postCount - offset);
+      const slotNumbers = Array.from({ length: expected }, (_, i) => offset + i + 1);
+      const chunkPlannedParts = slotNumbers.reduce(
+        (sum, slotNum) => sum + (slotPlan[slotNum - 1]?.targetParts ?? writingPlan.recommendedParts),
+        0
+      );
+
+      const chunkResult = await writeValidatedChunk({
+        slotNumbers,
+        priorAcceptedDrafts: generatedPosts,
+        allowPartialChunk: allowPartialResults,
+        validation: {
+          characterLimit,
+          partCount,
+          minParts: writingPlan.minParts,
+          maxParts: writingPlan.maxParts,
+          exactSentencesPerPart: writingPlan.sentencesMode === "explicit" ? writingPlan.recommendedSentencesPerPart : undefined,
+          maxSentencesPerPart: writingPlan.sentencesMode === "auto" ? writingPlan.maxSentencesPerPart : undefined,
+          checkInternalRepetition: true,
+          allowedUrls,
+          sourceTexts: gated.groundingSourceTexts,
+          lockedHook: offset === 0 ? (gated.directives.lockedOpeningHook || undefined) : undefined,
+          ctaOff,
+          enforceGroundedness: true,
+          enforceNovelty: true,
+          diversityLedger,
+          topicText: contentRequest
+        },
+        generateChunk: async schemaRetryFeedback => {
+          const result = prefetched.get(offset);
+          if (result) {
+            prefetched.delete(offset);
+            if (result.ok === false) throw result.error;
+            return result.raw;
+          }
+          return generateRawChunk(slotNumbers, expected, chunkPlannedParts, generatedPosts, schemaRetryFeedback);
         },
         reviewDrafts: reviewCandidateDrafts,
         repairDraft: async ({ slotNumber, draft, defects, acceptedDrafts }) => {
@@ -6050,6 +6087,17 @@ Return ONLY a single JSON draft object matching the schema.`;
       }));
       generatedPosts.push(...taggedChunk);
       failedSlots.push(...chunkResult.failedSlots);
+      } catch (err) {
+        const failure = err instanceof GenerationPipelineError ? err : classifyProviderOrNetworkError(err);
+        // Preserve only previously accepted drafts on recognized provider/network
+        // failures. Never suppress programming errors or bypass validation.
+        if (!allowPartialResults || res.destroyed || !generatedPosts.length ||
+            !failure || (failure.code !== "NETWORK_ERROR" && failure.code !== "PROVIDER_ERROR")) throw err;
+        for (let slotNumber = offset + 1; slotNumber <= postCount; slotNumber++) {
+          failedSlots.push({ slotNumber, reasons: ["Generation interrupted before this draft could be validated."], errorCode: failure.code });
+        }
+        break;
+      }
     }
 
     if (generatedPosts.length === 0) {
@@ -6133,6 +6181,13 @@ Return ONLY a single JSON draft object matching the schema.`;
       timings.commitMs = Date.now() - tCommit;
     }
     timings.totalMs = Date.now() - startTime;
+    timings.targetMet = finalPosts.length === postCount && timings.totalMs <= timings.targetMs;
+    console.info("[CONTENT_ENGINE_LATENCY]", JSON.stringify({
+      requestId, requestedCount: postCount, acceptedCount: finalPosts.length,
+      writerConcurrency, totalDurationMs: timings.totalMs, targetMs: timings.targetMs,
+      targetMet: timings.targetMet, modelCallCount: diagModelCalls,
+      repairAttempts: diagRepairAttempts, replacementAttempts: diagReplacementAttempts
+    }));
     logGenerationBatchDiagnostics(
       buildGenerationBatchDiagnostics({
         requestId,
@@ -6159,7 +6214,7 @@ Return ONLY a single JSON draft object matching the schema.`;
       partial: isPartial,
       ...(isPartial ? {
         failedSlots,
-        warning: `${finalPosts.length} of ${postCount} drafts passed validation. ${failedSlots.length} draft${failedSlots.length === 1 ? " was" : "s were"} withheld after failing factual/quality checks on repair and replacement.`
+        warning: `${finalPosts.length} of ${postCount} drafts passed validation. ${failedSlots.length} draft${failedSlots.length === 1 ? " was" : "s were"} not returned because generation or validation did not complete.`
       } : {}),
       category,
       requestId,
