@@ -5,6 +5,7 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import fs from "fs";
 import path from "path";
 import { processStripeInvoiceCommission, handleSubscriptionStatusChange } from "./server/partnerService";
+import { handleMembershipEvent } from "./server/membershipWebhookService";
 
 // ---------------------------------------------------------
 // Firestore database setup for the Webhook Handler
@@ -188,7 +189,7 @@ export async function stripeWebhookHandler(req: Request, res: Response) {
     const processedRef = db.collection("stripe_processed_events").doc(eventId);
     const processedDoc = await processedRef.get();
 
-    if (processedDoc.exists) {
+    if (processedDoc.exists && processedDoc.data()?.status === "success") {
       console.log(`[STRIPE_WEBHOOK] Event ID ${eventId} was already processed successfully. Ignoring duplicate.`);
       return res.status(200).json({ status: "ignored_duplicate", eventId });
     }
@@ -203,6 +204,19 @@ export async function stripeWebhookHandler(req: Request, res: Response) {
     });
 
     const dataObject = event.data.object;
+
+    // New membership events are reconciled separately and never enter the
+    // legacy global-Pro subscription sync. Signature verification above is mandatory.
+    if (await handleMembershipEvent(db, getStripe(), event)) {
+      await processedRef.set({
+        id: eventId,
+        type: eventType,
+        processedAt: timestamp,
+        status: "success",
+        handler: "scoped_membership",
+      });
+      return res.status(200).json({ status: "success", eventId });
+    }
 
     // ---------------------------------------------------------
     // Process supported events
