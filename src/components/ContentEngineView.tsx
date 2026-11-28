@@ -1,4 +1,5 @@
 import { PostArt } from "./PostArt";
+import { CONTENT_BATCH_SIZES, normalizeContentBatchSelection } from "../../contentBatchConfig";
 import React, { useState, useRef, useEffect } from "react";
 import { UserProfile, ContentPillar, CreationMode, ContentActionType, CreationContext } from "../types";
 import { auth, db, withTimeout, handleFirestoreError, OperationType, sanitizeForFirestore } from "../firebase";
@@ -1094,13 +1095,7 @@ export default function ContentEngineView({ profile, onNavigateToTab, onRefreshP
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const POSTS_TO_CREATE_OPTIONS = [
-    { value: "1", label: "1 post" },
-    { value: "4", label: "4 posts" },
-    { value: "8", label: "8 posts" },
-    { value: "16", label: "16 posts" },
-    { value: "32", label: "32 posts" },
-  ];
+  const POSTS_TO_CREATE_OPTIONS = CONTENT_BATCH_SIZES.map(size => ({ value: String(size), label: `${size} ${size === 1 ? "post" : "posts"}` }));
 
   const CTA_OPTIONS = [
     { value: "auto", label: "AI Decide" },
@@ -1108,7 +1103,7 @@ export default function ContentEngineView({ profile, onNavigateToTab, onRefreshP
     { value: "off", label: "Off" },
   ];
 
-  const normalizedPostsToCreate = ["1", "4", "8", "16", "32"].includes(postsToCreate) ? postsToCreate : "1";
+  const normalizedPostsToCreate = normalizeContentBatchSelection(postsToCreate);
   const activePostsOption = POSTS_TO_CREATE_OPTIONS.find(o => o.value === normalizedPostsToCreate) || POSTS_TO_CREATE_OPTIONS[0];
   const hasExplicitPostsSelectionRef = useRef(false);
   const { threadLength: standardThreadLength, sentencesPerPart: standardSentencesPerPart } =
@@ -1782,7 +1777,7 @@ export default function ContentEngineView({ profile, onNavigateToTab, onRefreshP
       activeLockedHook = areHooksActive ? lockedHook : null;
       activeStrategicUnitsToUse = areStrategicUnitsActive ? strategicUnits : [];
 
-      const userSelectedCount = parseInt(postsToCreate, 10) || 8;
+      const userSelectedCount = parseInt(normalizedPostsToCreate, 10);
       count = userSelectedCount;
       if (activeStrategicUnitsToUse && activeStrategicUnitsToUse.length > 0) {
         count = Math.min(userSelectedCount, activeStrategicUnitsToUse.length);
@@ -2837,7 +2832,7 @@ export default function ContentEngineView({ profile, onNavigateToTab, onRefreshP
               <div className="relative min-w-[110px]">
                 <select
                   id="setting-posts-to-create"
-                  value={postsToCreate}
+                  value={normalizedPostsToCreate}
                   onChange={(e) => {
                     hasExplicitPostsSelectionRef.current = true;
                     setPostsToCreate(e.target.value);
