@@ -253,7 +253,18 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
     }
 
     // Enforce monthly generation quota (Pro = unlimited, Free = 150/month)
-    const quota = await checkAndReserveGeneration(db, caller.uid, caller.email);
+    // A paid Bundle grants unlimited generations for included ecosystem tools.
+    // Club alone does not waive the application generation allowance.
+    // Preserve existing Free/ThreadsWorks Pro policy until the scoped rollout is complete.
+    let scopedAccess: Awaited<ReturnType<typeof readMembershipAccess>>;
+    try {
+      scopedAccess = await readMembershipAccess(db, caller.uid);
+    } catch {
+      return res.status(503).json({ error: "Membership access could not be verified." });
+    }
+    const quota = scopedAccess.appIds.includes(appId)
+      ? { allowed: true, isPro: true, reservationId: undefined, error: undefined, displayRemaining: "Unlimited — included in your membership" }
+      : await checkAndReserveGeneration(db, caller.uid, caller.email);
     if (!quota.allowed) {
       return res.status(403).json({
         error: quota.error || "Monthly AI generation allowance reached.",
