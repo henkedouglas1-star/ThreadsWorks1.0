@@ -1,9 +1,11 @@
 import { MEMBERSHIP_PLANS, resolveMembershipAccess } from "../src/data/membershipCatalog";
 
+import { MEMBERSHIP_STRIPE_IDS } from "./membershipStripeConfig";
+
 export type NewMembershipId = "contentpaysclub" | "contentpaysbundle";
 export type MembershipPrices = Record<NewMembershipId, string | undefined>;
 export function configuredMembershipPrices(): MembershipPrices {
-  return { contentpaysclub: process.env.STRIPE_CLUB_PRICE_ID, contentpaysbundle: process.env.STRIPE_BUNDLE_PRICE_ID };
+  return { contentpaysclub: process.env.STRIPE_CLUB_PRICE_ID?.trim() || MEMBERSHIP_STRIPE_IDS.contentpaysclub.priceId, contentpaysbundle: process.env.STRIPE_BUNDLE_PRICE_ID?.trim() || MEMBERSHIP_STRIPE_IDS.contentpaysbundle.priceId };
 }
 
 // A signed webhook alone is insufficient: match the actual recurring price,
