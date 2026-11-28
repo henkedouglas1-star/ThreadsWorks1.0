@@ -102,7 +102,7 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
     const caller = (req as any).caller as AuthedCaller;
     res.set("Cache-Control", "no-store");
     try {
-      return res.json(await readMembershipAccess(db, caller.uid));
+      return res.json({ ...await readMembershipAccess(db, caller.uid), checkoutEnabled: process.env.MEMBERSHIP_CHECKOUT_ENABLED === "true" });
     } catch {
       return res.status(503).json({ error: "Membership access could not be verified." });
     }
