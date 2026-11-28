@@ -1,4 +1,8 @@
 {
+  "firestore": {
+    "database": "ai-studio-threadsworks-b76f7533-a28e-409a-9ce3-3b12bcbfbf3d",
+    "rules": "firestore.rules"
+  },
   "functions": {
     "source": "functions"
   },

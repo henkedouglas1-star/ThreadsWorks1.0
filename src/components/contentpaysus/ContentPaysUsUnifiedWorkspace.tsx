@@ -18,9 +18,22 @@ import {
   Settings,
   Sparkles
 } from "lucide-react";
+import { addDoc, collection } from "firebase/firestore";
 import { db, withTimeout } from "../../firebase";
-import { addDoc, collection, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
 import { EcosystemProject } from "../../types/sharedProjects";
+import {
+  PROJECT_DESCRIPTION_MAX_LENGTH,
+  PROJECT_NAME_MAX_LENGTH,
+  PROJECT_OBJECTIVE_MAX_LENGTH,
+  classifyProjectError,
+  createUserProject,
+  listUserProjects,
+  toggleUserProjectArchive,
+  updateUserProject,
+  validateProjectInput,
+  type SharedProjectsClientAdapter
+} from "../../services/sharedProjectsService";
+import firebaseConfig from "../../../firebase-applet-config.json";
 import {
   CONTENT_PAYS_US_APPS,
   EcosystemCategory,
@@ -60,6 +73,8 @@ interface ContentPaysUsUnifiedWorkspaceProps {
   onNavigateToTab: (tab: string) => void;
   onRefreshProfile: () => void;
   onOpenProductWorksStudio?: () => void;
+  /** Optional dependency injection for automated tests */
+  projectsAdapter?: SharedProjectsClientAdapter;
 }
 
 type WorkspaceSubTab =
@@ -70,13 +85,16 @@ type WorkspaceSubTab =
   | "memory"
   | "settings";
 
+type ProjectLoadStatus = "idle" | "loading" | "loaded" | "permission_denied" | "error";
+
 export function ContentPaysUsUnifiedWorkspace({
   user,
   profile,
   subscriptionStatus,
   onNavigateToTab,
   onRefreshProfile,
-  onOpenProductWorksStudio
+  onOpenProductWorksStudio,
+  projectsAdapter
 }: ContentPaysUsUnifiedWorkspaceProps) {
   const [activeSubTab, setActiveSubTab] = useState<WorkspaceSubTab>("applications");
   const [activeCategory, setActiveCategory] = useState<EcosystemCategory>("Create & Sell");
@@ -88,24 +106,45 @@ export function ContentPaysUsUnifiedWorkspace({
   >({});
   const [incomingTransfer, setIncomingTransfer] = useState<ToolTransferPayload | null>(null);
 
-  // Shared projects state
+  // Shared projects state (strictly separates empty collection from permission / load errors)
   const [projects, setProjects] = useState<EcosystemProject[]>([]);
-  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [projectLoadStatus, setProjectLoadStatus] = useState<ProjectLoadStatus>("idle");
+  const [projectLoadError, setProjectLoadError] = useState<string | null>(null);
   const [projectError, setProjectError] = useState<string | null>(null);
   const [projectSuccessMessage, setProjectSuccessMessage] = useState<string | null>(null);
 
-  // Project modal state (Create / Edit)
+  // Project modal state (Create / Edit) with multi-app association
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [projectName, setProjectName] = useState("");
   const [projectObjective, setProjectObjective] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
   const [projectStatus, setProjectStatus] = useState<"active" | "archived" | "completed">("active");
-  const [selectedAppId, setSelectedAppId] = useState("threadsworks");
+  const [selectedAppIds, setSelectedAppIds] = useState<string[]>(["threadsworks"]);
   const [submittingProject, setSubmittingProject] = useState(false);
 
   const activeUidRef = useRef<string | null>(user?.uid || null);
   activeUidRef.current = user?.uid || null;
+  const projectFetchSeqRef = useRef(0);
+
+  const loadProjectsForUid = async (requestUid: string) => {
+    const fetchSeq = ++projectFetchSeqRef.current;
+    setProjectLoadStatus("loading");
+    setProjectLoadError(null);
+    try {
+      const list = await listUserProjects(requestUid, projectsAdapter);
+      if (activeUidRef.current !== requestUid || projectFetchSeqRef.current !== fetchSeq) return;
+      setProjects(list);
+      setProjectLoadStatus("loaded");
+      setProjectLoadError(null);
+    } catch (err: any) {
+      if (activeUidRef.current !== requestUid || projectFetchSeqRef.current !== fetchSeq) return;
+      const classified = classifyProjectError(err, "Could not load shared projects.");
+      setProjects([]);
+      setProjectLoadStatus(classified.isPermissionError ? "permission_denied" : "error");
+      setProjectLoadError(classified.message);
+    }
+  };
 
   // Support deep link ?app=<id> when coming from public /applications/:id
   useEffect(() => {
@@ -128,7 +167,10 @@ export function ContentPaysUsUnifiedWorkspace({
   // Reset ALL workspace, project, draft cache, and transfer state immediately on UID change
   useEffect(() => {
     const requestUid = user?.uid || null;
+    projectFetchSeqRef.current += 1;
     setProjects([]);
+    setProjectLoadStatus("idle");
+    setProjectLoadError(null);
     setProjectError(null);
     setProjectSuccessMessage(null);
     setShowProjectModal(false);
@@ -137,7 +179,7 @@ export function ContentPaysUsUnifiedWorkspace({
     setProjectObjective("");
     setProjectDescription("");
     setProjectStatus("active");
-    setSelectedAppId("threadsworks");
+    setSelectedAppIds(["threadsworks"]);
     setSubmittingProject(false);
     setActiveEcosystemAppId(null);
     setDraftCache({});
@@ -145,39 +187,11 @@ export function ContentPaysUsUnifiedWorkspace({
     setActiveSubTab("applications");
 
     if (!requestUid) {
-      setLoadingProjects(false);
       return;
     }
 
-    let isMounted = true;
-    const fetchProjects = async () => {
-      setLoadingProjects(true);
-      setProjectError(null);
-      try {
-        const q = query(collection(db, "projects"), where("userId", "==", requestUid));
-        const snapshot = await withTimeout(getDocs(q), 5000, true);
-        if (!isMounted || activeUidRef.current !== requestUid) return;
-
-        const list: EcosystemProject[] = [];
-        snapshot.forEach((docSnap) => {
-          list.push({ id: docSnap.id, ...docSnap.data() } as EcosystemProject);
-        });
-        list.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-        setProjects(list);
-      } catch (err: any) {
-        if (!isMounted || activeUidRef.current !== requestUid) return;
-        console.warn("Failed to load ecosystem projects:", err);
-        setProjectError("Could not load projects. Please check your connection.");
-      } finally {
-        if (isMounted && activeUidRef.current === requestUid) setLoadingProjects(false);
-      }
-    };
-
-    fetchProjects();
-    return () => {
-      isMounted = false;
-    };
-  }, [user?.uid]);
+    loadProjectsForUid(requestUid);
+  }, [user?.uid, projectsAdapter]);
 
   const handleLaunchApp = (appId: string) => {
     if (appId === "threadsworks") {
@@ -237,13 +251,19 @@ export function ContentPaysUsUnifiedWorkspace({
   };
 
   // Project CRUD handlers
+  const handleToggleAppSelection = (appId: string) => {
+    setSelectedAppIds((prev) =>
+      prev.includes(appId) ? prev.filter((id) => id !== appId) : [...prev, appId]
+    );
+  };
+
   const handleOpenCreateModal = () => {
     setEditingProjectId(null);
     setProjectName("");
     setProjectObjective("");
     setProjectDescription("");
     setProjectStatus("active");
-    setSelectedAppId("threadsworks");
+    setSelectedAppIds(["threadsworks"]);
     setProjectError(null);
     setShowProjectModal(true);
   };
@@ -254,7 +274,11 @@ export function ContentPaysUsUnifiedWorkspace({
     setProjectObjective(proj.objective);
     setProjectDescription(proj.description || "");
     setProjectStatus(proj.status);
-    setSelectedAppId(proj.associatedAppIds?.[0] || "threadsworks");
+    setSelectedAppIds(
+      Array.isArray(proj.associatedAppIds) && proj.associatedAppIds.length > 0
+        ? [...proj.associatedAppIds]
+        : ["threadsworks"]
+    );
     setProjectError(null);
     setShowProjectModal(true);
   };
@@ -262,42 +286,64 @@ export function ContentPaysUsUnifiedWorkspace({
   const handleSaveProject = async (e: React.FormEvent) => {
     e.preventDefault();
     const requestUid = user?.uid;
-    if (!requestUid || !projectName.trim()) return;
+    if (!requestUid) {
+      setProjectError("Please sign in to save projects.");
+      return;
+    }
+
+    const validation = validateProjectInput({
+      name: projectName,
+      objective: projectObjective,
+      description: projectDescription,
+      status: editingProjectId ? projectStatus : "active",
+      associatedAppIds: selectedAppIds
+    });
+
+    if (!validation.valid) {
+      setProjectError(validation.errors[0] || "Please check your project details.");
+      return;
+    }
+
     setSubmittingProject(true);
     setProjectError(null);
     setProjectSuccessMessage(null);
 
     try {
-      const now = new Date().toISOString();
       if (editingProjectId) {
         const targetId = editingProjectId;
-        const projRef = doc(db, "projects", targetId);
-        const payload = {
-          name: projectName.trim(),
-          objective: projectObjective.trim() || "Build creator brand and earn verified sales",
-          description: projectDescription.trim(),
-          status: projectStatus,
-          associatedAppIds: [selectedAppId],
-          updatedAt: now
-        };
-        await withTimeout(updateDoc(projRef, payload), 4000, true);
+        const patch = await updateUserProject(
+          requestUid,
+          targetId,
+          {
+            name: projectName,
+            objective: projectObjective,
+            description: projectDescription,
+            status: projectStatus,
+            associatedAppIds: selectedAppIds
+          },
+          projectsAdapter
+        );
         if (activeUidRef.current !== requestUid) return;
-        setProjects((prev) => prev.map((p) => (p.id === targetId ? { ...p, ...payload } : p)));
+        setProjects((prev) =>
+          prev.map((p) => (p.id === targetId ? { ...p, ...patch } : p))
+        );
         setProjectSuccessMessage("Project updated successfully.");
       } else {
-        const payload = {
-          userId: requestUid,
-          name: projectName.trim(),
-          objective: projectObjective.trim() || "Build creator brand and earn verified sales",
-          description: projectDescription.trim(),
-          status: "active" as const,
-          associatedAppIds: [selectedAppId],
-          createdAt: now,
-          updatedAt: now
-        };
-        const docRef = await withTimeout(addDoc(collection(db, "projects"), payload), 4000, true);
+        const created = await createUserProject(
+          requestUid,
+          {
+            name: projectName,
+            objective: projectObjective,
+            description: projectDescription,
+            status: "active",
+            associatedAppIds: selectedAppIds
+          },
+          projectsAdapter
+        );
         if (activeUidRef.current !== requestUid) return;
-        setProjects((prev) => [{ id: docRef.id, ...payload }, ...prev]);
+        setProjects((prev) => [created, ...prev]);
+        setProjectLoadStatus("loaded");
+        setProjectLoadError(null);
         setProjectSuccessMessage("Project created successfully.");
       }
       setShowProjectModal(false);
@@ -306,31 +352,40 @@ export function ContentPaysUsUnifiedWorkspace({
       }, 4000);
     } catch (err: any) {
       if (activeUidRef.current !== requestUid) return;
-      setProjectError(err?.message || "Failed to save project.");
+      const classified = classifyProjectError(err, "Failed to save project.");
+      setProjectError(classified.message);
     } finally {
       if (activeUidRef.current === requestUid) setSubmittingProject(false);
     }
   };
 
-  const handleToggleArchive = async (projectId: string, currentStatus: string) => {
+  const handleToggleArchive = async (projectId: string, currentStatus: EcosystemProject["status"]) => {
     const requestUid = user?.uid;
     if (!requestUid) return;
-    const nextStatus = currentStatus === "archived" ? "active" : "archived";
     setProjectError(null);
     try {
-      const projRef = doc(db, "projects", projectId);
-      const now = new Date().toISOString();
-      await withTimeout(updateDoc(projRef, { status: nextStatus, updatedAt: now }), 4000, true);
+      const patch = await toggleUserProjectArchive(
+        requestUid,
+        projectId,
+        currentStatus,
+        projectsAdapter
+      );
       if (activeUidRef.current !== requestUid) return;
       setProjects((prev) =>
-        prev.map((p) => (p.id === projectId ? { ...p, status: nextStatus, updatedAt: now } : p))
+        prev.map((p) =>
+          p.id === projectId ? { ...p, status: patch.status, updatedAt: patch.updatedAt } : p
+        )
       );
-      setProjectSuccessMessage(nextStatus === "active" ? "Project restored to active." : "Project archived.");
+      setProjectSuccessMessage(
+        patch.status === "active" ? "Project restored to active." : "Project archived."
+      );
       setTimeout(() => {
         if (activeUidRef.current === requestUid) setProjectSuccessMessage(null);
       }, 3000);
-    } catch {
-      if (activeUidRef.current === requestUid) setProjectError("Failed to update project status.");
+    } catch (err: any) {
+      if (activeUidRef.current !== requestUid) return;
+      const classified = classifyProjectError(err, "Failed to update project status.");
+      setProjectError(classified.message);
     }
   };
 
@@ -655,12 +710,71 @@ export function ContentPaysUsUnifiedWorkspace({
             </button>
           </div>
 
-          {loadingProjects ? (
+          {projectLoadStatus === "loading" ? (
             <div className="flex items-center gap-2 py-8 text-xs text-slate-500">
               <Loader2 className="h-4 w-4 animate-spin text-indigo-600" /> Loading projects...
             </div>
+          ) : projectLoadStatus === "permission_denied" ? (
+            <div
+              role="alert"
+              data-projects-state="permission-denied"
+              className="rounded-2xl border border-rose-300 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-950/25 p-6 space-y-3"
+            >
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                <div className="space-y-1.5">
+                  <h3 className="text-sm font-bold text-rose-900 dark:text-rose-200">
+                    Unable to access Shared Creator Projects — {projectLoadError || "Missing or insufficient permissions."}
+                  </h3>
+                  <p className="text-xs text-rose-800 dark:text-rose-300 leading-relaxed">
+                    Your account is authenticated, but Firestore denied access to the <code className="font-mono">/projects</code> collection on database{" "}
+                    <code className="font-mono">{(firebaseConfig as any).firestoreDatabaseId || "(default)"}</code> (project{" "}
+                    <code className="font-mono">{firebaseConfig.projectId}</code>). This is a Firestore security rules permission error, not an empty project list.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 pl-8">
+                <button
+                  type="button"
+                  onClick={() => user?.uid && loadProjectsForUid(user.uid)}
+                  className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-rose-700 hover:bg-rose-800 text-white cursor-pointer"
+                >
+                  Retry Loading Projects
+                </button>
+              </div>
+            </div>
+          ) : projectLoadStatus === "error" ? (
+            <div
+              role="alert"
+              data-projects-state="load-error"
+              className="rounded-2xl border border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-950/25 p-6 space-y-3"
+            >
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-amber-700 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <h3 className="text-sm font-bold text-amber-950 dark:text-amber-200">
+                    Could not retrieve Shared Creator Projects
+                  </h3>
+                  <p className="text-xs text-amber-900 dark:text-amber-300">
+                    {projectLoadError || "A network or database error prevented loading your projects."}
+                  </p>
+                </div>
+              </div>
+              <div className="pl-8">
+                <button
+                  type="button"
+                  onClick={() => user?.uid && loadProjectsForUid(user.uid)}
+                  className="px-3.5 py-2 rounded-lg text-xs font-semibold bg-amber-700 hover:bg-amber-800 text-white cursor-pointer"
+                >
+                  Retry Loading Projects
+                </button>
+              </div>
+            </div>
           ) : projects.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 dark:border-zinc-700 bg-white dark:bg-[#111115] p-10 text-center space-y-3">
+            <div
+              data-projects-state="empty"
+              className="rounded-2xl border border-dashed border-slate-300 dark:border-zinc-700 bg-white dark:bg-[#111115] p-10 text-center space-y-3"
+            >
               <FolderKanban className="h-8 w-8 text-slate-400 mx-auto" />
               <h3 className="text-sm font-bold text-slate-950 dark:text-white">No projects created yet</h3>
               <p className="text-xs text-slate-600 dark:text-zinc-400 max-w-sm mx-auto">
@@ -747,19 +861,32 @@ export function ContentPaysUsUnifiedWorkspace({
 
           {showProjectModal && (
             <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-              <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-6 max-w-lg w-full shadow-2xl space-y-4">
+              <div className="rounded-2xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] p-6 max-w-xl w-full max-h-[90vh] overflow-y-auto shadow-2xl space-y-4">
                 <h3 className="text-lg font-bold text-slate-950 dark:text-white">
                   {editingProjectId ? "Edit Ecosystem Project" : "Create Ecosystem Project"}
                 </h3>
+                {projectError && (
+                  <div
+                    role="alert"
+                    className="flex items-start gap-2 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-300 dark:border-rose-500/30 text-rose-800 dark:text-rose-300 text-xs font-semibold"
+                  >
+                    <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span>{projectError}</span>
+                  </div>
+                )}
                 <form onSubmit={handleSaveProject} className="space-y-3.5">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">
-                      Project Name (max 100 chars)
+                    <label
+                      htmlFor="project-name-input"
+                      className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1"
+                    >
+                      Project Name (max {PROJECT_NAME_MAX_LENGTH} chars)
                     </label>
                     <input
+                      id="project-name-input"
                       type="text"
                       required
-                      maxLength={100}
+                      maxLength={PROJECT_NAME_MAX_LENGTH}
                       value={projectName}
                       onChange={(e) => setProjectName(e.target.value)}
                       placeholder="e.g. First Digital Playbook Launch"
@@ -767,12 +894,16 @@ export function ContentPaysUsUnifiedWorkspace({
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">
-                      Primary Objective (max 200 chars)
+                    <label
+                      htmlFor="project-objective-input"
+                      className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1"
+                    >
+                      Primary Objective (max {PROJECT_OBJECTIVE_MAX_LENGTH} chars)
                     </label>
                     <input
+                      id="project-objective-input"
                       type="text"
-                      maxLength={200}
+                      maxLength={PROJECT_OBJECTIVE_MAX_LENGTH}
                       value={projectObjective}
                       onChange={(e) => setProjectObjective(e.target.value)}
                       placeholder="e.g. Earn first verified sale from Meta Threads audience"
@@ -780,38 +911,64 @@ export function ContentPaysUsUnifiedWorkspace({
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">
-                      Description (Optional)
+                    <label
+                      htmlFor="project-description-input"
+                      className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1"
+                    >
+                      Description (Optional, max {PROJECT_DESCRIPTION_MAX_LENGTH} chars)
                     </label>
                     <textarea
+                      id="project-description-input"
                       rows={3}
+                      maxLength={PROJECT_DESCRIPTION_MAX_LENGTH}
                       value={projectDescription}
                       onChange={(e) => setProjectDescription(e.target.value)}
                       className="w-full rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-[#09090b] p-3 text-xs text-slate-900 dark:text-zinc-100"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">
-                        Primary App
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300">
+                        Associated Applications ({selectedAppIds.length} selected)
                       </label>
-                      <select
-                        value={selectedAppId}
-                        onChange={(e) => setSelectedAppId(e.target.value)}
-                        className="w-full rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-[#09090b] px-3 py-2 text-xs text-slate-900 dark:text-zinc-100"
-                      >
-                        {CONTENT_PAYS_US_APPS.map((a) => (
-                          <option key={a.id} value={a.id}>
-                            {a.name} ({a.category})
-                          </option>
-                        ))}
-                      </select>
+                      <span className="text-[11px] text-slate-500 dark:text-zinc-400">
+                        Select one or more apps
+                      </span>
                     </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 max-h-44 overflow-y-auto rounded-lg border border-slate-200 dark:border-zinc-800 bg-slate-50 dark:bg-[#09090b] p-2">
+                      {CONTENT_PAYS_US_APPS.map((app) => {
+                        const checked = selectedAppIds.includes(app.id);
+                        return (
+                          <label
+                            key={app.id}
+                            className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-[11px] font-medium cursor-pointer border transition-colors ${
+                              checked
+                                ? "bg-indigo-50 dark:bg-indigo-950/40 border-indigo-400 dark:border-indigo-500/60 text-indigo-900 dark:text-indigo-200"
+                                : "bg-white dark:bg-[#111115] border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 hover:border-slate-300"
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => handleToggleAppSelection(app.id)}
+                              className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                            <span className="truncate">{app.name}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  {editingProjectId && (
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1">
+                      <label
+                        htmlFor="project-status-select"
+                        className="block text-xs font-semibold text-slate-700 dark:text-zinc-300 mb-1"
+                      >
                         Status
                       </label>
                       <select
+                        id="project-status-select"
                         value={projectStatus}
                         onChange={(e) => setProjectStatus(e.target.value as any)}
                         className="w-full rounded-lg border border-slate-300 dark:border-zinc-700 bg-white dark:bg-[#09090b] px-3 py-2 text-xs text-slate-900 dark:text-zinc-100"
@@ -821,7 +978,7 @@ export function ContentPaysUsUnifiedWorkspace({
                         <option value="completed">Completed</option>
                       </select>
                     </div>
-                  </div>
+                  )}
                   <div className="pt-3 border-t border-slate-200 dark:border-zinc-800 flex justify-end gap-2">
                     <button
                       type="button"
@@ -832,7 +989,7 @@ export function ContentPaysUsUnifiedWorkspace({
                     </button>
                     <button
                       type="submit"
-                      disabled={submittingProject}
+                      disabled={submittingProject || selectedAppIds.length === 0}
                       className="px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
                     >
                       {submittingProject && <Loader2 className="h-3.5 w-3.5 animate-spin" />}

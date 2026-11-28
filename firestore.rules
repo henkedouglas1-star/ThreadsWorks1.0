@@ -170,27 +170,73 @@ service cloud.firestore {
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
       allow read, update, delete: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid);
     }
-    // Shared Creator Projects - hardened validation & ownership immutability
+    // Shared Creator Projects - hardened validation, multi-app association & ownership immutability
+    function isValidProjectCreate() {
+      let data = request.resource.data;
+      return data.keys().hasOnly([
+               'userId',
+               'name',
+               'objective',
+               'description',
+               'status',
+               'associatedAppIds',
+               'createdAt',
+               'updatedAt'
+             ])
+             && data.userId is string
+             && data.userId == request.auth.uid
+             && data.name is string
+             && data.name.size() > 0
+             && data.name.size() <= 100
+             && data.objective is string
+             && data.objective.size() <= 200
+             && (!('description' in data) || (data.description is string && data.description.size() <= 2000))
+             && data.status in ['active', 'archived', 'completed']
+             && data.associatedAppIds is list
+             && data.associatedAppIds.size() >= 1
+             && data.associatedAppIds.size() <= 20
+             && data.createdAt is string
+             && data.createdAt.size() > 0
+             && data.createdAt.size() <= 64
+             && data.updatedAt is string
+             && data.updatedAt.size() > 0
+             && data.updatedAt.size() <= 64;
+    }
+
+    function isValidProjectUpdate() {
+      let data = request.resource.data;
+      return data.keys().hasOnly([
+               'userId',
+               'name',
+               'objective',
+               'description',
+               'status',
+               'associatedAppIds',
+               'createdAt',
+               'updatedAt'
+             ])
+             && data.userId == resource.data.userId
+             && (!('createdAt' in resource.data) || data.createdAt == resource.data.createdAt)
+             && data.name is string
+             && data.name.size() > 0
+             && data.name.size() <= 100
+             && (!('objective' in data) || (data.objective is string && data.objective.size() <= 200))
+             && (!('description' in data) || (data.description is string && data.description.size() <= 2000))
+             && data.status in ['active', 'archived', 'completed']
+             && (!('associatedAppIds' in data) || (data.associatedAppIds is list && data.associatedAppIds.size() >= 1 && data.associatedAppIds.size() <= 20))
+             && (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 64));
+    }
+
     match /projects/{projectId} {
-      allow read: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid);
-      allow create: if request.auth != null 
-                    && request.resource.data.userId == request.auth.uid
-                    && request.resource.data.name is string 
-                    && request.resource.data.name.size() > 0 
-                    && request.resource.data.name.size() <= 100
-                    && request.resource.data.objective is string
-                    && request.resource.data.objective.size() <= 200
-                    && request.resource.data.status in ['active', 'archived', 'completed'];
-      allow update: if request.auth != null 
-                    && resource != null 
+      allow get: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid);
+      allow list: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && isValidProjectCreate();
+      allow update: if request.auth != null
+                    && resource != null
                     && resource.data.userId == request.auth.uid
-                    && request.resource.data.userId == resource.data.userId
-                    && request.resource.data.name is string 
-                    && request.resource.data.name.size() > 0 
-                    && request.resource.data.name.size() <= 100
-                    && request.resource.data.status in ['active', 'archived', 'completed'];
-      allow delete: if request.auth != null 
-                    && resource != null 
+                    && isValidProjectUpdate();
+      allow delete: if request.auth != null
+                    && resource != null
                     && resource.data.userId == request.auth.uid;
     }
 

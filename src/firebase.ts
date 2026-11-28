@@ -75,14 +75,24 @@ if (typeof window !== "undefined") {
   }, true);
 
   window.addEventListener("unhandledrejection", (event) => {
-    const reasonMsg = event.reason?.message || String(event.reason || "");
+    const reason = event.reason;
+    const reasonMsg = reason?.message || String(reason || "");
+    const reasonCode = String(reason?.code || "");
+    const reasonStack = String(reason?.stack || "");
+    const isOrphanedFirebaseAuthIframePingError =
+      (reasonCode === "auth/network-request-failed" || reasonMsg.includes("auth/network-request-failed")) &&
+      (reasonStack.includes("firebase_auth") || reasonStack.includes("firebase/auth"));
     if (
       reasonMsg.includes("database connection is closing") ||
       reasonMsg.includes("Failed to execute 'transaction' on 'IDBDatabase'") ||
-      reasonMsg.includes("IDBDatabase")
+      reasonMsg.includes("IDBDatabase") ||
+      isOrphanedFirebaseAuthIframePingError
     ) {
       event.preventDefault();
       event.stopImmediatePropagation();
+      if (isOrphanedFirebaseAuthIframePingError) {
+        console.warn("Suppressed internal Firebase Auth iframe ping timeout:", reasonCode || reasonMsg);
+      }
     }
   }, true);
 }
@@ -169,6 +179,15 @@ function resolveVerifiedPersistenceHierarchy(): ResolvedPersistenceHierarchy {
 const initialPersistenceResolution = resolveVerifiedPersistenceHierarchy();
 
 /**
+ * Exported popup resolver passed lazily to signInWithPopup() only on explicit user click.
+ * Passing browserPopupRedirectResolver eagerly into initializeAuth() triggers Firebase Auth's
+ * proactive Safari/iOS/mobile hidden iframe open (_openIframe -> gapi.iframes ping) on every
+ * page load, which stalls authStateReady() and throws unhandled auth/network-request-failed
+ * errors inside cross-origin preview iframes or strict Safari environments.
+ */
+export const authPopupRedirectResolver = browserPopupRedirectResolver;
+
+/**
  * Initialize a single authoritative Firebase Auth instance without IndexedDB persistence
  * (which frequently stalls or closes in cross-origin preview iframes like Google AI Studio)
  * and with verified ordered persistence fallback:
@@ -181,9 +200,6 @@ function createAuthoritativeAuth(): Auth {
   try {
     return initializeAuth(app, {
       persistence: initialPersistenceResolution.persistences,
-      ...(browserPopupRedirectResolver
-        ? { popupRedirectResolver: browserPopupRedirectResolver }
-        : {}),
     });
   } catch {
     // Auth was already initialized for this Firebase app instance (e.g. module reload)

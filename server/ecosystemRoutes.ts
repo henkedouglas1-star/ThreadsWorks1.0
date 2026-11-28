@@ -9,10 +9,26 @@ import {
   releaseReservation
 } from "./generationLimitService";
 import {
+  IntelligenceIntegrityError,
   ProjectOwnershipError,
   contributeSharedIntelligence,
+  getSharedIntelligenceHubSummary,
   retrieveSharedIntelligenceContext
 } from "./sharedIntelligenceService";
+import {
+  BusinessProfileAccessError,
+  BusinessProfileValidationError,
+  checkFounderPresetCapability,
+  getFounderBusinessProfilePreset,
+  loadBusinessProfile,
+  saveBusinessProfile,
+  syncCreatorWorksToBusinessProfile
+} from "./businessProfileService";
+import {
+  APP_BUSINESS_CONTEXT_CONFIG,
+  BILLING_AUTHORITY_NOTICE,
+  DEFAULT_BUSINESS_ID
+} from "../src/types/businessProfile";
 import {
   computeFirstSaleEngineState,
   evaluateAutomationPolicy,
@@ -26,6 +42,7 @@ import { getToolDefinition } from "../src/data/ecosystemToolRegistry";
 interface AuthedCaller {
   uid: string;
   email?: string;
+  claims?: Record<string, unknown>;
 }
 
 const aiRateWindows = new Map<string, number[]>();
@@ -48,7 +65,11 @@ async function verifyCaller(auth: Auth, req: express.Request): Promise<AuthedCal
   if (!header?.startsWith("Bearer ")) return null;
   try {
     const decoded = await auth.verifyIdToken(header.slice(7));
-    return { uid: decoded.uid, email: decoded.email };
+    return {
+      uid: decoded.uid,
+      email: decoded.email,
+      claims: decoded as unknown as Record<string, unknown>
+    };
   } catch {
     return null;
   }
@@ -69,6 +90,82 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
     }
     (req as any).caller = caller;
     return next();
+  });
+
+  // =========================================================================
+  // 0. BUSINESS PROFILE & SHARED INTELLIGENCE HUB ROUTES (Commercial Foundation 1)
+  // =========================================================================
+  router.get("/business-profile", async (req, res) => {
+    const caller = (req as any).caller as AuthedCaller;
+    const businessId = cleanString(req.query.businessId, 64) || DEFAULT_BUSINESS_ID;
+    try {
+      const [loaded, canUseFounderPreset] = await Promise.all([
+        loadBusinessProfile(db, caller.uid, businessId),
+        checkFounderPresetCapability(db, caller)
+      ]);
+      return res.json({
+        success: true,
+        profile: loaded.profile,
+        source: loaded.source,
+        hasSavedBusinessProfile: loaded.hasSavedBusinessProfile,
+        canUseFounderPreset,
+        billingAuthorityNotice: BILLING_AUTHORITY_NOTICE
+      });
+    } catch (err: any) {
+      if (err instanceof BusinessProfileAccessError) {
+        return res.status(403).json({ error: err.message });
+      }
+      return res.status(500).json({ error: err?.message || "Failed to load business profile." });
+    }
+  });
+
+  router.put("/business-profile", async (req, res) => {
+    const caller = (req as any).caller as AuthedCaller;
+    const businessId = cleanString(req.body?.businessId || req.query.businessId, 64) || DEFAULT_BUSINESS_ID;
+    try {
+      const result = await saveBusinessProfile(db, caller.uid, req.body, businessId);
+      return res.json({
+        success: true,
+        profile: result.profile,
+        legacySynced: result.legacySynced,
+        billingAuthorityNotice: result.billingAuthorityNotice
+      });
+    } catch (err: any) {
+      if (err instanceof BusinessProfileAccessError) {
+        return res.status(403).json({ error: err.message });
+      }
+      if (err instanceof BusinessProfileValidationError) {
+        return res.status(400).json({ error: err.message, errors: err.errors });
+      }
+      return res.status(500).json({ error: err?.message || "Failed to save business profile." });
+    }
+  });
+
+  router.get("/business-profile/founder-preset", async (req, res) => {
+    const caller = (req as any).caller as AuthedCaller;
+    try {
+      const result = await getFounderBusinessProfilePreset(db, caller);
+      return res.json({ success: true, ...result });
+    } catch (err: any) {
+      if (err instanceof BusinessProfileAccessError) {
+        return res.status(403).json({ error: err.message });
+      }
+      return res.status(500).json({ error: err?.message || "Failed to load founder configuration preset." });
+    }
+  });
+
+  router.get("/intelligence/hub-summary", async (req, res) => {
+    const caller = (req as any).caller as AuthedCaller;
+    const businessId = cleanString(req.query.businessId, 64) || DEFAULT_BUSINESS_ID;
+    try {
+      const summary = await getSharedIntelligenceHubSummary(caller.uid, db, businessId);
+      return res.json({ success: true, summary });
+    } catch (err: any) {
+      if (err instanceof BusinessProfileAccessError) {
+        return res.status(403).json({ error: err.message });
+      }
+      return res.status(500).json({ error: err?.message || "Failed to load Shared Intelligence summary." });
+    }
   });
 
   // =========================================================================
@@ -130,13 +227,21 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
     }
 
     try {
+      const appContextConfig = APP_BUSINESS_CONTEXT_CONFIG[String(appId || "").toLowerCase()];
+      const mergedDomains = Array.from(
+        new Set([
+          ...(appContextConfig?.domains || ["identity", "business", "audience"]),
+          ...(tool.autoContextDomains || [])
+        ])
+      );
+
       const intelligence = await retrieveSharedIntelligenceContext(
         {
           userId: caller.uid,
           appId,
           projectId: projectId || undefined,
           taskType: toolId,
-          domains: tool.autoContextDomains.length > 0 ? tool.autoContextDomains : ["identity", "business", "audience"]
+          domains: mergedDomains
         },
         db
       );
@@ -164,12 +269,13 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
         `You are executing the ContentPaysUs tool "${tool.name}" inside application "${appId}".`,
         `Tool Intent: ${tool.intent}`,
         `Instructions: ${tool.aiInstructions}`,
+        "OFFERING INTEGRITY RULE: Explicitly distinguish AVAILABLE offerings from PLANNED offerings. NEVER describe planned or in-development offerings as live, launched, or currently available for purchase. NEVER invent revenue, sales, customer counts, testimonials, or unverified metrics.",
         refinementInstruction,
         appId === "projectz"
           ? "ISOLATION NOTICE: Clearly label all outputs as HYPOTHETICAL SANDBOX EXPERIMENTS."
           : "",
         "",
-        "SHARED CREATOR INTELLIGENCE (Strictly real user-provided facts and platform data — do NOT fabricate missing details):",
+        "SHARED CREATOR & BUSINESS INTELLIGENCE (Strictly real user-provided facts and verified platform data — do NOT fabricate missing details):",
         JSON.stringify(
           {
             identity: intelligence.creatorIdentity,
@@ -186,7 +292,7 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
           2
         ),
         "",
-        "USER INPUTS:",
+        "USER INPUTS (Explicit user inputs always take priority over saved defaults):",
         JSON.stringify(safeInputs, null, 2),
         "",
         "Return ONLY valid JSON with these exact string keys (use clean Markdown formatting inside each string value):",
@@ -318,6 +424,14 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
 
     const now = new Date().toISOString();
     const ref = db.collection("ecosystem_assets").doc();
+    // Prevent direct client assets from claiming verified_platform_data provenance
+    const safeProvenance =
+      provenance === "user_provided_fact" || provenance === "ai_hypothesis" || provenance === "recommendation"
+        ? provenance
+        : cleanAppId === "projectz"
+        ? "ai_hypothesis"
+        : "user_provided_fact";
+
     const record = {
       id: ref.id,
       userId: caller.uid,
@@ -329,7 +443,7 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
       projectId: projectId || null,
       sourceAppId: sourceAppId || null,
       sourceAssetId: sourceAssetId || null,
-      provenance: provenance || (cleanAppId === "projectz" ? "ai_hypothesis" : "user_provided_fact"),
+      provenance: safeProvenance,
       isolatedExperiment: cleanAppId === "projectz",
       version: 1,
       versions: [{ version: 1, savedAt: now, sections }],
@@ -339,19 +453,22 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
 
     await ref.set(record);
 
-    // CreatorWorks -> Sync approved brand assets directly into shared creator profile
+    // CreatorWorks -> Sync approved brand assets cleanly into Business Profile + legacy user profile
+    // (Role separation: CreatorWorks develops -> Hub stores/manages -> Shared Intelligence retrieves)
     if (syncToProfile === true && cleanAppId === "creatorworks") {
-      const profilePatch: Record<string, any> = { updatedAt: now };
-      if (typeof sections.positioningStatement === "string" && sections.positioningStatement) {
-        profilePatch.positioning = sections.positioningStatement.slice(0, 600);
-      }
-      if (typeof sections.audienceSummary === "string" && sections.audienceSummary) {
-        profilePatch.audience = sections.audienceSummary.slice(0, 600);
-      }
-      if (typeof sections.voiceSummary === "string" && sections.voiceSummary) {
-        profilePatch.writingStyle = sections.voiceSummary.slice(0, 600);
-      }
-      await db.collection("users").doc(caller.uid).set(profilePatch, { merge: true });
+      await syncCreatorWorksToBusinessProfile(db, caller.uid, sections).catch(async () => {
+        const profilePatch: Record<string, any> = { updatedAt: now };
+        if (typeof sections.positioningStatement === "string" && sections.positioningStatement) {
+          profilePatch.positioning = sections.positioningStatement.slice(0, 600);
+        }
+        if (typeof sections.audienceSummary === "string" && sections.audienceSummary) {
+          profilePatch.audience = sections.audienceSummary.slice(0, 600);
+        }
+        if (typeof sections.voiceSummary === "string" && sections.voiceSummary) {
+          profilePatch.writingStyle = sections.voiceSummary.slice(0, 600);
+        }
+        await db.collection("users").doc(caller.uid).set(profilePatch, { merge: true });
+      });
     }
 
     // Optional Shared Intelligence contribution (never leaks Project Z into production apps)
@@ -372,12 +489,16 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
               ? "product"
               : "business",
           factType: cleanToolId,
-          provenance: record.provenance,
+          provenance: safeProvenance,
           data: { title: cleanTitle, summary: Object.values(sections).join(" ").slice(0, 500) },
           confidence: "high"
         },
         db
-      ).catch(() => {});
+      ).catch((err) => {
+        if (err instanceof IntelligenceIntegrityError) {
+          console.warn("[ECOSYSTEM_ASSETS] Blocked invalid provenance contribution:", err.message);
+        }
+      });
     }
 
     return res.json({ asset: record });
@@ -444,6 +565,13 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
     const name = cleanString(req.body?.name, 120);
     if (!name) return res.status(400).json({ error: "Contact name is required." });
 
+    // Prevent direct client writes from falsely asserting transaction_verified status
+    if (req.body?.verificationStatus === "transaction_verified") {
+      return res.status(403).json({
+        error: 'Direct client writes cannot assign "transaction_verified" status. Verified status is assigned strictly by verified payment records.'
+      });
+    }
+
     const allowedStages = new Set(["lead", "qualified", "meeting_booked", "proposal_sent", "won_verified", "closed_lost"]);
     const stage = allowedStages.has(req.body?.stage) ? req.body.stage : "lead";
     const now = new Date().toISOString();
@@ -459,8 +587,8 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
       offerInterest: cleanString(req.body?.offerInterest, 160),
       dealValueCents: Math.max(0, Math.round(Number(req.body?.dealValueCents || 0))),
       verificationStatus:
-        req.body?.verificationStatus === "transaction_verified" || req.body?.verificationStatus === "evidence_supported"
-          ? req.body.verificationStatus
+        req.body?.verificationStatus === "evidence_supported"
+          ? "evidence_supported"
           : "self_reported",
       isTestRecord: req.body?.isTestRecord === true,
       notes: cleanString(req.body?.notes, 2000),
@@ -479,9 +607,18 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
     if (!snap.exists) return res.status(404).json({ error: "Contact not found." });
     if (snap.data()?.userId !== caller.uid) return res.status(403).json({ error: "Access denied." });
 
+    if (req.body?.verificationStatus === "transaction_verified") {
+      return res.status(403).json({
+        error: 'Direct client writes cannot assign "transaction_verified" status.'
+      });
+    }
+
     const patch: Record<string, any> = { updatedAt: new Date().toISOString() };
-    for (const key of ["name", "email", "handle", "source", "stage", "offerInterest", "notes", "nextAction", "verificationStatus"]) {
+    for (const key of ["name", "email", "handle", "source", "stage", "offerInterest", "notes", "nextAction"]) {
       if (typeof req.body?.[key] === "string") patch[key] = cleanString(req.body[key], 2000);
+    }
+    if (req.body?.verificationStatus === "self_reported" || req.body?.verificationStatus === "evidence_supported") {
+      patch.verificationStatus = req.body.verificationStatus;
     }
     if (typeof req.body?.dealValueCents === "number") {
       patch.dealValueCents = Math.max(0, Math.round(req.body.dealValueCents));
@@ -849,9 +986,14 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
     if (!customerName || !outcomeSummary) {
       return res.status(400).json({ error: "Customer name and outcome summary are required." });
     }
+    if (req.body?.verificationTier === "transaction_verified") {
+      return res.status(403).json({
+        error: 'Direct client writes cannot assign "transaction_verified" tier. Verified proof requires verified payment records.'
+      });
+    }
     const tier =
-      req.body?.verificationTier === "transaction_verified" || req.body?.verificationTier === "evidence_supported"
-        ? req.body.verificationTier
+      req.body?.verificationTier === "evidence_supported"
+        ? "evidence_supported"
         : "self_reported";
 
     const now = new Date().toISOString();
@@ -1242,6 +1384,7 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
   router.get("/first-sale-status", async (req, res) => {
     const caller = (req as any).caller as AuthedCaller;
     const [
+      businessLoaded,
       userSnap,
       assetsSnap,
       productsSnap,
@@ -1253,6 +1396,7 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
       proofSnap,
       financeSnap
     ] = await Promise.all([
+      loadBusinessProfile(db, caller.uid, DEFAULT_BUSINESS_ID),
       db.collection("users").doc(caller.uid).get(),
       db.collection("ecosystem_assets").where("userId", "==", caller.uid).limit(100).get(),
       db.collection("funnelworks_projects").doc(caller.uid).collection("projects").limit(20).get(),
@@ -1266,6 +1410,7 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
     ]);
 
     const userData = userSnap.exists ? userSnap.data() || {} : {};
+    const bp = businessLoaded.profile;
     const assets = assetsSnap.docs.map((d) => d.data() || {});
     const products = productsSnap.docs.map((d) => d.data() || {});
 
@@ -1291,10 +1436,19 @@ export function createEcosystemRouter(db: Firestore, auth: Auth) {
 
     const state = computeFirstSaleEngineState({
       hasCreatorProfile: Boolean(
-        userData.offer || userData.audience || userData.positioning || assets.some((a) => a.appId === "creatorworks")
+        bp.businessProfile.businessName ||
+          bp.businessProfile.positioning ||
+          bp.creatorProfile.creatorName ||
+          userData.offer ||
+          userData.audience ||
+          userData.positioning ||
+          assets.some((a) => a.appId === "creatorworks")
       ),
       hasDemandResearch: assets.some((a) => a.appId === "demandworks"),
-      hasOfferBlueprint: Boolean(userData.offer) || assets.some((a) => a.appId === "offerworks"),
+      hasOfferBlueprint:
+        bp.productsAndOffers.length > 0 ||
+        Boolean(userData.offer) ||
+        assets.some((a) => a.appId === "offerworks"),
       hasDigitalProduct: products.length > 0 || assets.some((a) => a.appId === "productworks"),
       hasProductPromotionDrafts: products.some(
         (p) => Array.isArray(p.promotionDrafts) && p.promotionDrafts.length > 0

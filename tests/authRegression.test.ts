@@ -1597,5 +1597,33 @@ test("22. Checkpoint B security & account-switch isolation invariants", () => {
   assert.match(unifiedWsSrc, /activeUidRef/, "ContentPaysUsUnifiedWorkspace must guard async project mutations by active UID");
 });
 
+test("23. Firebase Auth initializes without eager popupRedirectResolver to avoid Safari/iframe _openIframe startup network-request-failed rejections", () => {
+  const rootDir = process.cwd();
+  const firebaseSrc = fs.readFileSync(path.join(rootDir, "src", "firebase.ts"), "utf8");
+  const authScreenSrc = fs.readFileSync(path.join(rootDir, "src", "components", "AuthScreen.tsx"), "utf8");
+  const bridgeSrc = fs.readFileSync(path.join(rootDir, "src", "components", "PreviewGoogleBridgeView.tsx"), "utf8");
+
+  assert.match(
+    firebaseSrc,
+    /export const authPopupRedirectResolver = browserPopupRedirectResolver/,
+    "firebase.ts must export authPopupRedirectResolver for lazy signInWithPopup usage"
+  );
+  assert.doesNotMatch(
+    firebaseSrc,
+    /initializeAuth\(app,\s*\{[\s\S]*?popupRedirectResolver/,
+    "firebase.ts must not pass popupRedirectResolver eagerly into initializeAuth()"
+  );
+  assert.match(
+    authScreenSrc,
+    /signInWithPopup\(auth,\s*provider,\s*authPopupRedirectResolver\)/,
+    "AuthScreen must pass authPopupRedirectResolver lazily to signInWithPopup"
+  );
+  assert.match(
+    bridgeSrc,
+    /signInWithPopup\(auth,\s*provider,\s*authPopupRedirectResolver\)/,
+    "PreviewGoogleBridgeView must pass authPopupRedirectResolver lazily to signInWithPopup"
+  );
+});
+
 
 

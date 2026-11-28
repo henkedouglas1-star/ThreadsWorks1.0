@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   auth,
   authPersistenceReady,
+  authPopupRedirectResolver,
   db,
   ensureGoogleUserProfile,
   getFirebaseAuthDiagnosticsMeta,
@@ -493,7 +494,7 @@ export default function AuthScreen({
         // Persistence was already configured synchronously in initializeAuth().
         const provider = new GoogleAuthProvider();
         provider.setCustomParameters({ prompt: "select_account" });
-        const popupPromise = signInWithPopup(auth, provider);
+        const popupPromise = signInWithPopup(auth, provider, authPopupRedirectResolver);
 
         // Purely observational marker if signInWithPopup stays pending for 10s (never alters auth state)
         if (showDevDiagnostics) {

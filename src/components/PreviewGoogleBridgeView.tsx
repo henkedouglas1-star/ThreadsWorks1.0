@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { CheckCircle, AlertCircle } from "lucide-react";
-import { auth } from "../firebase";
+import { auth, authPopupRedirectResolver } from "../firebase";
 import { formatFirebaseAuthError } from "../lib/authContract";
 import {
   PREVIEW_BRIDGE_CANCELLED_MESSAGE,
@@ -34,7 +34,7 @@ export default function PreviewGoogleBridgeView({ handoffId }: PreviewGoogleBrid
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: "select_account" });
-      const userCredential = await signInWithPopup(auth, provider);
+      const userCredential = await signInWithPopup(auth, provider, authPopupRedirectResolver);
       const oauthCred = GoogleAuthProvider.credentialFromResult(userCredential);
       const googleIdToken = oauthCred?.idToken || null;
       const googleAccessToken = oauthCred?.accessToken || null;
