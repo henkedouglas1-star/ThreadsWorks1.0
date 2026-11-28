@@ -85,11 +85,11 @@ test("homepage renders customer-outcome hero, connected journey, ThreadsWorks fr
 
   // Customer-outcome ContentPaysUs + ThreadsWorks hero
   assert.match(html, /ContentPaysUs · Home of ThreadsWorks for Meta Threads creators\./);
-  assert.match(html, /<h1[^>]*>Turn what you know into what you earn\.<\/h1>/);
-  assert.match(html, /The AI-powered ecosystem for building your creator business\./);
+  assert.match(html, /<h1[^>]*>Turn your ideas into Threads content\.<\/h1>/);
+  assert.match(html, /Create, organize, schedule, and publish your content with one AI-powered workspace\./);
   assert.match(
     html,
-    /Learn the skills, create the content, build valuable products and connect with the people who need them\./
+    /Create · Organize · Publish/
   );
   assert.match(html, /60 FREE POSTS EVERY MONTH ON THREADSWORKS\./);
   assert.match(html, /GET STARTED FREE/);
@@ -146,7 +146,7 @@ test("ContentPaysUs public ecosystem routes (/applications, /learn, /about) prer
   assert.match(appsHtml, /Connect &amp; Grow \(6 Applications\)/);
   assert.match(appsHtml, /Automate &amp; Scale \(4 Applications\)/);
   assert.match(appsHtml, /ThreadsWorks \(Available\)/);
-  assert.match(appsHtml, /ProductWorks \(Available\)/);
+  assert.match(appsHtml, /ProductWorks \(In Development\)/);
 
   const learnHtml = renderPublicRouteHtml(BASE_TEMPLATE, learn);
   assert.match(learnHtml, /Learn for free\. Build with AI\. Grow together\./);
