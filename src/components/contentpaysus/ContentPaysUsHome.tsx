@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ArrowRight, BookOpen, Check, Layers, ExternalLink } from "lucide-react";
 import {
   AppAvailabilityStatus,
+  CONTENT_PAYS_US_APPS,
   EcosystemCategory,
   getAppsByCategory,
   getAvailabilityDotClass,
@@ -34,6 +35,8 @@ interface JourneyStage {
   status: AppAvailabilityStatus;
   capabilities: string[];
 }
+
+const productWorksAvailability = CONTENT_PAYS_US_APPS.find(app => app.id === "productworks")!.availability;
 
 const CUSTOMER_GOALS: CustomerGoal[] = [
   {
@@ -74,7 +77,7 @@ const CUSTOMER_GOALS: CustomerGoal[] = [
     outcome: "Turn an idea or post into a downloadable PDF playbook, 7-slide carousel, storefront copy, and promo drafts.",
     destinationLabel: "ProductWorks",
     path: "/productworks",
-    availability: "Available"
+    availability: productWorksAvailability
   },
   {
     number: "06",
@@ -149,8 +152,8 @@ const CREATOR_JOURNEY_STAGES: JourneyStage[] = [
       "OfferWorks shapes your promise and pricing; ProductWorks builds PDF playbooks, carousels, and auto-prepares Threads promo drafts.",
     primaryPath: "/productworks",
     primaryActionLabel: "Explore ProductWorks",
-    status: "Available",
-    capabilities: ["OfferWorks (Available)", "ProductWorks (Available)"]
+    status: productWorksAvailability,
+    capabilities: ["OfferWorks (Available)", `ProductWorks (${productWorksAvailability})`]
   },
   {
     number: "04",
@@ -254,15 +257,15 @@ export function ContentPaysUsHome({
             </p>
 
             <h1 className="mt-5 text-[clamp(2.5rem,5.2vw,4.25rem)] font-extrabold tracking-tight text-slate-950 dark:text-white leading-[1.06]">
-              Turn what you know into what you earn.
+              Turn your ideas into Threads content.
             </h1>
 
             <p className="mt-6 text-lg sm:text-xl leading-relaxed text-slate-700 dark:text-zinc-300 max-w-2xl">
-              Learn the skills, create the content, build valuable products and connect with the people who need them.
+              Create, organize, schedule, and publish your content with one AI-powered workspace.
             </p>
 
             <p className="mt-3 text-sm sm:text-base font-medium text-slate-500 dark:text-zinc-400">
-              The AI-powered ecosystem for building your creator business.
+              Create · Organize · Publish
             </p>
 
             <div className="mt-9 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
@@ -276,11 +279,11 @@ export function ContentPaysUsHome({
                 <ArrowRight className="h-4 w-4" />
               </a>
               <a
-                href="/applications"
-                onClick={(e) => handleLink(e, "/applications")}
+                href="/ai-threads-post-generator"
+                onClick={(e) => handleLink(e, "/ai-threads-post-generator")}
                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-lg text-sm font-semibold border border-slate-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-slate-900 dark:text-zinc-100 hover:bg-slate-50 dark:hover:bg-zinc-800 transition-colors"
               >
-                Explore the Ecosystem
+                Explore ThreadsWorks
               </a>
             </div>
 
@@ -289,10 +292,7 @@ export function ContentPaysUsHome({
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" aria-hidden="true" />
                 <strong className="font-semibold text-slate-900 dark:text-zinc-200">ThreadsWorks:</strong> Available today (60 free posts/month)
               </span>
-              <span className="inline-flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400" aria-hidden="true" />
-                <strong className="font-semibold text-slate-900 dark:text-zinc-200">ProductWorks:</strong> Available (PDF, Carousel &amp; Auto-Promotion)
-              </span>
+
               <a
                 href="/create"
                 onClick={(e) => handleLink(e, "/create")}
@@ -613,7 +613,7 @@ export function ContentPaysUsHome({
                   </span>
                   <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 dark:text-indigo-400">
                     <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400" aria-hidden="true" />
-                    In Development
+                    {productWorksAvailability}
                   </span>
                 </div>
                 <h3 className="mt-2.5 text-xl font-bold text-slate-950 dark:text-white">ProductWorks</h3>
@@ -757,7 +757,7 @@ export function ContentPaysUsHome({
                 Start creating today with ThreadsWorks. Grow into ContentPaysUs.
               </h2>
               <p className="mt-3 text-base leading-relaxed text-slate-600 dark:text-zinc-400">
-                Create your free account to write and schedule Meta Threads posts today, test ProductWorks as it develops, and carry your creator profile forward as new applications launch.
+                Create your free account to write, organize, and schedule Meta Threads posts today.
               </p>
             </div>
 
