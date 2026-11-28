@@ -170,10 +170,10 @@ export const PUBLIC_MARKETING_ROUTES: PublicMarketingRoute[] = [
     priority: "1.0",
     changefreq: "weekly",
     platformNote: "ContentPaysUs · Home of ThreadsWorks for Meta Threads creators.",
-    h1: "Turn what you know into what you earn.",
-    heroSupportingHeadline: "The AI-powered ecosystem for building your creator business.",
+    h1: "Turn your ideas into Threads content.",
+    heroSupportingHeadline: "Create, organize, schedule, and publish your content with one AI-powered workspace.",
     lead:
-      "Learn the skills, create the content, build valuable products and connect with the people who need them.",
+      "Create · Organize · Publish",
     heroOfferLine: "60 FREE POSTS EVERY MONTH ON THREADSWORKS.",
     primaryCtaLabel: "GET STARTED FREE",
     workflowHeading: "Learn → Identify → Build → Attract → Connect → Sell → Deliver → Grow",
@@ -346,7 +346,7 @@ export const PUBLIC_MARKETING_ROUTES: PublicMarketingRoute[] = [
     kind: "ecosystem",
     title: "ContentPaysUs Applications | 20-App Creator Roadmap",
     description:
-      "Explore the ContentPaysUs application roadmap. ThreadsWorks is available now; ProductWorks is in development.",
+      "Explore the ContentPaysUs creator application roadmap. Create, organize and publish with ThreadsWorks today; ProductWorks is in development.",
     priority: "0.9",
     changefreq: "weekly",
     platformNote: "ContentPaysUs Ecosystem · 20 Specialized Applications in 3 Categories.",
