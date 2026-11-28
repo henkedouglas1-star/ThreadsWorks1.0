@@ -561,7 +561,7 @@ export function ContentPaysUsUnifiedWorkspace({
                 </div>
               </div>
 
-              {activeAppObj.id === "demandworks" && <DemandResearchPanel />}
+              {activeAppObj.id === "demandworks" && <DemandResearchPanel projects={projects} />}
 
               {/* ProductWorks Special Full Studio */}
               {activeAppObj.id === "productworks" && (
