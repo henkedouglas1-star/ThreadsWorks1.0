@@ -10,6 +10,7 @@ import {
   withTimeout,
 } from "../firebase";
 import ThreadsWorksLogo from "./ThreadsWorksLogo";
+import PageShareButton from "./PageShareButton";
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
@@ -758,6 +759,9 @@ export default function AuthScreen({
       data-theme="dark"
       className="dark relative min-h-screen w-full flex flex-col items-center justify-center bg-[#030206] px-4 py-8 md:py-12 text-zinc-100 overflow-x-hidden selection:bg-purple-500/30"
     >
+      <div className="absolute right-4 top-4 z-20">
+        <PageShareButton />
+      </div>
       
       {/* 1080p HD Multi-layer Atmospheric Background */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
