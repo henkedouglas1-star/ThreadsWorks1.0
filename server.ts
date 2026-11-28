@@ -5881,7 +5881,11 @@ app.post("/api/generate-posts-batch", async (req, res) => {
     // Parallelize only the initial writer calls. Acceptance, review, repairs and
     // replacement remain ordered against the complete accepted-draft ledger.
     // Opt-in rollout: preserve sequential behavior unless explicitly enabled.
-    const writerConcurrency = postCount >= 16 && process.env.CONTENT_BATCH_PARALLEL_ENABLED === "true" ? 2 : 1;
+    const parallelEnabled = postCount >= 16 && process.env.CONTENT_BATCH_PARALLEL_ENABLED === "true";
+    // Four writers is an opt-in benchmark profile, not a production default.
+    const writerConcurrency = parallelEnabled ? (process.env.CONTENT_BATCH_FAST_PROFILE === "true" ? 4 : 2) : 1;
+    timings.writerConcurrency = writerConcurrency;
+    timings.targetMs = 20000;
     const generateRawChunk = async (slotNumbers: number[], expected: number, chunkPlannedParts: number, priorDrafts: any[], schemaRetryFeedback?: string) => {
           ensureTime();
           const tGen = Date.now();
@@ -6177,6 +6181,13 @@ Return ONLY a single JSON draft object matching the schema.`;
       timings.commitMs = Date.now() - tCommit;
     }
     timings.totalMs = Date.now() - startTime;
+    timings.targetMet = finalPosts.length === postCount && timings.totalMs <= timings.targetMs;
+    console.info("[CONTENT_ENGINE_LATENCY]", JSON.stringify({
+      requestId, requestedCount: postCount, acceptedCount: finalPosts.length,
+      writerConcurrency, totalDurationMs: timings.totalMs, targetMs: timings.targetMs,
+      targetMet: timings.targetMet, modelCallCount: diagModelCalls,
+      repairAttempts: diagRepairAttempts, replacementAttempts: diagReplacementAttempts
+    }));
     logGenerationBatchDiagnostics(
       buildGenerationBatchDiagnostics({
         requestId,
