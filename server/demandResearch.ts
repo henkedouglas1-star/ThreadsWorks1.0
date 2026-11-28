@@ -27,24 +27,15 @@ export function normalizeDemandSources(payload: unknown): DemandSource[] {
   return sources;
 }
 
-// Only the explicit public search term is sent to the search provider.
-// Never forward private creator context, customer notes, auth tokens or project data.
-export async function searchDemandSources(topic: string, apiKey: string, fetcher: typeof fetch = fetch): Promise<DemandSource[]> {
-  const query = topic.trim();
-  if (!query || query.length > 200) throw new Error("Enter a public research topic of 1–200 characters.");
-  if (!apiKey.trim()) throw new Error("Live research is not configured.");
-  const url = new URL("https://api.search.brave.com/res/v1/web/search");
-  url.searchParams.set("q", query);
-  url.searchParams.set("count", "8");
-  url.searchParams.set("safesearch", "moderate");
-  url.searchParams.set("text_decorations", "false");
-  const response = await fetcher(url, {
-    headers: { Accept: "application/json", "X-Subscription-Token": apiKey.trim() },
-    signal: AbortSignal.timeout(12000),
-    redirect: "error"
-  });
-  if (!response.ok) throw new Error("Live research provider is unavailable. Please try again later.");
-  return normalizeDemandSources(await response.json());
+// Grounded output is for transient display only. Never forward it to the knowledge engine.
+export function readGroundedResearch(response: any) {
+  const candidate = response?.candidates?.[0];
+  const metadata = candidate?.groundingMetadata;
+  const chunks = metadata?.groundingChunks;
+  const sources = normalizeDemandSources({ web: { results: Array.isArray(chunks) ? chunks.map((c: any) => ({ title: c?.web?.title, url: c?.web?.uri })) : [] } });
+  const text = typeof response?.text === "string" ? response.text.trim() : "";
+  if (!text || !sources.length || !Array.isArray(metadata?.groundingSupports) || !metadata.groundingSupports.length) throw new Error("No grounded research was returned.");
+  return { text, sources, searchEntryPoint: typeof metadata?.searchEntryPoint?.renderedContent === "string" ? metadata.searchEntryPoint.renderedContent : "" };
 }
 
 export interface DemandFinding {
