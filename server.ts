@@ -1,7 +1,7 @@
 import { MAX_CONTENT_BATCH_SIZE, DEFAULT_CONTENT_BATCH_SIZE, CONTENT_BATCH_TARGET_MS } from "./contentBatchConfig";
 import { computeAdaptiveChunkSize, createUniversalGenerationContract, validateUniversalBatch, buildGenerationBatchDiagnostics, logGenerationBatchDiagnostics, resolveBatchRequest, normalizeBatchPosts, writeValidatedChunk, validateSingleDraft, checkUnsupportedClaims, executeValidatedSingleWrite, sendPipelineErrorResponse, GenerationPipelineError, classifyProviderOrNetworkError, FailedDraftInfo } from "./server/contentBatchContract";
 import { buildGatedWriteContext, resolveWritingLengthPlan, resolveEffectivePostCount, extractExplicitPostCount } from "./server/writeContextGate";
-import { planEightPostAiDecideParts, buildRollingLedger, planBatchSlots, buildCompactExclusionSummary, detectFormulaicOpener, checkDraftNovelty } from "./server/writeDiversityEngine";
+import { planSmallBatchAiDecideParts, buildRollingLedger, planBatchSlots, buildCompactExclusionSummary, detectFormulaicOpener, checkDraftNovelty } from "./server/writeDiversityEngine";
 import { composeBatchWriterSystemInstruction, composeReviewerSystemInstruction, composeSingleWriteSystemInstruction } from "./server/writePromptComposer";
 import { THREADSWORKS_MODELS } from "./server/aiCostOptimizationEngine";
 import {
@@ -5716,8 +5716,8 @@ app.post("/api/generate-posts-batch", async (req, res) => {
       writingPlan,
       randomSeed: body.randomSeed
     });
-    const slotPlan = postCount === 8 && partCount == null
-      ? planEightPostAiDecideParts(initialSlotPlan, writingPlan, { randomSeed: body.randomSeed })
+    const slotPlan = partCount == null
+      ? planSmallBatchAiDecideParts(initialSlotPlan, writingPlan)
       : initialSlotPlan;
 
     const ai = getAI();
