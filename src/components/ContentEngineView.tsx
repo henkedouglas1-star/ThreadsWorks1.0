@@ -1,3 +1,4 @@
+import { CONTENT_BATCH_SIZES, normalizeContentBatchSelection } from "../../contentBatchConfig";
 import React, { useState, useRef, useEffect } from "react";
 import { UserProfile, ContentPillar, CreationMode, ContentActionType, CreationContext } from "../types";
 import { auth, db, withTimeout, handleFirestoreError, OperationType, sanitizeForFirestore } from "../firebase";
@@ -1093,11 +1094,7 @@ export default function ContentEngineView({ profile, onNavigateToTab, onRefreshP
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const POSTS_TO_CREATE_OPTIONS = [
-    { value: "1", label: "1 post" },
-    { value: "4", label: "4 posts" },
-    { value: "7", label: "7 posts" },
-  ];
+  const POSTS_TO_CREATE_OPTIONS = CONTENT_BATCH_SIZES.map(size => ({ value: String(size), label: `${size} ${size === 1 ? "post" : "posts"}` }));
 
   const CTA_OPTIONS = [
     { value: "auto", label: "AI Decide" },
@@ -1105,7 +1102,7 @@ export default function ContentEngineView({ profile, onNavigateToTab, onRefreshP
     { value: "off", label: "Off" },
   ];
 
-  const normalizedPostsToCreate = ["1", "4", "7"].includes(postsToCreate) ? postsToCreate : "4";
+  const normalizedPostsToCreate = normalizeContentBatchSelection(postsToCreate);
   const activePostsOption = POSTS_TO_CREATE_OPTIONS.find(o => o.value === normalizedPostsToCreate) || POSTS_TO_CREATE_OPTIONS[0];
   const hasExplicitPostsSelectionRef = useRef(false);
   const { threadLength: standardThreadLength, sentencesPerPart: standardSentencesPerPart } =
