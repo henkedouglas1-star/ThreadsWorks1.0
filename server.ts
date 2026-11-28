@@ -5,6 +5,8 @@ import { buildGatedWriteContext, resolveWritingLengthPlan, resolveEffectivePostC
 import { planSmallBatchAiDecideParts, buildRollingLedger, planBatchSlots, buildCompactExclusionSummary, detectFormulaicOpener, checkDraftNovelty } from "./server/writeDiversityEngine";
 import { composeBatchWriterSystemInstruction, composeReviewerSystemInstruction, composeSingleWriteSystemInstruction } from "./server/writePromptComposer";
 import { THREADSWORKS_MODELS } from "./server/aiCostOptimizationEngine";
+import { contentGenerationJobStore, isValidJobId, normalizeIdempotencyKey } from "./server/contentGenerationJobs";
+import { ContentEngineTelemetryCollector } from "./server/contentEngineTelemetry";
 import {
   createFirestoreScheduledPostStore,
   evaluateScheduledEligibility,
@@ -27,7 +29,7 @@ import {
 } from "./server/previewAuthHandoff";
 import express from "express";
 import path from "path";
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
 import { OAuth2Client } from "google-auth-library";
 
 const oidcClient = new OAuth2Client();
@@ -331,6 +333,7 @@ const adminApp = getApps().length === 0
   : getApp();
 
 const serverDb = getFirestore(adminApp, databaseId);
+contentGenerationJobStore.attachFirestore(serverDb);
 const serverAuth = getAuth(adminApp);
 app.use("/api/funnelworks", createFunnelworksRouter(serverDb, serverAuth));
 app.use("/api/post-art", createPostArtRouter(serverDb, serverAuth, firebaseConfig?.storageBucket));
@@ -5638,7 +5641,8 @@ function autoDecideCategory(requestText: string): "attention" | "trust" | "sales
 app.post("/api/generate-posts-batch", async (req, res) => {
   const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
   const startTime = Date.now();
-  let category = req.body?.category || "auto";
+  const body = req.body || {};
+  const userId = body.userId || body.profile?.uid || (req.headers["x-user-id"] as string) || "anonymous";
 
   // Set explicit keep-alive and cache-control headers to prevent WebKit/Safari proxy dropping
   res.setHeader("Connection", "keep-alive");
@@ -5646,7 +5650,77 @@ app.post("/api/generate-posts-batch", async (req, res) => {
   res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   res.setHeader("X-Request-Id", requestId);
 
-  let limitHandle: any = null;
+  const tLimit = Date.now();
+  const limitGuard = await enforceAiGenerationLimit(req, res, userId);
+  const limitGuardMs = Date.now() - tLimit;
+  if (!limitGuard) return; // Response sent by guard
+
+  const outcome = await executeBatchGenerationCore({
+    body,
+    activeUserId: limitGuard.activeUserId,
+    limitHandle: limitGuard.reservationId || null,
+    limitGuardMs,
+    requestId,
+    startTime,
+    res
+  });
+
+  if (outcome.ok && outcome.payload) {
+    return res.json(outcome.payload);
+  }
+  const failure = outcome.failure || {
+    httpStatus: 500,
+    body: { error: "Generation failed", errorCode: "INTERNAL_ERROR", retryable: true, message: "An unexpected error occurred during content generation." }
+  };
+  return res.status(failure.httpStatus).json(failure.body);
+});
+
+interface BatchGenerationCoreFailure {
+  httpStatus: number;
+  body: Record<string, any>;
+  errorCode: string;
+  retryable: boolean;
+  message: string;
+  error: string;
+  failedDrafts?: FailedDraftInfo[];
+  validDraftCount?: number;
+  requestedCount?: number;
+}
+
+interface BatchGenerationCoreResult {
+  ok: boolean;
+  payload?: Record<string, any>;
+  failure?: BatchGenerationCoreFailure;
+}
+
+async function executeBatchGenerationCore(params: {
+  body: Record<string, any>;
+  activeUserId: string;
+  limitHandle: string | null;
+  limitGuardMs: number;
+  requestId: string;
+  startTime: number;
+  res: { readonly destroyed: boolean };
+  onProgress?: (patch: {
+    stage?: string;
+    completedCount?: number;
+    requestedCount?: number;
+    currentChunk?: number;
+    totalChunks?: number;
+  }) => void;
+  consumeLimitHandle?: () => string | null;
+}): Promise<BatchGenerationCoreResult> {
+  const { body, activeUserId, requestId, startTime, res, onProgress } = params;
+  let limitHandle: any = params.limitHandle;
+  const takeLimitHandle = () => {
+    if (params.consumeLimitHandle) {
+      return params.consumeLimitHandle();
+    }
+    const handle = limitHandle;
+    limitHandle = null;
+    return handle;
+  };
+  let category = body?.category || "auto";
   let diagPostCount = 0;
   let diagWritingPlan: any = null;
   let diagSlotPlan: any[] = [];
@@ -5659,25 +5733,17 @@ app.post("/api/generate-posts-batch", async (req, res) => {
   let diagReplacementAttempts = 0;
 
   try {
-    const body = req.body || {};
-    const userId = body.userId || body.profile?.uid || (req.headers["x-user-id"] as string) || "anonymous";
     const timings: Record<string, any> = {
-      limitGuardMs: 0,
+      limitGuardMs: params.limitGuardMs,
       resolveContextMs: 0,
       snapshotMs: 0,
       chunks: [] as any[],
       commitMs: 0
     };
 
-    const tLimit = Date.now();
-    const limitGuard = await enforceAiGenerationLimit(req, res, userId);
-    timings.limitGuardMs = Date.now() - tLimit;
-    if (!limitGuard) return; // Response sent by guard
-    limitHandle = limitGuard.reservationId;
-    const activeUserId = limitGuard.activeUserId;
-
     // --- STAGE 1: UNDERSTAND, RESOLVE & GATE CONTEXT ---
     // Fetch creator tab context and generation intelligence snapshot in parallel
+    onProgress?.({ stage: "resolving_context" });
     const tCtx = Date.now();
     const effectiveTabId = body.selectedSavedTabId || body.savedTabId || body.savedTab?.id;
     const [resolvedContext, snapshot] = await Promise.all([
@@ -5725,10 +5791,19 @@ app.post("/api/generate-posts-batch", async (req, res) => {
     const ai = getAI();
     const generatedPosts: any[] = [];
     const failedSlots: FailedDraftInfo[] = [];
+    // Bounded parallel generation for 4 and 7 posts (opt-out only via CONTENT_BATCH_PARALLEL_ENABLED="false").
+    // Keeps acceptance, editorial review, novelty checks, repairs and replacement ordered against accepted drafts.
+    const parallelEnabled = postCount >= 4 && process.env.CONTENT_BATCH_PARALLEL_ENABLED !== "false";
     // Token-budget adaptive chunking reduces sequential round trips on standard auto batches
     // while keeping deep/tutorial or explicit 7–10-part batches small to prevent truncation.
-    const chunkSize = computeAdaptiveChunkSize(postCount, writingPlan, slotPlan);
-    const generationContract = createUniversalGenerationContract({
+    const baseChunkSize = computeAdaptiveChunkSize(postCount, writingPlan, slotPlan);
+    const chunkSize =
+      parallelEnabled && postCount === 4 && baseChunkSize >= 4
+        ? 2
+        : parallelEnabled && postCount === 7 && baseChunkSize >= 4
+          ? 3
+          : baseChunkSize;
+    const baseContract = createUniversalGenerationContract({
       generationMode: postCount === 1 ? "single" : "batch",
       requestedBatchSize: postCount,
       writingPlan,
@@ -5737,6 +5812,21 @@ app.post("/api/generate-posts-batch", async (req, res) => {
       businessRelevance: gated.businessRelevance,
       slotPlan
     });
+    const generationContract = {
+      ...baseContract,
+      chunkSize,
+      chunkCount: Math.ceil(Math.max(1, postCount) / chunkSize)
+    };
+    const telemetry = new ContentEngineTelemetryCollector({
+      requestId,
+      userId: activeUserId,
+      mode: onProgress ? "job" : "sync_batch",
+      requestedCount: postCount
+    });
+    telemetry.authDurationMs = params.limitGuardMs;
+    telemetry.contextRetrievalMs = timings.resolveContextMs;
+    telemetry.chunkSize = chunkSize;
+    telemetry.chunkCount = generationContract.chunkCount;
     diagPostCount = postCount;
     diagWritingPlan = writingPlan;
     diagSlotPlan = slotPlan;
@@ -5744,6 +5834,13 @@ app.post("/api/generate-posts-batch", async (req, res) => {
     diagChunkCount = generationContract.chunkCount;
     diagAcceptedPosts = generatedPosts;
     diagFailedSlots = failedSlots;
+    onProgress?.({
+      stage: "generating",
+      requestedCount: postCount,
+      completedCount: 0,
+      currentChunk: 0,
+      totalChunks: generationContract.chunkCount
+    });
     const deadline = Date.now() + (postCount >= 32 ? 300000 : postCount >= 16 ? 210000 : 140000);
     const ensureTime = () => {
       if (res.destroyed || Date.now() >= deadline) {
@@ -5851,6 +5948,7 @@ app.post("/api/generate-posts-batch", async (req, res) => {
         config: {
           maxOutputTokens: 2500,
           responseMimeType: "application/json",
+          thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
           httpOptions: { timeout: Math.max(1, Math.min(30000, deadline - Date.now())) },
           systemInstruction: reviewerSystemInstruction,
           responseSchema: {
@@ -5881,12 +5979,12 @@ app.post("/api/generate-posts-batch", async (req, res) => {
       return reviewResults;
     };
 
-    // Parallelize only the initial writer calls. Acceptance, review, repairs and
-    // replacement remain ordered against the complete accepted-draft ledger.
-    // Opt-in rollout: preserve sequential behavior unless explicitly enabled.
-    const parallelEnabled = postCount >= 16 && process.env.CONTENT_BATCH_PARALLEL_ENABLED === "true";
-    // Four writers is an opt-in benchmark profile, not a production default.
-    const writerConcurrency = parallelEnabled ? (process.env.CONTENT_BATCH_FAST_PROFILE === "true" ? 4 : 2) : 1;
+    // Parallelize only the initial writer calls with bounded concurrency (2 for 4 posts, up to 3 for 7 posts).
+    // Acceptance, review, repairs and replacement remain ordered against the complete accepted-draft ledger.
+    const writerConcurrency = parallelEnabled
+      ? (postCount >= 7 ? Math.min(3, Math.ceil(postCount / chunkSize)) : Math.min(2, Math.ceil(postCount / chunkSize)))
+      : 1;
+    telemetry.writerConcurrency = writerConcurrency;
     timings.writerConcurrency = writerConcurrency;
     timings.targetMs = CONTENT_BATCH_TARGET_MS;
     const generateRawChunk = async (slotNumbers: number[], expected: number, chunkPlannedParts: number, priorDrafts: any[], schemaRetryFeedback?: string) => {
@@ -5947,6 +6045,13 @@ app.post("/api/generate-posts-batch", async (req, res) => {
     for (let offset = 0; offset < postCount; offset += chunkSize) {
       try {
       ensureTime();
+      const currentChunkNum = Math.floor(offset / chunkSize) + 1;
+      onProgress?.({
+        stage: "generating",
+        currentChunk: currentChunkNum,
+        totalChunks: generationContract.chunkCount,
+        completedCount: generatedPosts.length
+      });
       if (writerConcurrency > 1 && !prefetched.has(offset)) await prefetchWave(offset);
       ensureTime();
       const expected = Math.min(chunkSize, postCount - offset);
@@ -6090,6 +6195,16 @@ Return ONLY a single JSON draft object matching the schema.`;
       }));
       generatedPosts.push(...taggedChunk);
       failedSlots.push(...chunkResult.failedSlots);
+      if (taggedChunk.length > 0) {
+        telemetry.recordPostDelivered();
+      }
+      onProgress?.({
+        stage: "validating",
+        currentChunk: currentChunkNum,
+        totalChunks: generationContract.chunkCount,
+        completedCount: generatedPosts.length,
+        partialPosts: generatedPosts
+      } as any);
       } catch (err) {
         const failure = err instanceof GenerationPipelineError ? err : classifyProviderOrNetworkError(err);
         // Preserve only previously accepted drafts on recognized provider/network
@@ -6133,6 +6248,12 @@ Return ONLY a single JSON draft object matching the schema.`;
         }
       );
     }
+
+    onProgress?.({
+      stage: "finalizing",
+      completedCount: generatedPosts.length,
+      totalChunks: generationContract.chunkCount
+    });
 
     // Universal quota-free batch validation across all batch sizes before normalization or quota commit.
     validateUniversalBatch(generatedPosts, {
@@ -6178,6 +6299,7 @@ Return ONLY a single JSON draft object matching the schema.`;
     recordGeneratedBatchInSnapshot(serverDb, activeUserId, effectiveTabId, finalPosts).catch(err => {
       console.warn(`[Generator V3] Asynchronous snapshot update failed:`, err?.message);
     });
+    limitHandle = takeLimitHandle();
     if (limitHandle) {
       const tCommit = Date.now();
       await commitGeneration(serverDb, activeUserId, limitHandle);
@@ -6185,6 +6307,10 @@ Return ONLY a single JSON draft object matching the schema.`;
     }
     timings.totalMs = Date.now() - startTime;
     timings.targetMet = finalPosts.length === postCount && timings.totalMs <= timings.targetMs;
+    telemetry.acceptedCount = finalPosts.length;
+    telemetry.failedCount = failedSlots.length;
+    telemetry.persistenceDurationMs = timings.commitMs;
+    telemetry.emitLog(isPartial ? "partially_completed" : "completed");
     console.info("[CONTENT_ENGINE_LATENCY]", JSON.stringify({
       requestId, requestedCount: postCount, acceptedCount: finalPosts.length,
       writerConcurrency, totalDurationMs: timings.totalMs, targetMs: timings.targetMs,
@@ -6210,30 +6336,33 @@ Return ONLY a single JSON draft object matching the schema.`;
       })
     );
 
-    return res.json({
-      posts: finalPosts,
-      count: finalPosts.length,
-      requestedCount: postCount,
-      partial: isPartial,
-      ...(isPartial ? {
-        failedSlots,
-        warning: `${finalPosts.length} of ${postCount} drafts passed validation. ${failedSlots.length} draft${failedSlots.length === 1 ? " was" : "s were"} not returned because generation or validation did not complete.`
-      } : {}),
-      category,
-      requestId,
-      generatorVersion: "V3",
-      businessRelevance: gated.businessRelevance,
-      writingPlan,
-      generationContract,
-      snapshotVersion: snapshot.schemaVersion || 1,
-      linkReports: linkReports || [],
-      timings
-    });
-
+    return {
+      ok: true,
+      payload: {
+        posts: finalPosts,
+        count: finalPosts.length,
+        requestedCount: postCount,
+        partial: isPartial,
+        ...(isPartial ? {
+          failedSlots,
+          warning: `${finalPosts.length} of ${postCount} drafts passed validation. ${failedSlots.length} draft${failedSlots.length === 1 ? " was" : "s were"} not returned because generation or validation did not complete.`
+        } : {}),
+        category,
+        requestId,
+        generatorVersion: "V3",
+        businessRelevance: gated.businessRelevance,
+        writingPlan,
+        generationContract,
+        snapshotVersion: snapshot.schemaVersion || 1,
+        linkReports: linkReports || [],
+        timings
+      }
+    };
   } catch (err: any) {
     console.error(`[Generator V3] Batch post generation error:`, err);
-    if (limitHandle) {
-      await releaseReservation(serverDb, limitHandle).catch(() => {});
+    const unreleasedHandle = takeLimitHandle();
+    if (unreleasedHandle) {
+      await releaseReservation(serverDb, activeUserId, unreleasedHandle).catch(() => {});
     }
     const pipelineErr =
       err instanceof GenerationPipelineError
@@ -6263,29 +6392,314 @@ Return ONLY a single JSON draft object matching the schema.`;
         })
       );
     }
-    return res.status(httpStatus).json({
-      error: errorCode === "CONTENT_VALIDATION_ERROR"
-        ? "Content validation failed"
-        : errorCode === "PARSE_ERROR"
-          ? "AI response parsing failed"
-          : errorCode === "SCHEMA_ERROR"
-            ? "AI output schema mismatch"
-            : errorCode === "PROVIDER_ERROR"
-              ? "AI provider error"
-              : errorCode === "NETWORK_ERROR"
-                ? "Network or timeout error"
-                : errorCode === "REQUEST_ERROR"
-                  ? "Invalid generation request"
-                  : "Generation failed",
+    const errorLabel = errorCode === "CONTENT_VALIDATION_ERROR"
+      ? "Content validation failed"
+      : errorCode === "PARSE_ERROR"
+        ? "AI response parsing failed"
+        : errorCode === "SCHEMA_ERROR"
+          ? "AI output schema mismatch"
+          : errorCode === "PROVIDER_ERROR"
+            ? "AI provider error"
+            : errorCode === "NETWORK_ERROR"
+              ? "Network or timeout error"
+              : errorCode === "REQUEST_ERROR"
+                ? "Invalid generation request"
+                : "Generation failed";
+    const message = pipelineErr?.message || err?.message || "An error occurred during content generation.";
+    const failureBody = {
+      error: errorLabel,
       errorCode,
       retryable,
       requestId,
-      message: pipelineErr?.message || err?.message || "An error occurred during content generation.",
+      message,
       ...(pipelineErr?.failedDrafts ? { failedDrafts: pipelineErr.failedDrafts } : {}),
       ...(typeof pipelineErr?.validDraftCount === "number" ? { validDraftCount: pipelineErr.validDraftCount } : {}),
       ...(typeof pipelineErr?.requestedCount === "number" ? { requestedCount: pipelineErr.requestedCount } : {})
+    };
+    return {
+      ok: false,
+      failure: {
+        httpStatus,
+        body: failureBody,
+        error: errorLabel,
+        errorCode,
+        retryable,
+        message,
+        ...(pipelineErr?.failedDrafts ? { failedDrafts: pipelineErr.failedDrafts } : {}),
+        ...(typeof pipelineErr?.validDraftCount === "number" ? { validDraftCount: pipelineErr.validDraftCount } : {}),
+        ...(typeof pipelineErr?.requestedCount === "number" ? { requestedCount: pipelineErr.requestedCount } : {})
+      }
+    };
+  }
+}
+
+async function resolveOptionalVerifiedUid(req: express.Request): Promise<string | null> {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return null;
+  }
+  const idToken = authHeader.slice(7).trim();
+  if (!idToken) return null;
+  try {
+    const decoded = await serverAuth.verifyIdToken(idToken);
+    return decoded?.uid || null;
+  } catch {
+    return null;
+  }
+}
+
+// Resilient persistent async job endpoints for batch content generation
+// Prevents Safari/WebKit & proxy idle socket drops, deduplicates retries, and supports cross-refresh recovery.
+app.post("/api/generate-posts-jobs", async (req, res) => {
+  const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const startTime = Date.now();
+  const body = req.body || {};
+  const verifiedUid = await resolveOptionalVerifiedUid(req);
+  const rawUserId = body.userId || body.profile?.uid || (req.headers["x-user-id"] as string) || "anonymous";
+  const effectiveOwnerId = verifiedUid || rawUserId;
+  const category = body.category || "auto";
+  const idempotencyKey = normalizeIdempotencyKey(
+    body.idempotencyKey || (req.headers["x-idempotency-key"] as string | undefined)
+  );
+
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.setHeader("X-Request-Id", requestId);
+
+  // Validate content request before reserving usage quota
+  let contentRequest: string;
+  try {
+    contentRequest = resolveBatchRequest(body);
+  } catch (reqErr: any) {
+    return res.status(reqErr?.httpStatus || 400).json({
+      error: "Invalid generation request",
+      errorCode: reqErr?.code || "REQUEST_ERROR",
+      retryable: false,
+      requestId,
+      message: reqErr?.message || "Enter a content request before generating posts."
     });
   }
+
+  // Deduplicate identical retries BEFORE reserving quota or triggering AI calls
+  if (idempotencyKey) {
+    const existingJob = await contentGenerationJobStore.findByIdempotencyKey(
+      effectiveOwnerId,
+      idempotencyKey
+    );
+    if (existingJob) {
+      return res.status(existingJob.status === "completed" ? 200 : 202).json({
+        jobId: existingJob.jobId,
+        ...(existingJob.accessToken ? { jobToken: existingJob.accessToken } : {}),
+        requestId: existingJob.requestId,
+        idempotencyKey,
+        status: existingJob.status,
+        category: existingJob.category,
+        requestedCount: existingJob.requestedCount,
+        progress: existingJob.progress,
+        ...(existingJob.status === "completed" && existingJob.result
+          ? { result: existingJob.result }
+          : {}),
+        pollIntervalMs: 1000,
+        deduplicated: true
+      });
+    }
+  }
+
+  const tLimit = Date.now();
+  const limitGuard = await enforceAiGenerationLimit(req, res, effectiveOwnerId);
+  const limitGuardMs = Date.now() - tLimit;
+  if (!limitGuard) return; // Response sent by guard
+
+  const requestedCount = Math.min(
+    MAX_CONTENT_BATCH_SIZE,
+    resolveEffectivePostCount(body, contentRequest, DEFAULT_CONTENT_BATCH_SIZE)
+  );
+
+  const created = contentGenerationJobStore.createJob({
+    requestId,
+    ownerUserId: limitGuard.activeUserId,
+    category,
+    requestedCount,
+    idempotencyKey,
+    limitHandle: limitGuard.reservationId || null
+  });
+
+  if (!created.ok) {
+    if (limitGuard.reservationId) {
+      await releaseReservation(serverDb, limitGuard.activeUserId, limitGuard.reservationId).catch(() => {});
+    }
+    return res.status(429).json({
+      error: "Too many active generations",
+      errorCode: "PROVIDER_ERROR",
+      retryable: true,
+      requestId,
+      message: "You already have multiple content generations running. Please wait for one to finish and try again."
+    });
+  }
+
+  const { job, deduplicated } = created;
+  if (deduplicated) {
+    // Race condition caught synchronously: release redundant reservation without charging user
+    if (limitGuard.reservationId) {
+      await releaseReservation(serverDb, limitGuard.activeUserId, limitGuard.reservationId).catch(() => {});
+    }
+    return res.status(job.status === "completed" ? 200 : 202).json({
+      jobId: job.jobId,
+      ...(job.accessToken ? { jobToken: job.accessToken } : {}),
+      requestId: job.requestId,
+      ...(job.idempotencyKey ? { idempotencyKey: job.idempotencyKey } : {}),
+      status: job.status,
+      category: job.category,
+      requestedCount: job.requestedCount,
+      progress: job.progress,
+      ...(job.status === "completed" && job.result ? { result: job.result } : {}),
+      pollIntervalMs: 1000,
+      deduplicated: true
+    });
+  }
+
+  const jobAbortProxy = {
+    get destroyed() {
+      return job.abortController.signal.aborted;
+    }
+  };
+
+  void (async () => {
+    try {
+      const outcome = await executeBatchGenerationCore({
+        body,
+        activeUserId: limitGuard.activeUserId,
+        limitHandle: job.limitHandle,
+        limitGuardMs,
+        requestId,
+        startTime,
+        res: jobAbortProxy,
+        onProgress: (patch) => {
+          contentGenerationJobStore.updateProgress(job.jobId, patch as any);
+        },
+        consumeLimitHandle: () => contentGenerationJobStore.consumeLimitHandle(job.jobId)
+      });
+
+      if (job.abortController.signal.aborted) {
+        return;
+      }
+
+      if (outcome.ok && outcome.payload) {
+        await contentGenerationJobStore.completeJob(job.jobId, outcome.payload);
+      } else {
+        const failure = outcome.failure;
+        await contentGenerationJobStore.failJob(job.jobId, {
+          httpStatus: failure?.httpStatus ?? 500,
+          error: failure?.error ?? "Generation failed",
+          errorCode: failure?.errorCode ?? "INTERNAL_ERROR",
+          retryable: failure?.retryable ?? true,
+          message: failure?.message ?? "An unexpected error occurred during content generation.",
+          failedDrafts: failure?.failedDrafts,
+          validDraftCount: failure?.validDraftCount,
+          requestedCount: failure?.requestedCount
+        });
+      }
+    } catch (unexpectedErr: any) {
+      console.error(`[Generator V3] Unhandled background job error for ${job.jobId}:`, unexpectedErr);
+      const unreleased = contentGenerationJobStore.consumeLimitHandle(job.jobId);
+      if (unreleased) {
+        await releaseReservation(serverDb, limitGuard.activeUserId, unreleased).catch(() => {});
+      }
+      await contentGenerationJobStore.failJob(job.jobId, {
+        httpStatus: 500,
+        error: "Generation failed",
+        errorCode: "INTERNAL_ERROR",
+        retryable: true,
+        message: unexpectedErr?.message || "An unexpected error occurred during content generation."
+      });
+    }
+  })();
+
+  return res.status(202).json({
+    jobId: job.jobId,
+    jobToken: job.accessToken,
+    requestId,
+    ...(idempotencyKey ? { idempotencyKey } : {}),
+    status: job.status,
+    category: job.category,
+    requestedCount: job.requestedCount,
+    progress: job.progress,
+    pollIntervalMs: 1000,
+    deduplicated: false
+  });
+});
+
+app.get("/api/generate-posts-jobs/latest", async (req, res) => {
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  const verifiedUid = await resolveOptionalVerifiedUid(req);
+  if (!verifiedUid) {
+    return res.status(401).json({
+      error: "Authentication required",
+      errorCode: "REQUEST_ERROR",
+      retryable: false
+    });
+  }
+
+  const latest = await contentGenerationJobStore.getLatestRecoverableJobForUser(verifiedUid);
+  return res.json({
+    job: latest ? contentGenerationJobStore.toPublicResponse(latest) : null
+  });
+});
+
+app.get("/api/generate-posts-jobs/:jobId", async (req, res) => {
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  const jobId = req.params.jobId;
+  if (!isValidJobId(jobId)) {
+    return res.status(400).json({ error: "Invalid job ID", errorCode: "REQUEST_ERROR", retryable: false });
+  }
+
+  const job = await contentGenerationJobStore.getJobAsync(jobId);
+  if (!job) {
+    return res.status(404).json({
+      error: "Generation job not found",
+      errorCode: "REQUEST_ERROR",
+      retryable: true,
+      message: "This generation session expired or could not be found. Please retry."
+    });
+  }
+
+  const jobToken = (req.headers["x-job-token"] as string | undefined) || null;
+  const verifiedUid = await resolveOptionalVerifiedUid(req);
+  if (!contentGenerationJobStore.authorizeJobAccess(job, { jobToken, verifiedUid })) {
+    return res.status(403).json({
+      error: "Forbidden",
+      errorCode: "REQUEST_ERROR",
+      retryable: false,
+      message: "You do not have permission to access this generation job."
+    });
+  }
+
+  return res.json(contentGenerationJobStore.toPublicResponse(job));
+});
+
+app.post("/api/generate-posts-jobs/:jobId/cancel", async (req, res) => {
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  const jobId = req.params.jobId;
+  if (!isValidJobId(jobId)) {
+    return res.status(400).json({ error: "Invalid job ID", errorCode: "REQUEST_ERROR", retryable: false });
+  }
+
+  const job = await contentGenerationJobStore.getJobAsync(jobId);
+  if (!job) {
+    return res.status(404).json({ error: "Generation job not found", errorCode: "REQUEST_ERROR", retryable: false });
+  }
+
+  const jobToken = (req.headers["x-job-token"] as string | undefined) || null;
+  const verifiedUid = await resolveOptionalVerifiedUid(req);
+  if (!contentGenerationJobStore.authorizeJobAccess(job, { jobToken, verifiedUid })) {
+    return res.status(403).json({ error: "Forbidden", errorCode: "REQUEST_ERROR", retryable: false });
+  }
+
+  const { cancelled, limitHandle } = contentGenerationJobStore.cancelJob(jobId);
+  if (limitHandle) {
+    await releaseReservation(serverDb, job.ownerUserId, limitHandle).catch(() => {});
+  }
+
+  return res.json({ jobId, status: cancelled ? "cancelled" : job.status });
 });
 // Helper function to transform Hooks in a structured post
 async function transformHookInPost(post: any, action: string, writingStyle: string, creatorIdentity: any, characterLimit = 500) {
@@ -12420,9 +12834,10 @@ async function main() {
   const server = app.listen(PORT, "0.0.0.0", () => {
     console.log(`ThreadsWorks backend running on http://localhost:${PORT}`);
   });
-  // Extend keep-alive and headers timeout to support adaptive 32-post batches and Safari/WebKit
+  // Extend keep-alive, headers, and request timeouts to support adaptive 32-post batches and Safari/WebKit
   server.keepAliveTimeout = 320000;
   server.headersTimeout = 325000;
+  server.requestTimeout = 420000;
 }
 
 main().catch((err) => {

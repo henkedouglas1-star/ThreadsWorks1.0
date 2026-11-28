@@ -38,6 +38,24 @@ export const ENTITLED_PRO_UIDS = new Set([
 const userLockChains = new Map<string, Promise<any>>();
 const anonymousUsageMap = new Map<string, number>();
 
+interface SettledReservationRecord {
+  status: "committed" | "released";
+  used?: number;
+  remaining?: number;
+  settledAt: number;
+}
+const settledReservations = new Map<string, SettledReservationRecord>();
+const SETTLED_RESERVATION_TTL_MS = 30 * 60 * 1000;
+
+function pruneSettledReservations(now: number = Date.now()): void {
+  if (settledReservations.size < 250) return;
+  for (const [key, rec] of settledReservations.entries()) {
+    if (now - rec.settledAt > SETTLED_RESERVATION_TTL_MS) {
+      settledReservations.delete(key);
+    }
+  }
+}
+
 async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, fallbackValue: T): Promise<T> {
   let timer: any;
   const timeoutPromise = new Promise<T>((resolve) => {
@@ -378,9 +396,28 @@ export async function commitGeneration(
   const currentPeriod = getCurrentMonthPeriodKey();
   const effectiveUserId = userId || "anonymous";
 
+  if (reservationId) {
+    const existing = settledReservations.get(reservationId);
+    if (existing) {
+      return {
+        used: existing.used ?? 0,
+        remaining: existing.remaining ?? FREE_MONTHLY_GENERATION_LIMIT
+      };
+    }
+  }
+
   if (effectiveUserId === "anonymous") {
     const count = anonymousUsageMap.get(currentPeriod) || 1;
     const remaining = Math.max(0, FREE_MONTHLY_GENERATION_LIMIT - count);
+    if (reservationId) {
+      pruneSettledReservations();
+      settledReservations.set(reservationId, {
+        status: "committed",
+        used: count,
+        remaining,
+        settledAt: Date.now()
+      });
+    }
     return {
       used: count,
       remaining
@@ -389,6 +426,15 @@ export async function commitGeneration(
 
   try {
     return await acquireUserLock(effectiveUserId, async () => {
+      if (reservationId) {
+        const existing = settledReservations.get(reservationId);
+        if (existing) {
+          return {
+            used: existing.used ?? 0,
+            remaining: existing.remaining ?? FREE_MONTHLY_GENERATION_LIMIT
+          };
+        }
+      }
       const docRef = serverDb.collection("generation_usage").doc(effectiveUserId);
 
       const txPromise = serverDb.runTransaction(async (transaction) => {
@@ -449,10 +495,20 @@ export async function commitGeneration(
         };
       });
 
-      return await withTimeout(txPromise, 3500, {
+      const committedResult = await withTimeout(txPromise, 3500, {
         used: 1,
         remaining: FREE_MONTHLY_GENERATION_LIMIT - 1
       });
+      if (reservationId) {
+        pruneSettledReservations();
+        settledReservations.set(reservationId, {
+          status: "committed",
+          used: committedResult.used,
+          remaining: committedResult.remaining,
+          settledAt: Date.now()
+        });
+      }
+      return committedResult;
     });
   } catch (err: any) {
     console.warn(`[GENERATION_LIMIT] Exception during commitGeneration for ${effectiveUserId}:`, err?.message || err);
@@ -474,6 +530,17 @@ export async function releaseReservation(
 ): Promise<void> {
   const currentPeriod = getCurrentMonthPeriodKey();
   const effectiveUserId = userId || "anonymous";
+
+  if (reservationId) {
+    if (settledReservations.has(reservationId)) {
+      return;
+    }
+    pruneSettledReservations();
+    settledReservations.set(reservationId, {
+      status: "released",
+      settledAt: Date.now()
+    });
+  }
 
   if (effectiveUserId === "anonymous") {
     const current = anonymousUsageMap.get(currentPeriod) || 0;

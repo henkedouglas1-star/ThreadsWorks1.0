@@ -39,6 +39,11 @@ import { useGenerationUsage } from "../services/generationLimitService";
 import { ClassifiedError, classifyGenerationError, createClassifiedError } from "../utils/errorClassifier";
 import { getRecentLibraryPostsForMemory } from "../utils/contentMemoryHelper";
 import { apiFetch } from "../lib/api";
+import {
+  runResilientBatchGeneration,
+  resumePersistedGenerationJob,
+  createIdempotencyKey
+} from "../lib/contentGenerationClient";
 import ThreadsConnectButton from "./ThreadsConnectButton";
 import { repairAndSanitizePost, sanitizeSentenceSpacing, cleanTopicString } from "../lib/contentSanitizer";
 import { usePersistentDraft } from "../utils/usePersistentDraft";
@@ -1348,6 +1353,8 @@ export default function ContentEngineView({ profile, onNavigateToTab, onRefreshP
     trust: false,
     sales: false
   });
+  const [generationStatusLabel, setGenerationStatusLabel] = useState<string>("Generating...");
+  const hasAttemptedRecoveryRef = useRef(false);
 
   // Global category error states
   const [errorCategory, setErrorCategory] = useState<{
@@ -1821,7 +1828,7 @@ export default function ContentEngineView({ profile, onNavigateToTab, onRefreshP
       }, timeoutMs);
 
       clientRequestId = `req_client_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-      requestUrl = "/api/generate-posts-batch";
+      requestUrl = "/api/generate-posts-jobs";
       requestMethod = "POST";
       activePillar = isPillarFilteringActive && pillars.length > 0
         ? pillars[activePillarIndex]
@@ -1921,91 +1928,60 @@ export default function ContentEngineView({ profile, onNavigateToTab, onRefreshP
     let responseHttpStatus = 0;
     let stage: "network_request" | "response_parse" | "validation" | "state_update" = "network_request";
     let rawResponseBody = "";
+    const idempotencyKey = createIdempotencyKey();
 
     try {
-      let response!: Response;
-      let attempt = 0;
-      const maxAttempts = 2;
-
-      while (attempt < maxAttempts) {
-        attempt++;
-        try {
-          response = await fetch(requestUrl, {
-            method: requestMethod,
-            headers: {
-              "Content-Type": "application/json",
-              "X-Client-Request-Id": `${clientRequestId}_attempt_${attempt}`
-            },
-            signal: controller.signal,
-            body: payloadString
-          });
-          break;
-        } catch (fetchErr: any) {
-          if (attempt < maxAttempts && !controller.signal.aborted && !isTimeoutTriggered) {
-            console.warn(`[ThreadsWorks Pipeline] ${clientRequestId} - Attempt ${attempt} failed (${fetchErr?.message || "Network Error"}). Retrying connection...`);
-            await new Promise(r => setTimeout(r, 600));
-            continue;
-          }
-
-          console.group(`[ThreadsWorks Pipeline] ${clientRequestId} - Network Fetch Exception`);
-          console.error("• Exact exception name:", fetchErr?.name);
-          console.error("• Exact exception message:", fetchErr?.message);
-          console.error("• Stack trace:", fetchErr?.stack);
-          console.log("• AbortController state:", {
-            aborted: controller.signal.aborted,
-            reason: controller.signal.reason,
-            isTimeoutTriggered
-          });
-          console.groupEnd();
-          if (isTimeoutTriggered) {
-            const timeoutErr = new Error(typeof controller.signal.reason === "string" ? controller.signal.reason + " without response from server." : "Generation request timed out without response from server.");
-            timeoutErr.name = "TimeoutError";
-            throw timeoutErr;
-          }
-          throw fetchErr;
-        }
-      }
-
-      responseHttpStatus = response.status;
-      const responseHeadersObj: Record<string, string> = {};
-      response.headers.forEach((val, key) => { responseHeadersObj[key] = val; });
-      const responseContentType = response.headers.get("content-type") || "unknown";
-
-      console.group(`[ThreadsWorks Pipeline] ${clientRequestId} - Response Received`);
-      console.log("• Response received:", new Date().toISOString());
-      console.log("• HTTP status:", response.status, response.statusText);
-      console.log("• Response headers:", responseHeadersObj);
-      console.log("• Response content type:", responseContentType);
-      console.groupEnd();
-
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => "");
-        let parsedErr: any = {};
-        try { parsedErr = JSON.parse(errorText); } catch {}
-        const apiError = new Error(parsedErr.message || parsedErr.error || `Server responded with HTTP ${response.status}`);
-        (apiError as any).status = response.status;
-        (apiError as any).errorCode = parsedErr.errorCode;
-        (apiError as any).retryable = parsedErr.retryable;
-        (apiError as any).failedDrafts = parsedErr.failedDrafts;
-        (apiError as any).responseBodyText = errorText;
-        throw apiError;
-      }
-
-      stage = "response_parse";
-      console.log(`[ThreadsWorks Pipeline] ${clientRequestId} • Response parsing started`);
-      rawResponseBody = await response.text();
-      const bodySizeBytes = new Blob([rawResponseBody]).size;
-      console.log(`[ThreadsWorks Pipeline] ${clientRequestId} • Response body size: ${bodySizeBytes} bytes`);
-      
+      setGenerationStatusLabel("Generating...");
       let data: any;
       try {
-        data = JSON.parse(rawResponseBody);
-        console.log(`[ThreadsWorks Pipeline] ${clientRequestId} • Response parsing completed successfully`);
-      } catch (jsonErr: any) {
-        console.error(`[ThreadsWorks Pipeline] ${clientRequestId} • Response parsing failed:`, jsonErr);
-        (jsonErr as any).responseBodyText = rawResponseBody;
-        (jsonErr as any).status = responseHttpStatus;
-        throw jsonErr;
+        const result = await runResilientBatchGeneration({
+          payloadString,
+          clientRequestId,
+          idempotencyKey,
+          userId: effectiveUserId,
+          targetCategory: targetCat,
+          requestedCount: count,
+          signal: controller.signal,
+          getAuthToken: async () => {
+            try {
+              return auth.currentUser ? await auth.currentUser.getIdToken() : null;
+            } catch {
+              return null;
+            }
+          },
+          onProgress: (progress, meta) => {
+            if (meta?.reconnecting) {
+              setGenerationStatusLabel("Reconnecting...");
+            } else if (progress.completedCount > 0 && progress.requestedCount > 1) {
+              setGenerationStatusLabel(
+                `Generating (${progress.completedCount}/${progress.requestedCount})...`
+              );
+            } else {
+              setGenerationStatusLabel("Generating...");
+            }
+            console.log(
+              `[ThreadsWorks Pipeline] ${clientRequestId} • Progress: ${progress.stage} (${progress.completedCount}/${progress.requestedCount})${meta?.reconnecting ? " [reconnecting]" : ""}`
+            );
+          }
+        });
+        responseHttpStatus = result.httpStatus;
+        rawResponseBody = result.rawResponseBody;
+        data = result.data;
+        stage = "response_parse";
+        console.log(
+          `[ThreadsWorks Pipeline] ${clientRequestId} • Completed via ${result.mode}${result.jobId ? ` (${result.jobId})` : ""}${result.deduplicated ? " [deduplicated]" : ""}`
+        );
+      } catch (fetchErr: any) {
+        if (isTimeoutTriggered) {
+          const timeoutErr = new Error(
+            typeof controller.signal.reason === "string"
+              ? controller.signal.reason + " without response from server."
+              : "Generation request timed out without response from server."
+          );
+          timeoutErr.name = "TimeoutError";
+          throw timeoutErr;
+        }
+        throw fetchErr;
       }
       
       if (data.isSimulated) {
@@ -2175,6 +2151,7 @@ export default function ContentEngineView({ profile, onNavigateToTab, onRefreshP
     } finally {
       clearTimeout(timeoutId);
       isGeneratingRef.current = false;
+      setGenerationStatusLabel("Generating...");
       setLoadingCategory({
         attention: false,
         trust: false,
@@ -2182,6 +2159,106 @@ export default function ContentEngineView({ profile, onNavigateToTab, onRefreshP
       });
     }
   };
+
+  // Automatically recover any in-progress or recently completed generation job after browser refresh or reconnect
+  useEffect(() => {
+    if (hasAttemptedRecoveryRef.current || isGeneratingRef.current) return;
+    hasAttemptedRecoveryRef.current = true;
+
+    const recoveryController = new AbortController();
+    const effectiveUserId = auth.currentUser?.uid || profile?.uid || "anonymous";
+
+    void (async () => {
+      try {
+        const recovered = await resumePersistedGenerationJob({
+          userId: effectiveUserId,
+          signal: recoveryController.signal,
+          getAuthToken: async () => {
+            try {
+              return auth.currentUser ? await auth.currentUser.getIdToken() : null;
+            } catch {
+              return null;
+            }
+          },
+          onProgress: (progress, meta) => {
+            if (!isGeneratingRef.current) {
+              isGeneratingRef.current = true;
+              setLoadingCategory(prev => ({ ...prev, [activeCategory]: true }));
+            }
+            if (meta?.reconnecting) {
+              setGenerationStatusLabel("Reconnecting...");
+            } else if (progress.completedCount > 0 && progress.requestedCount > 1) {
+              setGenerationStatusLabel(
+                `Recovering (${progress.completedCount}/${progress.requestedCount})...`
+              );
+            } else {
+              setGenerationStatusLabel("Recovering job...");
+            }
+          }
+        });
+
+        if (!recovered?.data || !Array.isArray(recovered.data.posts) || recovered.data.posts.length === 0) {
+          return;
+        }
+
+        const data = recovered.data;
+        const candidateCategory = (!data.category || data.category === "auto")
+          ? (recovered.targetCategory || activeCategory)
+          : data.category;
+        const resolvedCategory: "attention" | "trust" | "sales" =
+          (candidateCategory === "trust" || candidateCategory === "sales") ? candidateCategory : "attention";
+
+        const parsedPosts = data.posts.map((p: any, idx: number) => {
+          const postId = `${resolvedCategory}-${Date.now()}-${idx}`;
+          const rawParts = Array.isArray(p.threadParts) && p.threadParts.length > 0
+            ? p.threadParts
+            : [p.singlePost || ""];
+          return {
+            id: postId,
+            title: p.title || `${resolvedCategory.toUpperCase()} Draft #${idx + 1}`,
+            hook: p.hook || "",
+            singlePost: rawParts[0] || p.singlePost || "",
+            threadParts: rawParts,
+            explanation: p.explanation || "",
+            pillar: p.pillar || resolvedCategory,
+            category: resolvedCategory,
+            decision: p.decision || data.decisions?.[idx],
+            cta: p.cta || "",
+            ctaType: p.ctaDecision === "include" ? "destination" : "natural",
+            ctaText: p.cta || "",
+            ctaDecision: p.ctaDecision || "",
+            ctaStrategy: p.ctaStrategy || "",
+            preferredLinkId: p.preferredLinkId,
+            angleId: p.angleId || p.contentUnitId,
+            hookId: p.hookId
+          };
+        });
+
+        setPostsForCategory(resolvedCategory, parsedPosts);
+        setActiveCategory(resolvedCategory);
+        setErrorCategory({ attention: null, trust: null, sales: null });
+        console.log(
+          `[ThreadsWorks Pipeline] Recovered ${parsedPosts.length} completed drafts from job ${recovered.jobId}.`
+        );
+      } catch (recoverErr: any) {
+        if (recoverErr?.name !== "AbortError") {
+          console.warn("[ThreadsWorks Pipeline] Persisted job recovery skipped:", recoverErr?.message || recoverErr);
+        }
+      } finally {
+        isGeneratingRef.current = false;
+        setGenerationStatusLabel("Generating...");
+        setLoadingCategory({ attention: false, trust: false, sales: false });
+      }
+    })();
+
+    return () => {
+      try {
+        recoveryController.abort();
+      } catch {
+        // no-op
+      }
+    };
+  }, [profile?.uid]);
 
   // Regenerate a single post card script in-place
   const handleRegenerateCard = async (post: GeneratedPost, index: number) => {
@@ -2855,7 +2932,7 @@ export default function ContentEngineView({ profile, onNavigateToTab, onRefreshP
             {loadingCategory.attention || loadingCategory.trust || loadingCategory.sales ? (
               <div className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-brand-surface border border-brand-border text-brand-text-strong py-2.5 text-xs font-semibold">
                 <RefreshCw className="h-3.5 w-3.5 animate-spin text-brand-text" />
-                <span>Generating...</span>
+                <span>{generationStatusLabel}</span>
               </div>
             ) : (
               <button
