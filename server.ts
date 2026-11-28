@@ -1,3 +1,4 @@
+import { createPostArtRouter } from "./server/postArtRouter";
 import { MAX_CONTENT_BATCH_SIZE, DEFAULT_CONTENT_BATCH_SIZE, CONTENT_BATCH_TARGET_MS } from "./contentBatchConfig";
 import { computeAdaptiveChunkSize, createUniversalGenerationContract, validateUniversalBatch, buildGenerationBatchDiagnostics, logGenerationBatchDiagnostics, resolveBatchRequest, normalizeBatchPosts, writeValidatedChunk, validateSingleDraft, checkUnsupportedClaims, executeValidatedSingleWrite, sendPipelineErrorResponse, GenerationPipelineError, classifyProviderOrNetworkError, FailedDraftInfo } from "./server/contentBatchContract";
 import { buildGatedWriteContext, resolveWritingLengthPlan, resolveEffectivePostCount, extractExplicitPostCount } from "./server/writeContextGate";
@@ -332,6 +333,7 @@ const adminApp = getApps().length === 0
 const serverDb = getFirestore(adminApp, databaseId);
 const serverAuth = getAuth(adminApp);
 app.use("/api/funnelworks", createFunnelworksRouter(serverDb, serverAuth));
+app.use("/api/post-art", createPostArtRouter(serverDb, serverAuth, firebaseConfig?.storageBucket));
 app.use("/api/ecosystem", createEcosystemRouter(serverDb, serverAuth));
 if (isPreviewAuthHandoffEnvironment()) {
   app.use("/api/auth/preview-handoff", createPreviewAuthHandoffRouter(serverAuth));

@@ -1,3 +1,4 @@
+import { ArtAlbum } from "./PostArt";
 import React from "react";
 import { UserProfile } from "../types";
 import CalendarView from "./CalendarView";
@@ -18,12 +19,16 @@ export default function ContentLibraryView({
   subscriptionStatus,
   onNavigateToTab,
 }: ContentLibraryViewProps) {
+  const [album, setAlbum] = React.useState(false);
   return (
-    <CalendarView
+    <>
+      <div className="flex gap-3 p-3" aria-label="Content Library views"><button type="button" aria-pressed={!album} onClick={() => setAlbum(false)}>Content</button><button type="button" aria-pressed={album} onClick={() => setAlbum(true)}>Album</button></div>
+      {album ? <ArtAlbum /> : <CalendarView
       profile={profile}
       subscriptionStatus={subscriptionStatus}
       onNavigateToTab={onNavigateToTab}
       initialSubView="library"
-    />
+    />}
+    </>
   );
 }
