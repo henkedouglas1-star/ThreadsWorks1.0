@@ -190,3 +190,9 @@ Source: `server.ts` blob `36638f5d357531d1e53e14fab8fe4879cee69837` and `server/
 - Server and client both define 150 monthly generations; reconcile intended product policy before changing.
 
 No tests executed; no live exploit attempted; no application code changed. Findings are source-level, not proof of production exploitability.
+
+## Audit pass 5 — Shared Projects synchronization confirmed
+
+Main now contains named database configuration (`firebase.json` blob d8219f009fed76491718c4b0483dc3eeec6b087b), project service (ab488f040aae5d4ae9e1a0032f64e75fd8c08851), rules (aee86361a212575846df13b97a8388860a0949ab), and six project tests (151d97a4e1d42eb92da406710949c352b9ecc64d). This supersedes earlier missing-file findings.
+
+AI Studio reports 196/196 offline tests, 23 auth and six project tests, TypeScript and build passing. Not independently executed. Live deployment intentionally halted due to Rules API 403 and unavailable authorized credentials. Obtain current named database rules, compare all overlapping matches, preserve existing access, then publish reviewed project-only change with owner approval. Verify two-account CRUD and persistence live. Community ownership immutability, participant validation and finance update validation flagged for separate review; public community visibility requires product-policy confirmation. No deployment or code changes made in audit.
