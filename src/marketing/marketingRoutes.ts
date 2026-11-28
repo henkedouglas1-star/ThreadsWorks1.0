@@ -130,27 +130,27 @@ export const PUBLIC_MARKETING_ROUTES: PublicMarketingRoute[] = [
     outputFile: "productworks.html",
     navLabel: "ProductWorks",
     kind: "feature",
-    title: "AI Digital Product Creator | ProductWorks by ThreadsWorks",
-    description: "Turn your ideas into downloadable digital products with ProductWorks. Build PDF playbooks, 7-slide carousels, and storefront copy using AI.",
+    title: "ProductWorks Roadmap | Digital Product Tools in Development",
+    description: "ProductWorks is in development. Its planned tools will help creators shape ideas into downloadable products and prepare companion promotional drafts.",
     priority: "0.9",
     changefreq: "weekly",
-    platformNote: "Built for creators and entrepreneurs.",
-    h1: "Turn Content Into Digital Products With AI",
-    lead: "The ultimate AI digital product creator and digital product generator. Build PDF playbooks, AI carousels, social posts, and storefront copy using content monetization tools designed for creators.",
-    primaryCtaLabel: "LAUNCH PRODUCTWORKS",
-    workflowHeading: "Idea → AI Product Generation → Complete Downloadable Package",
-    workflowIntro: "Transform your knowledge, ideas, or existing social media content into coordinated digital product assets in minutes.",
+    platformNote: "ContentPaysUs · Product in development.",
+    h1: "ProductWorks is in development",
+    lead: "We’re developing a workflow for shaping an idea into a downloadable product and related Threads promotion drafts. ProductWorks isn’t available to use yet.",
+    primaryCtaLabel: "START WITH THREADSWORKS",
+    workflowHeading: "Planned Workflow: Idea → Product Assets → Promotion Drafts",
+    workflowIntro: "This is the planned ProductWorks flow; the tools are still in development.",
     workflowSteps: [
-      { step: "01", title: "Concept", description: "Define your audience, outcome, and product title from any idea or post." },
-      { step: "02", title: "Generate", description: "Use Gemini AI to generate 7-slide carousels, a 2-page PDF playbook, and storefront copy." },
-      { step: "03", title: "Download", description: "Export individual PNGs, complete ZIPs, playbook PDFs, and companion posts instantly." }
+      { step: "01", title: "Shape the Concept", description: "The planned workflow starts by defining an audience, useful outcome, and product idea." },
+      { step: "02", title: "Develop the Product", description: "The planned app is intended to help structure product assets such as a PDF playbook, carousel, and storefront copy." },
+      { step: "03", title: "Prepare Promotion", description: "The planned workflow includes drafts for sharing a product on Threads; this capability is not available yet." }
     ],
-    sectionsHeading: "Everything You Need to Monetize Your Content",
-    sectionsIntro: "Powerful content monetization tools and AI tools for content creators.",
+    sectionsHeading: "Planned Product Creation Tools",
+    sectionsIntro: "ProductWorks is in development and is not available to use yet. These are planned capabilities, not live tools.",
     features: [
-      { heading: "AI Digital Product Creator", body: "Turn your thoughts and knowledge into structured, high-value digital products instantly." },
-      { heading: "AI PDF Playbook Generator", body: "Automatically construct comprehensive, professional two-page PDF playbooks." },
-      { heading: "AI Carousel Creator", body: "Generate stunning 7-slide social media carousels tailored to your brand theme." }
+      { heading: "Shape a Digital Product", body: "Planned: organize creator knowledge into a structured downloadable product." },
+      { heading: "Plan a PDF Playbook", body: "Planned: outline a concise playbook that helps a reader work toward a clear outcome." },
+      { heading: "Plan a Carousel", body: "Planned: structure a multi-slide social post around one useful idea." }
     ],
     relatedLinks: [
       { path: "/", label: "ThreadsWorks Home", description: "Return to the ContentPaysUs and ThreadsWorks creator platform overview." },
@@ -170,10 +170,10 @@ export const PUBLIC_MARKETING_ROUTES: PublicMarketingRoute[] = [
     priority: "1.0",
     changefreq: "weekly",
     platformNote: "ContentPaysUs · Home of ThreadsWorks for Meta Threads creators.",
-    h1: "Turn what you know into what you earn.",
-    heroSupportingHeadline: "The AI-powered ecosystem for building your creator business.",
+    h1: "Turn your ideas into Threads content.",
+    heroSupportingHeadline: "Create, organize, schedule, and publish your content with one AI-powered workspace.",
     lead:
-      "Learn the skills, create the content, build valuable products and connect with the people who need them.",
+      "Create · Organize · Publish",
     heroOfferLine: "60 FREE POSTS EVERY MONTH ON THREADSWORKS.",
     primaryCtaLabel: "GET STARTED FREE",
     workflowHeading: "Learn → Identify → Build → Attract → Connect → Sell → Deliver → Grow",
@@ -346,7 +346,7 @@ export const PUBLIC_MARKETING_ROUTES: PublicMarketingRoute[] = [
     kind: "ecosystem",
     title: "ContentPaysUs Applications | 20-App Creator Roadmap",
     description:
-      "Explore all 20 applications in the ContentPaysUs ecosystem on ThreadsWorks.com, starting with ThreadsWorks for Meta Threads and ProductWorks.",
+      "Explore the ContentPaysUs creator application roadmap. Create, organize and publish with ThreadsWorks today; ProductWorks is in development.",
     priority: "0.9",
     changefreq: "weekly",
     platformNote: "ContentPaysUs Ecosystem · 20 Specialized Applications in 3 Categories.",
@@ -356,11 +356,11 @@ export const PUBLIC_MARKETING_ROUTES: PublicMarketingRoute[] = [
     primaryCtaLabel: "GET STARTED FREE",
     sectionsHeading: "Three Permanent Categories, 20 Specialized Applications",
     sectionsIntro:
-      "Start with ThreadsWorks and ProductWorks today, explore ContentPaysUs Academy for free, and connect every step through the First Sale Engine.",
+      "Start with ThreadsWorks today. ProductWorks is in development; explore ContentPaysUs Academy for free and the First Sale Engine roadmap.",
     features: [
       {
         heading: "Create & Sell (10 Applications)",
-        body: "CreatorWorks, DemandWorks, OfferWorks, ProductWorks (Available), ThreadsWorks (Available), ContentWorks, FunnelWorks, SalesWorks, StoreWorks, and DeliveryWorks."
+        body: "CreatorWorks, DemandWorks, OfferWorks, ProductWorks (In Development), ThreadsWorks (Available), ContentWorks, FunnelWorks, SalesWorks, StoreWorks, and DeliveryWorks."
       },
       {
         heading: "Connect & Grow (6 Applications)",
@@ -385,7 +385,7 @@ export const PUBLIC_MARKETING_ROUTES: PublicMarketingRoute[] = [
       {
         path: "/productworks",
         label: "ProductWorks",
-        description: "See how ProductWorks generates downloadable digital product assets and promo drafts."
+        description: "Preview the ProductWorks roadmap; the app is in development."
       },
       {
         path: "/about",
