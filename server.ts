@@ -5884,9 +5884,9 @@ app.post("/api/generate-posts-batch", async (req, res) => {
     // Parallelize only the initial writer calls. Acceptance, review, repairs and
     // replacement remain ordered against the complete accepted-draft ledger.
     // Opt-in rollout: preserve sequential behavior unless explicitly enabled.
-    const parallelEnabled = postCount >= 16 && process.env.CONTENT_BATCH_PARALLEL_ENABLED === "true";
+    const parallelEnabled = postCount >= 4 && process.env.CONTENT_BATCH_PARALLEL_ENABLED !== "false";
     // Four writers is an opt-in benchmark profile, not a production default.
-    const writerConcurrency = parallelEnabled ? (process.env.CONTENT_BATCH_FAST_PROFILE === "true" ? 4 : 2) : 1;
+    const writerConcurrency = parallelEnabled ? 2 : 1;
     timings.writerConcurrency = writerConcurrency;
     timings.targetMs = CONTENT_BATCH_TARGET_MS;
     const generateRawChunk = async (slotNumbers: number[], expected: number, chunkPlannedParts: number, priorDrafts: any[], schemaRetryFeedback?: string) => {
