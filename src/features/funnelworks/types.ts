@@ -37,6 +37,7 @@ export interface FunnelPackage {
   goal: FunnelGoal;
   theme: FunnelThemeId;
   creatorHandle: string;
+  creatorBrand?: string;
   slides: CarouselSlide[];
   companionPosts: { threads: string; x: string; linkedin: string };
   playbook: {

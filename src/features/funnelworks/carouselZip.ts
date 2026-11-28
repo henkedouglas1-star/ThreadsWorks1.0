@@ -42,14 +42,97 @@ export function makeZip(files: Array<{ name: string; data: Uint8Array }>): Uint8
 
 export async function downloadCarouselZip(funnel: FunnelPackage) {
   const files = await Promise.all(funnel.slides.map(async slide => {
-    const canvas = renderCarouselSlide(slide, funnel.theme);
+    const canvas = renderCarouselSlide(slide, funnel.theme, funnel.creatorBrand);
     const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error("Could not render slide.")), "image/png"));
     return { name: "slide-" + String(slide.slideNumber).padStart(2, "0") + ".png", data: new Uint8Array(await blob.arrayBuffer()) };
   }));
   const zip = makeZip(files);
   const url = URL.createObjectURL(new Blob([zip as BlobPart], { type: "application/zip" }));
   const a = document.createElement("a");
-  a.href = url; a.download = "funnelworks-carousel.zip";
+  a.href = url; a.download = "productworks-carousel-slides.zip";
   document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+}
+
+export function downloadCompanionPostsTxt(funnel: FunnelPackage) {
+  const text = `PRODUCTWORKS COMPANION POSTS
+Product: ${funnel.storefront.productTitle}
+Creator/Brand: ${funnel.creatorBrand || "Creator"}
+
+--- THREADS POST ---
+${funnel.companionPosts.threads}
+
+--- X (TWITTER) POST ---
+${funnel.companionPosts.x}
+
+--- LINKEDIN POST ---
+${funnel.companionPosts.linkedin}
+`;
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "productworks-companion-posts.txt";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+export function downloadStorefrontTxt(funnel: FunnelPackage) {
+  const text = `PRODUCTWORKS STOREFRONT KIT
+Product Title: ${funnel.storefront.productTitle}
+Suggested Price: ${funnel.storefront.suggestedPrice}
+CTA Keyword: ${funnel.storefront.ctaKeyword}
+
+OUTCOME BULLETS:
+1. ${funnel.storefront.outcomeBullets[0] || ""}
+2. ${funnel.storefront.outcomeBullets[1] || ""}
+3. ${funnel.storefront.outcomeBullets[2] || ""}
+
+CHECKOUT DESCRIPTION:
+${funnel.storefront.checkoutDescription}
+
+OPTIONAL ADD-ON / ORDER BUMP COPY:
+${funnel.storefront.orderBumpPitch || "N/A"}
+`;
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "productworks-storefront-copy.txt";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+export async function downloadCompleteProductWorksZip(funnel: FunnelPackage) {
+  const files: Array<{ name: string; data: Uint8Array }> = [];
+  for (const slide of funnel.slides) {
+    const canvas = renderCarouselSlide(slide, funnel.theme, funnel.creatorBrand);
+    const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(new Error("Slide render failed")), "image/png"));
+    files.push({ name: `slides/slide-${String(slide.slideNumber).padStart(2, "0")}.png`, data: new Uint8Array(await blob.arrayBuffer()) });
+  }
+
+  const { generatePlaybookPdfBytes } = await import("./playbookExport");
+  const pdfBytes = generatePlaybookPdfBytes(funnel);
+  files.push({ name: "playbook.pdf", data: pdfBytes });
+
+  const companionText = `PRODUCTWORKS COMPANION POSTS\nProduct: ${funnel.storefront.productTitle}\n\n--- THREADS ---\n${funnel.companionPosts.threads}\n\n--- X ---\n${funnel.companionPosts.x}\n\n--- LINKEDIN ---\n${funnel.companionPosts.linkedin}\n`;
+  files.push({ name: "companion-posts.txt", data: new TextEncoder().encode(companionText) });
+
+  const storefrontText = `PRODUCTWORKS STOREFRONT KIT\nTitle: ${funnel.storefront.productTitle}\nSuggested Price: ${funnel.storefront.suggestedPrice}\nCTA: ${funnel.storefront.ctaKeyword}\n\nOutcomes:\n- ${funnel.storefront.outcomeBullets.join("\n- ")}\n\nCheckout Description:\n${funnel.storefront.checkoutDescription}\n\nAdd-on / Bump Copy:\n${funnel.storefront.orderBumpPitch}\n`;
+  files.push({ name: "storefront-copy.txt", data: new TextEncoder().encode(storefrontText) });
+
+  const zip = makeZip(files);
+  const blob = new Blob([zip as BlobPart], { type: "application/zip" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "productworks-complete-package.zip";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 3000);
 }

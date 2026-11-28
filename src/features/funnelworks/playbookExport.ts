@@ -46,7 +46,7 @@ function drawPage(page: PlaybookPage, title: string, subtitle: string): HTMLCanv
   return canvas;
 }
 
-export async function downloadPlaybookPdf(funnel: FunnelPackage) {
+export function generatePlaybookPdfBytes(funnel: FunnelPackage): Uint8Array {
   const pages = funnel.playbook.pages.map(p => drawPage(p, funnel.playbook.title, funnel.playbook.subtitle));
   const enc = new TextEncoder();
   const chunks: Uint8Array[] = [];
@@ -79,9 +79,18 @@ export async function downloadPlaybookPdf(funnel: FunnelPackage) {
   ascii("xref\n0 " + (objects.length + 1) + "\n0000000000 65535 f \n");
   offsets.slice(1).forEach(n => ascii(String(n).padStart(10, "0") + " 00000 n \n"));
   ascii("trailer\n<< /Size " + (objects.length + 1) + " /Root 1 0 R >>\nstartxref\n" + xref + "\n%%EOF");
-  const blob = new Blob(chunks as BlobPart[], { type: "application/pdf" });
+  const length = chunks.reduce((n, c) => n + c.length, 0);
+  const result = new Uint8Array(length);
+  let offset = 0;
+  for (const chunk of chunks) { result.set(chunk, offset); offset += chunk.length; }
+  return result;
+}
+
+export async function downloadPlaybookPdf(funnel: FunnelPackage) {
+  const pdfBytes = generatePlaybookPdfBytes(funnel);
+  const blob = new Blob([pdfBytes as BlobPart], { type: "application/pdf" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a"); a.href = url; a.download = "funnelworks-playbook.pdf";
+  const a = document.createElement("a"); a.href = url; a.download = "productworks-playbook.pdf";
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 3000);
 }

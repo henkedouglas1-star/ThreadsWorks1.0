@@ -126,6 +126,39 @@ export interface PublicMarketingRoute {
 
 export const PUBLIC_MARKETING_ROUTES: PublicMarketingRoute[] = [
   {
+    path: "/productworks",
+    outputFile: "productworks.html",
+    navLabel: "ProductWorks",
+    kind: "feature",
+    title: "AI Digital Product Creator | ProductWorks by ThreadsWorks",
+    description: "Turn your ideas and content into downloadable digital products with ProductWorks. Create PDF playbooks, social media carousels, promotional posts, and sales copy using AI.",
+    priority: "0.9",
+    changefreq: "weekly",
+    platformNote: "Built for creators and entrepreneurs.",
+    h1: "Turn Content Into Digital Products With AI",
+    lead: "The ultimate AI digital product creator and digital product generator. Build PDF playbooks, AI carousels, social posts, and storefront copy using content monetization tools designed for creators.",
+    primaryCtaLabel: "LAUNCH PRODUCTWORKS",
+    workflowHeading: "Idea → AI Product Generation → Complete Downloadable Package",
+    workflowIntro: "Transform your knowledge, ideas, or existing social media content into coordinated digital product assets in minutes.",
+    workflowSteps: [
+      { step: "01", title: "Concept", description: "Define your audience, outcome, and product title from any idea or post." },
+      { step: "02", title: "Generate", description: "Use Gemini AI to generate 7-slide carousels, a 2-page PDF playbook, and storefront copy." },
+      { step: "03", title: "Download", description: "Export individual PNGs, complete ZIPs, playbook PDFs, and companion posts instantly." }
+    ],
+    sectionsHeading: "Everything You Need to Monetize Your Content",
+    sectionsIntro: "Powerful content monetization tools and AI tools for content creators.",
+    features: [
+      { heading: "AI Digital Product Creator", body: "Turn your thoughts and knowledge into structured, high-value digital products instantly." },
+      { heading: "AI PDF Playbook Generator", body: "Automatically construct comprehensive, professional two-page PDF playbooks." },
+      { heading: "AI Carousel Creator", body: "Generate stunning 7-slide social media carousels tailored to your brand theme." }
+    ],
+    relatedLinks: [
+      { path: "/", label: "ThreadsWorks Home", description: "Return to the ThreadsWorks creator platform overview." },
+      { path: "/ai-threads-post-generator", label: "AI Post Generator", description: "Turn rough ideas into structured posts." },
+      { path: "/pricing", label: "Pricing", description: "View free and Pro plan details." }
+    ]
+  },
+  {
     path: "/",
     outputFile: "index.html",
     navLabel: "Overview",
@@ -885,7 +918,7 @@ export const PUBLIC_MARKETING_ROUTES: PublicMarketingRoute[] = [
 ];
 
 export const HEADER_NAV_ROUTES: PublicMarketingRoute[] = PUBLIC_MARKETING_ROUTES.filter((r) =>
-  ["/ai-threads-post-generator", "/threads-scheduler", "/content-ideas", "/pricing"].includes(
+  ["/productworks", "/ai-threads-post-generator", "/threads-scheduler", "/content-ideas", "/pricing"].includes(
     r.path
   )
 );

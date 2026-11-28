@@ -29,6 +29,7 @@ import {
   safeGetSessionStorage,
   safeSetSessionStorage,
 } from "./lib/safeStorage";
+import { initGoogleAnalytics, trackEvent } from "./utils/analytics";
 
 // Safe dynamic import helper with automatic retry and stale chunk recovery
 function lazyWithRetry<T extends React.ComponentType<any>>(
@@ -866,47 +867,21 @@ function MainApp() {
 
   // Auth state, profile hydration, and sign-out lifecycle are managed by useAuthSession above.
 
-  // Global Google Analytics Tag Loader
+  // Global Google Analytics Initialization & Page View Tracking
   useEffect(() => {
-    // 1. Fetch Google Analytics ID strictly from environment variable
-    const gaId = (import.meta as any).env?.VITE_GA_TRACKING_ID;
-    if (!gaId || gaId.trim() === "" || gaId === "G-XXXXXXXXXX") return;
-
-    let formattedId = gaId.trim();
-    if (!formattedId.startsWith("G-") && !formattedId.startsWith("GTM-") && !formattedId.startsWith("UA-")) {
-      formattedId = "G-" + formattedId;
-    }
-
-    // 2. Prevent duplicate script insertions
-    if (document.querySelector(`script[src*="gtag/js?id=${formattedId}"]`)) return;
-
-    try {
-      // 3. Inject the Google Analytics tag script
-      const script = document.createElement("script");
-      script.async = true;
-      script.src = `https://www.googletagmanager.com/gtag/js?id=${formattedId}`;
-      script.onerror = () => {
-        console.warn("Analytics script failed to load (possibly blocked by privacy settings).");
-      };
-      document.head.appendChild(script);
-
-      // 4. Set up the datalayer and configure GA
-      (window as any).dataLayer = (window as any).dataLayer || [];
-      function gtag(...args: any[]) {
-        (window as any).dataLayer.push(args);
-      }
-      (window as any).gtag = gtag;
-
-      gtag("js", new Date());
-      gtag("config", formattedId, {
-        page_path: window.location.pathname,
-      });
-
-      console.log(`Google Analytics connection initialized.`);
-    } catch (e) {
-      console.warn("Failed to initialize Google Analytics:", e);
-    }
+    initGoogleAnalytics();
   }, []);
+
+  const lastTrackedPathRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (currentPath && lastTrackedPathRef.current !== currentPath) {
+      lastTrackedPathRef.current = currentPath;
+      trackEvent("page_view", {
+        page_path: currentPath,
+        page_title: document.title || "ThreadsWorks"
+      });
+    }
+  }, [currentPath]);
 
   const publicMarketingRoute = getPublicMarketingRoute(currentPath);
   const activeScreen = resolveAppScreen({

@@ -38,7 +38,7 @@ import FunnelConceptView from "../features/funnelworks/FunnelConceptView";
 import type { FunnelConcept } from "../features/funnelworks/FunnelConceptView";
 import { downloadSlidePng } from "../features/funnelworks/carouselExport";
 import { downloadPlaybookPdf } from "../features/funnelworks/playbookExport";
-import { downloadCarouselZip } from "../features/funnelworks/carouselZip";
+import { downloadCarouselZip, downloadCompanionPostsTxt, downloadStorefrontTxt, downloadCompleteProductWorksZip } from "../features/funnelworks/carouselZip";
 
 interface DashboardViewProps {
   profile: UserProfile | null;
@@ -82,7 +82,11 @@ export default function DashboardView({
   };
 
   const generateFunnel = async () => {
-    if (!approvedFunnelConcept || !auth.currentUser || funnelLoading) return;
+    if (!approvedFunnelConcept || funnelLoading) return;
+    if (!auth.currentUser) {
+      setFunnelError("Please sign in to generate a product package.");
+      return;
+    }
     setFunnelLoading(true);
     setFunnelError(null);
     try {
@@ -163,14 +167,15 @@ export default function DashboardView({
   const creatorAppsList = [
     {
       id: "funnelworks",
-      name: "FunnelWorks",
-      tagline: "Turn content into a product",
-      description: "Plan a carousel, playbook, social campaign, and storefront offer from one idea.",
-      category: "PRODUCT CREATION",
+      name: "ProductWorks",
+      tagline: "Turn your knowledge into digital products.",
+      description: "Create downloadable playbooks, social media carousels, promotional content, and storefront sales copy from a single idea using AI.",
+      category: "AI PRODUCT CREATION",
       badge: "New",
       icon: Layers,
       isCore: false,
-      actionType: "internal" as const
+      actionType: "internal" as const,
+      actionLabel: "Launch ProductWorks"
     },
     {
       id: "create-best-post",
@@ -253,23 +258,212 @@ export default function DashboardView({
 
   if (activeAppId === "funnelworks") {
     return (
-      <div className="space-y-5 animate-fade-in pb-8 max-w-5xl mx-auto">
-        <button type="button" onClick={() => setActiveAppId(null)} className="text-sm text-text-secondary hover:text-text-primary">← Back to Workspace</button>
-        <div className="flex flex-wrap gap-3 items-center">
-          <button type="button" onClick={loadSavedFunnels} className="rounded-lg border border-border-primary px-4 py-2 text-sm text-text-primary">Load saved funnels</button>
-          {savedFunnels.length > 0 && <select aria-label="Saved funnel projects" defaultValue="" onChange={e => { const selected = savedFunnels.find(f => f.id === e.target.value); if (selected) { setGeneratedFunnel(selected); setApprovedFunnelConcept({ source: selected.sourceTopic || "Saved funnel", audience: "Saved project", outcome: selected.storefront?.productTitle || "Saved product", title: selected.storefront?.productTitle || "Saved product", goal: selected.goal, theme: selected.theme }); } }} className="rounded-lg border border-border-primary bg-bg-card px-3 py-2 text-sm text-text-primary">
-            <option value="">Select saved funnel</option>
-            {savedFunnels.map(f => <option key={f.id} value={f.id}>{f.storefront?.productTitle || f.id}</option>)}
-          </select>}
+      <div className="space-y-6 animate-fade-in pb-12 max-w-5xl mx-auto">
+        <div className="flex items-center justify-between">
+          <button type="button" onClick={() => setActiveAppId(null)} className="text-sm text-text-secondary hover:text-text-primary">← Back to Workspace</button>
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={loadSavedFunnels} className="rounded-xl border border-border-primary bg-bg-card px-4 py-2 text-sm font-medium text-text-primary hover:bg-bg-card-hover transition cursor-pointer">Load saved products</button>
+            {savedFunnels.length > 0 && (
+              <select aria-label="Saved product projects" defaultValue="" onChange={e => { const selected = savedFunnels.find(f => f.id === e.target.value); if (selected) { setGeneratedFunnel(selected); setApprovedFunnelConcept({ source: selected.sourceTopic || "Saved product", audience: "Saved project", outcome: selected.storefront?.productTitle || "Saved product", title: selected.storefront?.productTitle || "Saved product", creatorBrand: selected.creatorBrand || "", goal: selected.goal, theme: selected.theme }); } }} className="rounded-xl border border-border-primary bg-bg-card px-3 py-2 text-sm text-text-primary">
+                <option value="">Select saved product...</option>
+                {savedFunnels.map(f => <option key={f.id} value={f.id}>{f.storefront?.productTitle || f.id}</option>)}
+              </select>
+            )}
+          </div>
         </div>
+
+        <div className="rounded-2xl border border-border-primary bg-bg-card p-5 md:p-6 shadow-sm">
+          <h2 className="text-xl font-bold text-text-primary">ProductWorks Generator</h2>
+          <p className="mt-1 text-sm text-text-secondary">Turn any post or idea into a complete, downloadable product package (carousel slides, playbook PDF, companion posts, and storefront copy kit).</p>
+        </div>
+
         <FunnelConceptView onApprove={(concept) => { setApprovedFunnelConcept(concept); setGeneratedFunnel(null); setFunnelError(null); }} disabled={funnelLoading} />
+
         {approvedFunnelConcept && (
-          <div className="rounded-xl border border-border-primary bg-bg-card p-5 space-y-2" role="status">
-            <h3 className="font-semibold text-text-primary">Product concept approved</h3>
-            <p className="text-sm text-text-secondary">{approvedFunnelConcept.title} — {approvedFunnelConcept.outcome}</p>
-            {!generatedFunnel && <button type="button" disabled={funnelLoading} onClick={generateFunnel} className="mt-3 rounded-xl bg-purple-600 px-4 py-2 text-white text-sm disabled:opacity-50">{funnelLoading ? "Generating your funnel..." : "Generate complete funnel"}</button>}
-            {funnelError && <p role="alert" className="text-sm text-red-400">{funnelError}</p>}
-            {generatedFunnel && <div className="space-y-3"><p className="text-sm text-green-400">Funnel ready. Download your carousel images and playbook.</p><button type="button" onClick={() => downloadCarouselZip(generatedFunnel).catch((err) => setFunnelError(err.message))} className="rounded-lg bg-purple-600 px-4 py-2 text-sm text-white">Download all 7 PNGs (ZIP)</button> <button type="button" onClick={() => downloadPlaybookPdf(generatedFunnel).catch((err) => setFunnelError(err.message))} className="rounded-lg bg-purple-600 px-4 py-2 text-sm text-white">Download playbook PDF</button><h4 className="font-semibold text-text-primary">{generatedFunnel.storefront?.productTitle}</h4><div className="grid gap-3 md:grid-cols-2">{(generatedFunnel.slides || []).map((slide: any, index: number) => <div key={index} className="rounded-xl border border-border-primary p-4"><p className="text-xs text-text-muted">Slide {index + 1}</p><h5 className="font-semibold text-text-primary">{slide.headline}</h5><p className="text-sm text-text-secondary">{slide.body}</p><button type="button" className="mt-3 rounded-lg border border-border-primary px-3 py-2 text-xs text-text-primary hover:bg-bg-card-hover" onClick={() => downloadSlidePng(slide, generatedFunnel.theme).catch((err) => setFunnelError(err.message))}>Download PNG</button></div>)}</div></div>}
+          <div className="rounded-2xl border border-border-primary bg-bg-card p-6 space-y-4" role="status">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-purple-400">Concept Approved</p>
+                <h3 className="text-lg font-bold text-text-primary mt-1">{approvedFunnelConcept.title}</h3>
+                <p className="text-sm text-text-secondary">{approvedFunnelConcept.outcome}</p>
+              </div>
+              {!generatedFunnel && (
+                <button type="button" disabled={funnelLoading} onClick={generateFunnel} className="rounded-xl bg-purple-600 hover:bg-purple-500 px-5 py-3 text-sm font-bold text-white shadow-lg transition disabled:opacity-50 cursor-pointer">
+                  {funnelLoading ? "Generating product package..." : "Generate Product Package"}
+                </button>
+              )}
+            </div>
+
+            {funnelLoading && (
+              <div className="flex items-center gap-3 py-6 justify-center text-purple-400">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-purple-500 border-t-transparent" />
+                <span className="text-sm font-medium">Building your slides, playbook, and storefront kit with Gemini AI...</span>
+              </div>
+            )}
+
+            {funnelError && (
+              <div role="alert" className="rounded-xl border border-red-500/30 bg-red-950/30 p-4 text-sm text-red-300">
+                ⚠️ {funnelError}
+              </div>
+            )}
+
+            {generatedFunnel && (
+              <div className="space-y-6 pt-4 border-t border-border-primary">
+                <div className="flex flex-wrap items-center justify-between gap-3 bg-purple-950/30 border border-purple-500/30 p-4 rounded-xl">
+                  <div>
+                    <h4 className="font-bold text-purple-200 text-sm">Product Package Ready for Download</h4>
+                    <p className="text-xs text-text-secondary mt-0.5">All assets below reflect your current edits. Download individually or as a complete bundle.</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button type="button" onClick={() => downloadCompleteProductWorksZip(generatedFunnel).catch((err) => setFunnelError(err.message))} className="rounded-xl bg-purple-600 hover:bg-purple-500 px-4 py-2.5 text-xs font-bold text-white shadow transition cursor-pointer">
+                      📦 Download Complete Package (ZIP)
+                    </button>
+                    <button type="button" onClick={() => downloadCarouselZip(generatedFunnel).catch((err) => setFunnelError(err.message))} className="rounded-xl border border-border-primary bg-bg-card hover:bg-bg-card-hover px-3.5 py-2.5 text-xs font-semibold text-text-primary transition cursor-pointer">
+                      🖼️ Download 7 Slides (ZIP)
+                    </button>
+                    <button type="button" onClick={() => downloadPlaybookPdf(generatedFunnel).catch((err) => setFunnelError(err.message))} className="rounded-xl border border-border-primary bg-bg-card hover:bg-bg-card-hover px-3.5 py-2.5 text-xs font-semibold text-text-primary transition cursor-pointer">
+                      📄 Download Playbook (PDF)
+                    </button>
+                    <button type="button" onClick={() => downloadCompanionPostsTxt(generatedFunnel)} className="rounded-xl border border-border-primary bg-bg-card hover:bg-bg-card-hover px-3.5 py-2.5 text-xs font-semibold text-text-primary transition cursor-pointer">
+                      💬 Companion Posts (TXT)
+                    </button>
+                    <button type="button" onClick={() => downloadStorefrontTxt(generatedFunnel)} className="rounded-xl border border-border-primary bg-bg-card hover:bg-bg-card-hover px-3.5 py-2.5 text-xs font-semibold text-text-primary transition cursor-pointer">
+                      🛍️ Storefront Copy (TXT)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Editable Carousel Slides Section */}
+                <div className="space-y-3">
+                  <h4 className="font-bold text-text-primary text-sm uppercase tracking-wider">1. Carousel Slides (Editable 7-Slide Deck)</h4>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {(generatedFunnel.slides || []).map((slide: any, index: number) => (
+                      <div key={index} className="rounded-xl border border-border-primary bg-bg-main p-4 space-y-3">
+                        <div className="flex justify-between items-center text-xs text-text-muted">
+                          <span>Slide {index + 1} ({slide.role})</span>
+                          <input value={slide.eyebrow || ""} onChange={e => {
+                            const updated = { ...generatedFunnel };
+                            updated.slides[index].eyebrow = e.target.value;
+                            setGeneratedFunnel({ ...updated });
+                          }} className="text-xs bg-bg-card border border-border-primary rounded px-2 py-1 text-text-primary w-36" placeholder="Eyebrow" />
+                        </div>
+                        <input value={slide.headline || ""} onChange={e => {
+                          const updated = { ...generatedFunnel };
+                          updated.slides[index].headline = e.target.value;
+                          setGeneratedFunnel({ ...updated });
+                        }} className="w-full font-bold text-text-primary bg-bg-card border border-border-primary rounded-lg p-2 text-sm" placeholder="Slide headline" />
+                        <textarea rows={3} value={slide.body || ""} onChange={e => {
+                          const updated = { ...generatedFunnel };
+                          updated.slides[index].body = e.target.value;
+                          setGeneratedFunnel({ ...updated });
+                        }} className="w-full text-xs text-text-secondary bg-bg-card border border-border-primary rounded-lg p-2" placeholder="Slide body" />
+                        <div className="flex justify-end">
+                          <button type="button" className="rounded-lg border border-border-primary px-3 py-1.5 text-xs text-text-primary hover:bg-bg-card-hover transition cursor-pointer" onClick={() => downloadSlidePng(slide, generatedFunnel.theme, generatedFunnel.creatorBrand).catch((err) => setFunnelError(err.message))}>
+                            Download Slide {index + 1} (PNG)
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Editable Playbook Section */}
+                <div className="space-y-3 pt-4 border-t border-border-primary">
+                  <h4 className="font-bold text-text-primary text-sm uppercase tracking-wider">2. Two-Page Playbook (PDF Content)</h4>
+                  <div className="rounded-xl border border-border-primary bg-bg-main p-4 space-y-3">
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <label className="text-xs font-medium text-text-secondary">Playbook Title
+                        <input value={generatedFunnel.playbook?.title || ""} onChange={e => {
+                          const updated = { ...generatedFunnel };
+                          updated.playbook.title = e.target.value;
+                          setGeneratedFunnel({ ...updated });
+                        }} className="w-full mt-1 rounded-lg border border-border-primary bg-bg-card p-2 text-text-primary text-sm" />
+                      </label>
+                      <label className="text-xs font-medium text-text-secondary">Playbook Subtitle
+                        <input value={generatedFunnel.playbook?.subtitle || ""} onChange={e => {
+                          const updated = { ...generatedFunnel };
+                          updated.playbook.subtitle = e.target.value;
+                          setGeneratedFunnel({ ...updated });
+                        }} className="w-full mt-1 rounded-lg border border-border-primary bg-bg-card p-2 text-text-primary text-sm" />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Editable Companion Posts Section */}
+                <div className="space-y-3 pt-4 border-t border-border-primary">
+                  <h4 className="font-bold text-text-primary text-sm uppercase tracking-wider">3. Social Companion Posts (Threads, X, LinkedIn)</h4>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <label className="text-xs font-medium text-text-secondary">Threads Post
+                      <textarea rows={4} value={generatedFunnel.companionPosts?.threads || ""} onChange={e => {
+                        const updated = { ...generatedFunnel };
+                        updated.companionPosts.threads = e.target.value;
+                        setGeneratedFunnel({ ...updated });
+                      }} className="w-full mt-1 rounded-xl border border-border-primary bg-bg-main p-3 text-text-primary text-xs" />
+                    </label>
+                    <label className="text-xs font-medium text-text-secondary">X (Twitter) Post
+                      <textarea rows={4} value={generatedFunnel.companionPosts?.x || ""} onChange={e => {
+                        const updated = { ...generatedFunnel };
+                        updated.companionPosts.x = e.target.value;
+                        setGeneratedFunnel({ ...updated });
+                      }} className="w-full mt-1 rounded-xl border border-border-primary bg-bg-main p-3 text-text-primary text-xs" />
+                    </label>
+                    <label className="text-xs font-medium text-text-secondary">LinkedIn Post
+                      <textarea rows={4} value={generatedFunnel.companionPosts?.linkedin || ""} onChange={e => {
+                        const updated = { ...generatedFunnel };
+                        updated.companionPosts.linkedin = e.target.value;
+                        setGeneratedFunnel({ ...updated });
+                      }} className="w-full mt-1 rounded-xl border border-border-primary bg-bg-main p-3 text-text-primary text-xs" />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Editable Storefront Kit Section */}
+                <div className="space-y-3 pt-4 border-t border-border-primary">
+                  <h4 className="font-bold text-text-primary text-sm uppercase tracking-wider">4. Storefront Kit & Landing Copy</h4>
+                  <div className="rounded-xl border border-border-primary bg-bg-main p-4 space-y-3">
+                    <div className="grid gap-3 md:grid-cols-3">
+                      <label className="text-xs font-medium text-text-secondary">Product Title
+                        <input value={generatedFunnel.storefront?.productTitle || ""} onChange={e => {
+                          const updated = { ...generatedFunnel };
+                          updated.storefront.productTitle = e.target.value;
+                          setGeneratedFunnel({ ...updated });
+                        }} className="w-full mt-1 rounded-lg border border-border-primary bg-bg-card p-2 text-text-primary text-sm" />
+                      </label>
+                      <label className="text-xs font-medium text-text-secondary">Suggested Price (Suggestion)
+                        <input value={generatedFunnel.storefront?.suggestedPrice || ""} onChange={e => {
+                          const updated = { ...generatedFunnel };
+                          updated.storefront.suggestedPrice = e.target.value;
+                          setGeneratedFunnel({ ...updated });
+                        }} className="w-full mt-1 rounded-lg border border-border-primary bg-bg-card p-2 text-text-primary text-sm" placeholder="e.g. $29" />
+                      </label>
+                      <label className="text-xs font-medium text-text-secondary">CTA Keyword
+                        <input value={generatedFunnel.storefront?.ctaKeyword || ""} onChange={e => {
+                          const updated = { ...generatedFunnel };
+                          updated.storefront.ctaKeyword = e.target.value;
+                          setGeneratedFunnel({ ...updated });
+                        }} className="w-full mt-1 rounded-lg border border-border-primary bg-bg-card p-2 text-text-primary text-sm" placeholder="e.g. START" />
+                      </label>
+                    </div>
+                    <label className="block text-xs font-medium text-text-secondary">Checkout Description
+                      <textarea rows={2} value={generatedFunnel.storefront?.checkoutDescription || ""} onChange={e => {
+                        const updated = { ...generatedFunnel };
+                        updated.storefront.checkoutDescription = e.target.value;
+                        setGeneratedFunnel({ ...updated });
+                      }} className="w-full mt-1 rounded-lg border border-border-primary bg-bg-card p-2 text-text-primary text-xs" />
+                    </label>
+                    <label className="block text-xs font-medium text-text-secondary">Optional Add-On / Order Bump Copy
+                      <input value={generatedFunnel.storefront?.orderBumpPitch || ""} onChange={e => {
+                        const updated = { ...generatedFunnel };
+                        updated.storefront.orderBumpPitch = e.target.value;
+                        setGeneratedFunnel({ ...updated });
+                      }} className="w-full mt-1 rounded-lg border border-border-primary bg-bg-card p-2 text-text-primary text-xs" placeholder="e.g. Add the VIP Masterclass for $19" />
+                    </label>
+                  </div>
+                </div>
+
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -439,7 +633,7 @@ export default function DashboardView({
                 </div>
 
                 <div className="pt-4 mt-4 border-t border-border-secondary dark:border-zinc-900 flex items-center justify-between text-xs font-bold text-brand-text-strong">
-                  <span>{isCore ? `Open ${app.name}` : "Launch App"}</span>
+                  <span>{app.actionLabel || (isCore ? `Open ${app.name}` : "Launch App")}</span>
                   <ArrowRight className="h-4 w-4 transform group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>

@@ -6,6 +6,7 @@ export interface FunnelConcept {
   audience: string;
   outcome: string;
   title: string;
+  creatorBrand?: string;
   goal: FunnelGoal;
   theme: FunnelThemeId;
 }
@@ -17,25 +18,25 @@ interface Props {
 }
 
 /**
- * FunnelWorks stage 1: a local, editable concept review.
- * No AI requests or free-generation credits are consumed here.
+ * ProductWorks concept review stage.
  */
 export default function FunnelConceptView({ initialSource = "", onApprove, disabled = false }: Props) {
   const [source, setSource] = useState(initialSource);
   const [audience, setAudience] = useState("");
   const [outcome, setOutcome] = useState("");
   const [title, setTitle] = useState("");
+  const [creatorBrand, setCreatorBrand] = useState("");
   const [goal, setGoal] = useState<FunnelGoal>("impulse_product");
   const [theme, setTheme] = useState<FunnelThemeId>("editorial_dark");
 
   const ready = source.trim().length >= 10 && audience.trim().length > 0 && outcome.trim().length > 0 && title.trim().length > 0;
 
   return (
-    <section aria-labelledby="funnelworks-heading" className="rounded-2xl border border-border-primary bg-bg-card p-5 md:p-8 space-y-5">
+    <section aria-labelledby="productworks-heading" className="rounded-2xl border border-border-primary bg-bg-card p-5 md:p-8 space-y-5">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">Workspace / FunnelWorks</p>
-        <h2 id="funnelworks-heading" className="mt-2 text-2xl font-bold text-text-primary">Turn one idea into a product</h2>
-        <p className="mt-2 text-sm text-text-secondary">Define the product first. Reviewing your concept does not use your free generation.</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">Workspace / ProductWorks</p>
+        <h2 id="productworks-heading" className="mt-2 text-2xl font-bold text-text-primary">Create digital products from a single idea.</h2>
+        <p className="mt-2 text-sm text-text-secondary">Transform your knowledge, ideas, or existing social media content into a coordinated, downloadable digital product package with AI. Review and refine your product concept before generating. Concept reviews do not consume generation credits.</p>
       </div>
       <label className="block space-y-2 text-sm font-medium text-text-primary">
         Your idea or existing post
@@ -43,16 +44,21 @@ export default function FunnelConceptView({ initialSource = "", onApprove, disab
         <span className="block text-xs text-text-muted">{source.length}/4000 characters</span>
       </label>
       <div className="grid gap-4 md:grid-cols-2">
-        <label className="space-y-2 text-sm font-medium text-text-primary">Who is this for?
-          <input value={audience} maxLength={120} onChange={e => setAudience(e.target.value)} placeholder="e.g. creators launching their first product" className="w-full rounded-xl border border-border-primary bg-bg-main p-3 text-text-primary" />
+        <label className="space-y-2 text-sm font-medium text-text-primary">Who is this for? (Audience)
+          <input value={audience} maxLength={120} onChange={e => setAudience(e.target.value)} placeholder="e.g. creators launching their first digital product" className="w-full rounded-xl border border-border-primary bg-bg-main p-3 text-text-primary" />
         </label>
-        <label className="space-y-2 text-sm font-medium text-text-primary">What result will they achieve?
-          <input value={outcome} maxLength={180} onChange={e => setOutcome(e.target.value)} placeholder="e.g. outline and launch a simple digital guide" className="w-full rounded-xl border border-border-primary bg-bg-main p-3 text-text-primary" />
+        <label className="space-y-2 text-sm font-medium text-text-primary">What result will they achieve? (Outcome)
+          <input value={outcome} maxLength={180} onChange={e => setOutcome(e.target.value)} placeholder="e.g. outline and launch a 7-day starter guide" className="w-full rounded-xl border border-border-primary bg-bg-main p-3 text-text-primary" />
         </label>
       </div>
-      <label className="block space-y-2 text-sm font-medium text-text-primary">Product title
-        <input value={title} maxLength={80} onChange={e => setTitle(e.target.value)} placeholder="e.g. The First Product Playbook" className="w-full rounded-xl border border-border-primary bg-bg-main p-3 text-text-primary" />
-      </label>
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="space-y-2 text-sm font-medium text-text-primary">Product title
+          <input value={title} maxLength={80} onChange={e => setTitle(e.target.value)} placeholder="e.g. The First Product Playbook" className="w-full rounded-xl border border-border-primary bg-bg-main p-3 text-text-primary" />
+        </label>
+        <label className="space-y-2 text-sm font-medium text-text-primary">Optional creator / brand name
+          <input value={creatorBrand} maxLength={60} onChange={e => setCreatorBrand(e.target.value)} placeholder="e.g. Douglas Henke" className="w-full rounded-xl border border-border-primary bg-bg-main p-3 text-text-primary" />
+        </label>
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         <label className="space-y-2 text-sm font-medium text-text-primary">Product goal
           <select value={goal} onChange={e => setGoal(e.target.value as FunnelGoal)} className="w-full rounded-xl border border-border-primary bg-bg-main p-3 text-text-primary">
@@ -65,7 +71,7 @@ export default function FunnelConceptView({ initialSource = "", onApprove, disab
           </select>
         </label>
       </div>
-      <button type="button" disabled={disabled || !ready} onClick={() => onApprove({ source: source.trim(), audience: audience.trim(), outcome: outcome.trim(), title: title.trim(), goal, theme })} className="rounded-xl bg-purple-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-40">
+      <button type="button" disabled={disabled || !ready} onClick={() => onApprove({ source: source.trim(), audience: audience.trim(), outcome: outcome.trim(), title: title.trim(), creatorBrand: creatorBrand.trim() || undefined, goal, theme })} className="rounded-xl bg-purple-600 px-5 py-3 text-sm font-semibold text-white disabled:opacity-40 cursor-pointer">
         Approve concept and continue
       </button>
     </section>
