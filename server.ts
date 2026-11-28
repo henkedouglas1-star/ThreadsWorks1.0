@@ -1,6 +1,7 @@
+import { MAX_CONTENT_BATCH_SIZE, DEFAULT_CONTENT_BATCH_SIZE, CONTENT_BATCH_TARGET_MS } from "./contentBatchConfig";
 import { computeAdaptiveChunkSize, createUniversalGenerationContract, validateUniversalBatch, buildGenerationBatchDiagnostics, logGenerationBatchDiagnostics, resolveBatchRequest, normalizeBatchPosts, writeValidatedChunk, validateSingleDraft, checkUnsupportedClaims, executeValidatedSingleWrite, sendPipelineErrorResponse, GenerationPipelineError, classifyProviderOrNetworkError, FailedDraftInfo } from "./server/contentBatchContract";
 import { buildGatedWriteContext, resolveWritingLengthPlan, resolveEffectivePostCount, extractExplicitPostCount } from "./server/writeContextGate";
-import { planEightPostAiDecideParts, buildRollingLedger, planBatchSlots, buildCompactExclusionSummary, detectFormulaicOpener, checkDraftNovelty } from "./server/writeDiversityEngine";
+import { planSmallBatchAiDecideParts, buildRollingLedger, planBatchSlots, buildCompactExclusionSummary, detectFormulaicOpener, checkDraftNovelty } from "./server/writeDiversityEngine";
 import { composeBatchWriterSystemInstruction, composeReviewerSystemInstruction, composeSingleWriteSystemInstruction } from "./server/writePromptComposer";
 import { THREADSWORKS_MODELS } from "./server/aiCostOptimizationEngine";
 import {
@@ -5691,7 +5692,7 @@ app.post("/api/generate-posts-batch", async (req, res) => {
 
     // Request and creator background are separate inputs, never interchangeable.
     const contentRequest = resolveBatchRequest(body);
-    const postCount = resolveEffectivePostCount(body, contentRequest, 5);
+    const postCount = Math.min(MAX_CONTENT_BATCH_SIZE, resolveEffectivePostCount(body, contentRequest, DEFAULT_CONTENT_BATCH_SIZE));
     const gated = buildGatedWriteContext(resolvedContext, body, contentRequest);
     const writingPlan = gated.writingPlan;
     const characterLimit = gated.directives.characterLimit;
@@ -5715,8 +5716,8 @@ app.post("/api/generate-posts-batch", async (req, res) => {
       writingPlan,
       randomSeed: body.randomSeed
     });
-    const slotPlan = postCount === 8 && partCount == null
-      ? planEightPostAiDecideParts(initialSlotPlan, writingPlan, { randomSeed: body.randomSeed })
+    const slotPlan = partCount == null
+      ? planSmallBatchAiDecideParts(initialSlotPlan, writingPlan)
       : initialSlotPlan;
 
     const ai = getAI();
@@ -5885,7 +5886,7 @@ app.post("/api/generate-posts-batch", async (req, res) => {
     // Four writers is an opt-in benchmark profile, not a production default.
     const writerConcurrency = parallelEnabled ? (process.env.CONTENT_BATCH_FAST_PROFILE === "true" ? 4 : 2) : 1;
     timings.writerConcurrency = writerConcurrency;
-    timings.targetMs = 20000;
+    timings.targetMs = CONTENT_BATCH_TARGET_MS;
     const generateRawChunk = async (slotNumbers: number[], expected: number, chunkPlannedParts: number, priorDrafts: any[], schemaRetryFeedback?: string) => {
           ensureTime();
           const tGen = Date.now();
