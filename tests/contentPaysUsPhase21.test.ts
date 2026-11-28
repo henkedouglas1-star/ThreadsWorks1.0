@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert";
+import { readFileSync } from "node:fs";
 import { adaptProfileToIdentity } from "../src/types/creatorIdentity";
 import {
   CONTENT_PAYS_US_ACADEMY,
@@ -50,7 +51,8 @@ test("ContentPaysUs Ecosystem Registry & Foundation Hardening Tests", () => {
 
   assert.strictEqual(threadsWorks?.availability, "Available");
   assert.strictEqual(threadsWorks?.externalLink, "/create");
-  assert.strictEqual(productWorks?.availability, "Available");
+  // Keep public claims conservative until live ProductWorks readiness is verified.
+  assert.strictEqual(productWorks?.availability, "In Development");
   assert.strictEqual(productWorks?.externalLink, "/productworks");
   // External-provider apps must remain honestly classified as In Development
   assert.strictEqual(meetingWorks?.availability, "In Development");
@@ -88,4 +90,17 @@ test("ContentPaysUs Ecosystem Registry & Foundation Hardening Tests", () => {
   assert.ok(validProject.name.length > 0 && validProject.name.length <= 100);
   assert.ok(validProject.objective.length <= 200);
   assert.ok(["active", "archived", "completed"].includes(validProject.status));
+});
+
+
+test("Public homepage uses registry-backed ProductWorks status and ThreadsWorks-first hero", () => {
+  const home = readFileSync(new URL("../src/components/contentpaysus/ContentPaysUsHome.tsx", import.meta.url), "utf8");
+  assert.match(home, /const productWorksAvailability = CONTENT_PAYS_US_APPS\.find/);
+  assert.match(home, /destinationLabel: "ProductWorks",\s*path: "\/productworks",\s*availability: productWorksAvailability/);
+  assert.match(home, /ProductWorks \(\$\{productWorksAvailability\}\)/);
+  assert.match(home, /\{productWorksAvailability\}\s*<\/span>\s*<\/div>\s*<h3[^>]*>ProductWorks/);
+  assert.doesNotMatch(home, /ProductWorks:<\/strong> Available|ProductWorks \(Available\)/);
+  assert.match(home, /<h1[^>]*>\s*Turn your ideas into Threads content\./);
+  assert.match(home, /id="hero-get-started-cta"/);
+  assert.match(home, /onClick=\{handlePrimaryCta\}/);
 });
